@@ -1,4 +1,4 @@
-package org.apache.samza.coordinator;
+package org.apache.samza.clustermanager;
 
 import org.apache.samza.job.model.JobModel;
 

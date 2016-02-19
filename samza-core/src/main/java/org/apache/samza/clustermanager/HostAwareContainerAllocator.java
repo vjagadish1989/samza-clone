@@ -16,11 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.samza.coordinator;
+package org.apache.samza.clustermanager;
 
-import org.apache.samza.config.YarnConfig;
+import org.apache.samza.config.Config;
 import org.apache.samza.job.CommandBuilder;
-import org.apache.samza.job.yarn.SamzaContainerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,7 @@ import java.util.List;
 /**
  * This is the allocator thread that will be used by SamzaTaskManager when host-affinity is enabled for a job. It is similar to {@link ContainerAllocator}, except that it considers container locality for allocation.
  *
- * In case of host-affinity, each container request ({@link SamzaContainerRequest} encapsulates the identifier of the container to be run and a "preferredHost". preferredHost is determined by the locality mappings in the coordinator stream.
+ * In case of host-affinity, each container request ({@link SamzaResourceRequest} encapsulates the identifier of the container to be run and a "preferredHost". preferredHost is determined by the locality mappings in the coordinator stream.
  * This thread periodically wakes up and makes the best-effort to assign a container to the preferredHost. If the preferredHost is not returned by the RM before the corresponding container expires, the thread assigns the container to any other host that is allocated next.
  * The container expiry is determined by CONTAINER_REQUEST_TIMEOUT and is configurable on a per-job basis.
  *
@@ -41,9 +40,9 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
   private final int CONTAINER_REQUEST_TIMEOUT;
 
   public HostAwareContainerAllocator(ContainerProcessManager manager ,
-                                     YarnConfig yarnConfig, SamzaAppState state) {
-    super(manager, new ContainerRequestState(true, manager), yarnConfig, state);
-    this.CONTAINER_REQUEST_TIMEOUT = yarnConfig.getContainerRequestTimeout();
+                                     int timeout, Config config, SamzaAppState state) {
+    super(manager, new ContainerRequestState(true, manager), config, state);
+    this.CONTAINER_REQUEST_TIMEOUT = timeout;
   }
 
   /**

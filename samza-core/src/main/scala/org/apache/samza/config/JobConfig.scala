@@ -43,6 +43,23 @@ object JobConfig {
   val JOB_REPLICATION_FACTOR = "job.coordinator.replication.factor"
   val JOB_SEGMENT_BYTES = "job.coordinator.segment.bytes"
   val SSP_GROUPER_FACTORY = "job.systemstreampartition.grouper.factory"
+  val ALLOCATOR_SLEEP_MS = "job.allocator.sleep.ms"
+  val DEFAULT_ALLOCATOR_SLEEP_MS = 3600
+  val NUM_CPU_CORES = "job.container.cpu.cores"
+  val DEFAULT_NUM_CORES = 1
+  val CONTAINER_MEMORY_MB = "job.container.memory.mb"
+  val DEFAULT_CONTAINER_MEMORY_MB = 1024
+  val HOST_AFFINITY_ENABLED = "job.host-affinity.enabled"
+  val HOST_AFFINITY_ENABLED_DEFAULT = false
+  val CONTAINER_REQUEST_TIMEOUT_MS = "job.container.request.timeout.ms";
+  val DEFAULT_CONTAINER_REQUEST_TIMEOUT_MS = 5000;
+  val CONTAINER_RETRY_WINDOW_MS = "job.container.retry.window.ms";
+  val DEFAULT_CONTAINER_RETRY_WINDOW_MS = 300000;
+  val CONTAINER_RETRY_COUNT = "job.container.retry.count"
+  val DEFAULT_CONTAINER_RETRY_COUNT = 8
+
+
+
 
   implicit def Config2Job(config: Config) = new JobConfig(config)
 }
@@ -67,6 +84,105 @@ class JobConfig(config: Config) extends ScalaMapConfig(config) with Logging {
         }
     }
   }
+
+  def getAllocatorSleepTime = {
+    getOption(JobConfig.ALLOCATOR_SLEEP_MS) match {
+      case Some(sleepTime) => sleepTime.toInt
+      case _ =>
+        getOption("yarn.allocator.sleep.ms")  match {
+          case Some(yarnSleepTime) =>
+            warn("Configuration yarn.container.sleep.ms is deprecated. Please use %s." format JobConfig.ALLOCATOR_SLEEP_MS)
+            yarnSleepTime.toInt
+          case _ =>
+            JobConfig.DEFAULT_ALLOCATOR_SLEEP_MS
+        }
+    }
+  }
+
+  def getNumCores = {
+    getOption(JobConfig.NUM_CPU_CORES) match {
+      case Some(cpuCores) => cpuCores.toInt
+      case _ =>
+        getOption("yarn.container.cpu.cores")  match {
+          case Some(yarnCpuCores) =>
+            warn("Configuration yarn.container.cpu.cores is deprecated. Please use %s." format JobConfig.NUM_CPU_CORES)
+            yarnCpuCores.toInt
+          case _ =>
+            JobConfig.DEFAULT_NUM_CORES
+        }
+    }
+  }
+
+  def getContainerMemoryMb = {
+    getOption(JobConfig.CONTAINER_MEMORY_MB) match {
+      case Some(memoryMb) => memoryMb.toInt
+      case _ =>
+        getOption("yarn.container.memory.mb")  match {
+          case Some(yarnContainerMemoryMb) =>
+            warn("Configuration yarn.container.memory.mb is deprecated. Please use %s." format JobConfig.CONTAINER_MEMORY_MB)
+            yarnContainerMemoryMb.toInt
+          case _ =>
+            JobConfig.DEFAULT_CONTAINER_MEMORY_MB
+        }
+    }
+  }
+
+  def getHostAffinityEnabled = {
+    getOption(JobConfig.HOST_AFFINITY_ENABLED) match {
+      case Some(hostAffinityEnabled) => hostAffinityEnabled.toBoolean
+      case _ =>
+        getOption("yarn.samza.host-affinity.enabled")  match {
+          case Some(yarnHostAffinityEnabled) =>
+            warn("Configuration yarn.samza.host-affinity.enabled is deprecated. Please use %s." format JobConfig.HOST_AFFINITY_ENABLED)
+            yarnHostAffinityEnabled.toBoolean
+          case _ =>
+            JobConfig.HOST_AFFINITY_ENABLED_DEFAULT
+        }
+    }
+  }
+
+  def getContainerRequestTimeout = {
+    getOption(JobConfig.CONTAINER_REQUEST_TIMEOUT_MS) match {
+      case Some(requestTimeout) => requestTimeout.toInt
+      case _ =>
+        getOption("yarn.container.request.timeout.ms")  match {
+          case Some(yarnRequestTimeout) =>
+            warn("Configuration yarn.container.request.timeout.ms is deprecated. Please use %s." format JobConfig.CONTAINER_REQUEST_TIMEOUT_MS)
+            yarnRequestTimeout.toInt
+          case _ =>
+            JobConfig.DEFAULT_CONTAINER_REQUEST_TIMEOUT_MS
+        }
+    }
+  }
+
+  def getContainerRetryCount: Int = {
+    getOption(JobConfig.CONTAINER_RETRY_COUNT) match {
+      case Some(retryCount) => retryCount.toInt
+      case _ =>
+        getOption("yarn.container.retry.count")  match {
+          case Some(yarnRetryCount) =>
+            warn("Configuration yarn.container.retry.count is deprecated. Please use %s." format JobConfig.CONTAINER_RETRY_COUNT)
+            yarnRetryCount.toInt
+          case _ =>
+            JobConfig.DEFAULT_CONTAINER_RETRY_COUNT
+        }
+    }
+  }
+
+  def getContainerRetryWindowMs: Int = {
+    getOption(JobConfig.CONTAINER_RETRY_WINDOW_MS) match {
+      case Some(retryWindowMs) => retryWindowMs.toInt
+      case _ =>
+        getOption("yarn.container.retry.window.ms")  match {
+          case Some(yarnRetryWindowMs) =>
+            warn("Configuration yarn.retry.window.ms is deprecated. Please use %s." format JobConfig.CONTAINER_RETRY_WINDOW_MS)
+            yarnRetryWindowMs.toInt
+          case _ =>
+            JobConfig.DEFAULT_CONTAINER_RETRY_WINDOW_MS
+        }
+    }
+  }
+
 
   def getStreamJobFactoryClass = getOption(JobConfig.STREAM_JOB_FACTORY_CLASS)
 
@@ -102,4 +218,5 @@ class JobConfig(config: Config) extends ScalaMapConfig(config) with Logging {
         case _ => "26214400"
       }
   }
+
 }

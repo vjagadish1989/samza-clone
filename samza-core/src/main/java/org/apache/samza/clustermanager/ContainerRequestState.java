@@ -16,9 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.samza.coordinator;
+package org.apache.samza.clustermanager;
 
-import org.apache.samza.job.yarn.SamzaContainerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +43,7 @@ public class ContainerRequestState {
    */
   private final ConcurrentHashMap<String, List<SamzaResource>> allocatedContainers = new ConcurrentHashMap<String, List<SamzaResource>>();
   /**
-   * Represents the queue of container requests made by the {@link org.apache.samza.job.yarn.SamzaTaskManager}
+   * Represents the queue of container requests made by the {@link org.apache.samza.clustermanager.SamzaTaskManager}
    */
   private final PriorityBlockingQueue<SamzaResourceRequest> requestsQueue = new PriorityBlockingQueue<SamzaResourceRequest>();
   /**
@@ -69,11 +68,11 @@ public class ContainerRequestState {
   }
 
   /**
-   * This method is called every time {@link org.apache.samza.coordinator.SamzaTaskManager} requestsQueue for a container
-   * Adds {@link SamzaContainerRequest} to the requestsQueue queue.
+   * This method is called every time {@link SamzaTaskManager} requestsQueue for a container
+   * Adds {@link SamzaResourceRequest} to the requestsQueue queue.
    * If host-affinity is enabled, it updates the requestsToCountMap as well.
    *
-   * @param requests {@link SamzaContainerRequest} that was sent to the RM
+   * @param requests {@link SamzaResourceRequest} that was sent to the RM
    */
   public synchronized void addResourceRequest(List<SamzaResourceRequest> requests) {
 
@@ -182,7 +181,7 @@ public class ContainerRequestState {
    * This method updates the state after a request is fulfilled and a container starts running on a host
    * Needs to be synchronized because the state buffers are populated by the AMRMCallbackHandler, whereas it is drained by the allocator thread
    *
-   * @param request {@link SamzaContainerRequest} that was fulfilled
+   * @param request {@link SamzaResourceRequest} that was fulfilled
    * @param assignedHost  Host to which the container was assigned
    * @param container Allocated container resource that was used to satisfy this request
    */

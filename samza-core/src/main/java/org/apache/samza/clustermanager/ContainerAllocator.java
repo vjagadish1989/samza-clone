@@ -16,10 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.samza.coordinator;
+package org.apache.samza.clustermanager;
 
 import org.apache.samza.config.Config;
-import org.apache.samza.config.TaskConfig;
 import org.apache.samza.config.YarnConfig;
 import org.apache.samza.job.CommandBuilder;
 import org.apache.samza.job.yarn.*;

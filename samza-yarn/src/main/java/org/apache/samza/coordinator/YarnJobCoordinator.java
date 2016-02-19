@@ -1,12 +1,11 @@
 package org.apache.samza.coordinator;
 
+import org.apache.samza.clustermanager.*;
 import org.apache.samza.config.Config;
 import org.apache.samza.config.MapConfig;
 import org.apache.samza.config.ShellCommandConfig;
 import org.apache.samza.config.YarnConfig;
 import org.apache.samza.job.coordinator.SamzaAppMasterMetrics;
-import org.apache.samza.job.model.JobModel;
-import org.apache.samza.metrics.MetricsRegistry;
 import org.apache.samza.metrics.MetricsRegistryMap;
 import org.apache.samza.serializers.model.SamzaObjectMapper;
 import org.slf4j.Logger;

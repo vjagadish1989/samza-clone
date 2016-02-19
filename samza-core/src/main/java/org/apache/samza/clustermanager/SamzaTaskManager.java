@@ -16,16 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
- package org.apache.samza.coordinator;
+ package org.apache.samza.clustermanager;
 
 import org.apache.samza.config.Config;
 import org.apache.samza.config.JobConfig;
-import org.apache.samza.config.YarnConfig;
 import org.apache.samza.coordinator.stream.messages.SetContainerHostMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,11 +36,11 @@ import java.util.Map;
  *  - The main thread (defined in SamzaAppMaster) that drive the AM to send out container requests to RM
  *  - The callback handler thread that receives the responses from RM and handles:
  *      - Populating a buffer when a container is allocated by the RM
- *        (allocatedContainers in {@link org.apache.samza.job.yarn.ContainerRequestState}
+ *        (allocatedContainers in {@link org.apache.samza.clustermanager.ContainerRequestState}
  *      - Identifying the cause of container failure & re-request containers from RM by adding request to the
- *        internal requestQueue in {@link org.apache.samza.job.yarn.ContainerRequestState}
+ *        internal requestQueue in {@link org.apache.samza.clustermanager.ContainerRequestState}
  *  - The allocator thread defined here assigns the allocated containers to pending requests
- *    (See {@link org.apache.samza.job.yarn.ContainerAllocator} or {@link org.apache.samza.job.yarn.HostAwareContainerAllocator})
+ *    (See {@link org.apache.samza.clustermanager.ContainerAllocator} or {@link org.apache.samza.clustermanager.HostAwareContainerAllocator})
  */
 
 class SamzaTaskManager implements JobCoordinatorListener {
@@ -54,7 +52,6 @@ class SamzaTaskManager implements JobCoordinatorListener {
 
     // Derived configs
     private final JobConfig jobConfig;
-    private final YarnConfig yarnConfig;
 
     private final AbstractContainerAllocator containerAllocator;
     private final Thread allocatorThread;
@@ -71,21 +68,21 @@ class SamzaTaskManager implements JobCoordinatorListener {
                             ) {
         this.state = state;
         this.jobConfig = new JobConfig(config);
-        this.yarnConfig = new YarnConfig(config);
         this.manager=manager;
 
-        this.hostAffinityEnabled = yarnConfig.getHostAffinityEnabled();
+        this.hostAffinityEnabled = jobConfig.getHostAffinityEnabled();
 
         if (this.hostAffinityEnabled) {
             this.containerAllocator = new HostAwareContainerAllocator(
                     manager,
-                    yarnConfig,
+                    jobConfig.getContainerRequestTimeout(),
+                    config,
                     state
             );
         } else {
             this.containerAllocator = new ContainerAllocator(
                     manager,
-                    yarnConfig,
+                    config,
                     state);
         }
 
@@ -215,8 +212,8 @@ class SamzaTaskManager implements JobCoordinatorListener {
                     // 0, the app master will fail on any container failure. If the
                     // retry count is set to a number < 0, a container failure will
                     // never trigger an app master failure.
-                    int retryCount = yarnConfig.getContainerRetryCount();
-                    int retryWindowMs = yarnConfig.getContainerRetryWindowMs();
+                    int retryCount = jobConfig.getContainerRetryCount();
+                    int retryWindowMs = jobConfig.getContainerRetryWindowMs();
 
                     if (retryCount == 0) {
                         log.error("Container ID {} ({}) failed, and retry count is set to 0, so shutting down the application master, and marking the job as failed.", containerId, containerIdStr);

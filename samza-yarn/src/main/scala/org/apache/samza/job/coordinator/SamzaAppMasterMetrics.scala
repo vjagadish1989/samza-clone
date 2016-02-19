@@ -20,9 +20,10 @@
 package org.apache.samza.job.coordinator
 
 import org.apache.samza.SamzaException
+import org.apache.samza.clustermanager.SamzaAppState
 import org.apache.samza.config.Config
 import org.apache.samza.config.MetricsConfig.Config2Metrics
-import org.apache.samza.coordinator.{SamzaAppState, JobCoordinatorListener}
+import org.apache.samza.coordinator.SamzaAppState
 import org.apache.samza.metrics.{JvmMetrics, MetricsHelper, MetricsReporterFactory, ReadableMetricsRegistry}
 import org.apache.samza.util.{Logging, Util}
 

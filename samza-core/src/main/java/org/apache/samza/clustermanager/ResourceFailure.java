@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.samza.coordinator;
+package org.apache.samza.clustermanager;
 
 /**
  * Class that encapsulates information related to a container failure

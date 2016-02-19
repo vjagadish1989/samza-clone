@@ -16,11 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.samza.coordinator;
+package org.apache.samza.clustermanager;
 
 import org.apache.samza.config.Config;
+import org.apache.samza.config.JobConfig;
 import org.apache.samza.config.TaskConfig;
-import org.apache.samza.config.YarnConfig;
 import org.apache.samza.job.CommandBuilder;
 import org.apache.samza.job.ShellCommandBuilder;
 import org.apache.samza.util.Util;
@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * This class is responsible for making requests for containers to the AM and also, assigning a container to run on an allocated resource.
  *
  * Since we are using a simple thread based allocation of a container to an allocated resource, the subclasses should implement {@link Runnable} interface.
- * The allocator thread follows the lifecycle of the {@link org.apache.samza.coordinator.SamzaTaskManager}. Depending on whether host-affinity is enabled or not, the allocation model varies.
+ * The allocator thread follows the lifecycle of the {@link SamzaTaskManager}. Depending on whether host-affinity is enabled or not, the allocation model varies.
  *
  * See {@link ContainerAllocator} and {@link HostAwareContainerAllocator}
  */
@@ -62,14 +62,13 @@ public abstract class AbstractContainerAllocator implements Runnable {
   public AbstractContainerAllocator(ContainerProcessManager amClient,
                                     ContainerRequestState containerRequestState,
                                     Config config, SamzaAppState state) {
+    JobConfig jobConfig = new JobConfig(config);
     this.amClient = amClient;
-    YarnConfig yarnConfig = new YarnConfig(config);
-    this.ALLOCATOR_SLEEP_TIME = yarnConfig.getAllocatorSleepTime();
+    this.ALLOCATOR_SLEEP_TIME = jobConfig.getAllocatorSleepTime();
     this.containerRequestState = containerRequestState;
-    this.containerMaxMemoryMb = yarnConfig.getContainerMaxMemoryMb();
-    this.containerMaxCpuCore = yarnConfig.getContainerMaxCpuCores();
+    this.containerMaxMemoryMb = jobConfig.getContainerMemoryMb();
+    this.containerMaxCpuCore = jobConfig.getNumCores();
     this.taskConfig = new TaskConfig(config);
-    this.config = config;
     this.state = state;
   }
 

@@ -17,15 +17,15 @@
  * under the License.
  */
 
-package org.apache.samza.coordinator;
+package org.apache.samza.clustermanager;
 
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
+import org.apache.samza.coordinator.JobCoordinator;
 import org.apache.samza.job.yarn.YarnContainer;
 
-import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;

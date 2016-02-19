@@ -1,4 +1,4 @@
-package org.apache.samza.coordinator;
+package org.apache.samza.clustermanager;
 
 import org.apache.samza.config.Config;
 import org.apache.samza.container.SamzaContainer;

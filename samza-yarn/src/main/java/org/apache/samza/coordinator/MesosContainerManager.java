@@ -1,10 +1,13 @@
 package org.apache.samza.coordinator;
 
-import org.apache.hadoop.yarn.util.resource.Resources;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.samza.clustermanager.ContainerProcessManager;
+import org.apache.samza.clustermanager.ContainerProcessManagerCallback;
+import org.apache.samza.clustermanager.SamzaResource;
+import org.apache.samza.clustermanager.SamzaResourceRequest;
 import org.apache.samza.job.CommandBuilder;
 
 import java.util.*;
@@ -12,7 +15,7 @@ import java.util.*;
 /**
  * Created by jvenkatr on 2/5/16.
  */
-public class MesosContainerManager implements  ContainerProcessManager, Scheduler {
+public class MesosContainerManager implements ContainerProcessManager, Scheduler {
 
     MesosSchedulerDriver driver;
     Map<SamzaResource, Protos.Offer> offerMap = new HashMap<SamzaResource, Protos.Offer>();

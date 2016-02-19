@@ -1,4 +1,4 @@
-package org.apache.samza.coordinator;
+package org.apache.samza.clustermanager;
 
 /**
  * Created by jvenkatr on 2/15/16.
