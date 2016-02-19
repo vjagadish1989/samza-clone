@@ -120,6 +120,7 @@ object SamzaContainer extends Logging {
     val containerName = "samza-container-%s" format containerId
     val containerPID = Util.getContainerPID
 
+    info("BOO BAR BOO BAR BOO BAR!!");
     info("Setting up Samza container: %s" format containerName)
     info("Samza container PID: %s" format containerPID)
     info("Using configuration: %s" format config)
