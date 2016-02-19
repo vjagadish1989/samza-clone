@@ -43,7 +43,7 @@ import java.util.Map;
  *    (See {@link org.apache.samza.clustermanager.ContainerAllocator} or {@link org.apache.samza.clustermanager.HostAwareContainerAllocator})
  */
 
-class SamzaTaskManager implements JobCoordinatorListener {
+public class SamzaTaskManager implements JobCoordinatorListener {
     private static final Logger log = LoggerFactory.getLogger(SamzaTaskManager.class);
 
     private final boolean hostAffinityEnabled;

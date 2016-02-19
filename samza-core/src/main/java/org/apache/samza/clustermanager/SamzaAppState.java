@@ -19,12 +19,7 @@
 
 package org.apache.samza.clustermanager;
 
-import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
-import org.apache.hadoop.yarn.api.records.ContainerId;
-import org.apache.hadoop.yarn.api.records.ContainerStatus;
-import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.samza.coordinator.JobCoordinator;
-import org.apache.samza.job.yarn.YarnContainer;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -78,7 +73,7 @@ public class SamzaAppState {
   public AtomicInteger neededContainers = new AtomicInteger(0);
 
   /**
-   *  Map of the samzaContainerId to the {@link org.apache.samza.job.yarn.YarnContainer} on which it is running
+   *  Map of the samzaContainerId to the {@link SamzaResource} on which it is running
    *  Modified by both the AMRMCallbackThread and the ContainerAllocator thread
    */
   public ConcurrentMap<Integer, SamzaResource> runningContainers = new ConcurrentHashMap<Integer, SamzaResource>(0);
