@@ -70,6 +70,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
     this.containerMaxCpuCore = jobConfig.getNumCores();
     this.taskConfig = new TaskConfig(config);
     this.state = state;
+    this.config = config;
   }
 
 
