@@ -66,6 +66,7 @@ public class SamzaTaskManager implements JobCoordinatorListener {
                             SamzaAppState state,
                             ContainerProcessManager manager
                             ) {
+        log.info("initialized samza task manager");
         this.state = state;
         this.jobConfig = new JobConfig(config);
         this.manager=manager;
@@ -87,6 +88,8 @@ public class SamzaTaskManager implements JobCoordinatorListener {
         }
 
         this.allocatorThread = new Thread(this.containerAllocator, "Container Allocator Thread");
+        log.info("finished initialization of samza task manager");
+
     }
 
     public boolean shouldShutdown() {
@@ -95,6 +98,8 @@ public class SamzaTaskManager implements JobCoordinatorListener {
     }
 
     public void onInit() {
+        log.info("started on Init of  samza task manager");
+
         state.containerCount = jobConfig.getContainerCount();
 
         state.neededContainers.set(state.containerCount);
@@ -107,6 +112,8 @@ public class SamzaTaskManager implements JobCoordinatorListener {
         // Start container allocator thread
         log.info("Starting the container allocator thread");
         allocatorThread.start();
+        log.info("finished on Init of  samza task manager");
+
     }
 
     public void onReboot() {
@@ -114,6 +121,8 @@ public class SamzaTaskManager implements JobCoordinatorListener {
     }
 
     public void onShutdown() {
+        log.info("Called onShutdown of Samza task manager");
+
         // Shutdown allocator thread
         containerAllocator.setIsRunning(false) ;
         try {
@@ -122,9 +131,12 @@ public class SamzaTaskManager implements JobCoordinatorListener {
             log.info("Allocator Thread join() threw an interrupted exception", ie);
             // Should we throw exception here??
         }
+        log.info("finished onShutdown of Samza task manager");
+
     }
 
     public void onContainerAllocated(SamzaResource container) {
+        log.info("Adding a resource to the allocator queue " + container);
         containerAllocator.addContainer(container);
     }
 
@@ -137,9 +149,14 @@ public class SamzaTaskManager implements JobCoordinatorListener {
         int containerId = -1;
         for(Map.Entry<Integer, SamzaResource> entry: state.runningContainers.entrySet()) {
             if(entry.getValue().getResourceID().equals(containerStatus.getResourceID())) {
+                log.info("Matching container ID found " + entry.getKey() + " " + entry.getValue() );
+
                 containerId = entry.getKey();
                 break;
             }
+        }
+        if(containerId == -1) {
+          log.info("No matching container id found for " + containerStatus.toString());
         }
         state.runningContainers.remove(containerId);
 
@@ -190,7 +207,7 @@ public class SamzaTaskManager implements JobCoordinatorListener {
             default:
                 // TODO: Handle failure more intelligently. Should track NodeFailures!
                 log.info("Container failed for some reason. Let's start it again");
-                log.info("Container " + containerIdStr + " failed with exit code " + exitStatus + " - " + containerStatus.getDiagnostics());
+                log.info("Container " + containerIdStr + " failed with exit code . " + exitStatus + " - " + containerStatus.getDiagnostics() + " containerID is " + containerId);
 
                 state.failedContainers.incrementAndGet();
                 state.failedContainersStatus.put(containerIdStr, containerStatus);
@@ -203,6 +220,7 @@ public class SamzaTaskManager implements JobCoordinatorListener {
                     if (!hostAffinityEnabled || lastSeenOn == null) {
                         lastSeenOn = ContainerAllocator.ANY_HOST;
                     }
+                    log.info("Container was last seen on " + lastSeenOn );
                     // A container failed for an unknown reason. Let's check to see if
                     // we need to shutdown the whole app master if too many container
                     // failures have happened. The rules for failing are that the
@@ -257,6 +275,7 @@ public class SamzaTaskManager implements JobCoordinatorListener {
                     }
 
                     if (!tooManyFailedContainers) {
+                        log.info("Requesting a new container ");
                         // Request a new container
                         containerAllocator.requestContainer(containerId, lastSeenOn);
                     }

@@ -50,6 +50,7 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
 
         hConfig = new YarnConfiguration();
         hConfig.set("fs.http.impl", HttpFileSystem.class.getName());
+
         ClientHelper clientHelper = new ClientHelper(hConfig);
         MetricsRegistryMap registry = new MetricsRegistryMap();
 
@@ -81,10 +82,11 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
     @Override
     public void start() {
         //      val state = new SamzaAppState(jobCoordinator, -1, containerId, nodeHostString, nodePortString.toInt, nodeHttpPortString.toInt)
-
+        log.info("entering yarn container mgr start");
         amClient.init(hConfig);
         amClient.start();
         lifecycle.onInit();
+        log.info("finished yarn container mgr start");
 
     }
 
@@ -93,7 +95,7 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
     public void requestResources(List<SamzaResourceRequest> resourceRequests, ContainerProcessManagerCallback callback) {
         int DEFAULT_PRIORITY = 0;
         for(SamzaResourceRequest resourceRequest : resourceRequests) {
-            log.info("request resources called " + resourceRequest);
+            log.info("Requesting resources on  " + resourceRequest);
 
             int memoryMb = resourceRequest.getMemoryMB();
             int cpuCores = resourceRequest.getNumCores();

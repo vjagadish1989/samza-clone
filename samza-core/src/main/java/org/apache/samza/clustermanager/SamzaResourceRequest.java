@@ -1,5 +1,8 @@
 package org.apache.samza.clustermanager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Created by jvenkatr on 2/4/16.
  */
@@ -11,6 +14,7 @@ public class SamzaResourceRequest implements Comparable<SamzaResourceRequest> {
     int expectedContainerID;
     long requestTimestamp;
 
+    private static final Logger log = LoggerFactory.getLogger(SamzaResourceRequest.class);
 
     public int getExpectedContainerID() {
         return expectedContainerID;
@@ -35,7 +39,7 @@ public class SamzaResourceRequest implements Comparable<SamzaResourceRequest> {
         this.requestID = requestID;
         this.expectedContainerID = expectedContainerID;
         this.requestTimestamp = System.currentTimeMillis();
-
+        log.info("Resource Request created for " + this.expectedContainerID + " on " + this.preferredHost  );
     }
 
     public String getRequestID() {

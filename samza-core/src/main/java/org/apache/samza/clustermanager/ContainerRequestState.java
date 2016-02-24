@@ -111,7 +111,7 @@ public class ContainerRequestState {
       AtomicInteger requestCount = requestsToCountMap.get(hostName);
       // Check if this host was requested for any of the containers
       if (requestCount == null || requestCount.get() == 0) {
-        log.debug(
+        log.info(
             "Request count for the allocatedContainer on {} is null or 0. This means that the host was not requested " +
                 "for running containers.Hence, saving the container {} in the buffer for ANY_HOST",
             hostName,
@@ -123,11 +123,11 @@ public class ContainerRequestState {
         List<SamzaResource> allocatedContainersOnThisHost = allocatedContainers.get(hostName);
         if (requestCountOnThisHost > 0) {
           if (allocatedContainersOnThisHost == null) {
-            log.debug("Saving the container {} in the buffer for {}", resource.getResourceID(), hostName);
+            log.info("Saving the container {} in the buffer for {}", resource.getResourceID(), hostName);
             addToAllocatedContainerList(hostName, resource);
           } else {
             if (allocatedContainersOnThisHost.size() < requestCountOnThisHost) {
-              log.debug("Saving the container {} in the buffer for {}", resource.getResourceID(), hostName);
+              log.info("Saving the container {} in the buffer for {}", resource.getResourceID(), hostName);
               addToAllocatedContainerList(hostName, resource);
             } else {
               /**

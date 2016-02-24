@@ -1,5 +1,6 @@
 package org.apache.samza.coordinator;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.samza.clustermanager.*;
 import org.apache.samza.config.Config;
 import org.apache.samza.config.MapConfig;
@@ -10,6 +11,7 @@ import org.apache.samza.metrics.MetricsRegistryMap;
 import org.apache.samza.serializers.model.SamzaObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.reflect.internal.Trees;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,7 +32,7 @@ public class YarnJobCoordinator implements ContainerProcessManagerCallback {
 
     public void run() throws IOException {
         final int DEFAULT_POLL_INTERVAL_MS = 1000;
-
+        log.info("Starting Yarn Job Coordinator");
         MetricsRegistryMap registry = new MetricsRegistryMap();
         try {
             Config coordinatorSystemConfig = new MapConfig(SamzaObjectMapper.getObjectMapper().readValue(System.getenv(ShellCommandConfig.ENV_COORDINATOR_SYSTEM_CONFIG()), Config.class));
@@ -68,15 +70,21 @@ public class YarnJobCoordinator implements ContainerProcessManagerCallback {
 
             }
         }
-        catch(Exception e) {
-
+        catch(Throwable e) {
+            System.err.println(ExceptionUtils.getFullStackTrace(e));
             log.error("exception {} ", e);
             e.printStackTrace();
         }
         finally {
-            metrics.onShutdown();
-            taskManager.onShutdown();
-            processManager.stop();
+            if(metrics!=null) {
+                metrics.onShutdown();
+            }
+            if(taskManager!=null) {
+                taskManager.onShutdown();
+            }
+            if(processManager !=null) {
+                processManager.stop();
+            }
 
         }
 
