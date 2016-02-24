@@ -62,12 +62,6 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
           int expectedContainerId = request.expectedContainerID;
             CommandBuilder builder = getCommandBuilder(expectedContainerId);
 
-
-            log.info(
-              "Handling request for container id {} on preferred host {}",
-              expectedContainerId,
-              preferredHost);
-
           List<SamzaResource> allocatedContainers = containerRequestState.getContainersOnAHost(preferredHost);
 
           if (allocatedContainers != null && allocatedContainers.size() > 0) {
@@ -76,7 +70,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
 
             containerRequestState.updateStateAfterAssignment(request, preferredHost, container);
 
-            log.info("Found a container on the preferred host. Running {} on {}", expectedContainerId, container.getResourceID());
+            log.info("Found a container on the preferred host. Running on" +  expectedContainerId + " " + container.getResourceID() + " " + preferredHost);
 
             //TODO; add builder niceties
             amClient.launchStreamProcessor(container, expectedContainerId, builder);

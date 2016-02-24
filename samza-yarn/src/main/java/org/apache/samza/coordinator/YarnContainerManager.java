@@ -102,11 +102,24 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
             String preferredHost = resourceRequest.getPreferredHost();
             Resource capability = Resource.newInstance(memoryMb, cpuCores);
             Priority priority =  Priority.newInstance(DEFAULT_PRIORITY);
-            String hosts[] = null;
-            if (preferredHost != null) {
-                hosts = new String[] {preferredHost};
+
+            AMRMClient.ContainerRequest issuedRequest=null;
+
+            if (preferredHost.equals("ANY_HOST")) {
+                log.info("Making a request for ANY_HOST " + preferredHost );
+                issuedRequest = new AMRMClient.ContainerRequest(capability, null, null, priority);
+            } else {
+                log.info("Making a preferred host request on " + preferredHost);
+                issuedRequest = new AMRMClient.ContainerRequest(
+                        capability,
+                        new String[]{preferredHost},
+                        null,
+                        priority);
             }
-            AMRMClient.ContainerRequest issuedRequest = new AMRMClient.ContainerRequest(capability, hosts, null, priority);
+
+
+
+
             requestsMap.put(resourceRequest, issuedRequest);
             amClient.addContainerRequest(issuedRequest);
         }
