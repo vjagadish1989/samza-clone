@@ -95,7 +95,7 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
     public void requestResources(List<SamzaResourceRequest> resourceRequests, ContainerProcessManagerCallback callback) {
         int DEFAULT_PRIORITY = 0;
         for(SamzaResourceRequest resourceRequest : resourceRequests) {
-            log.info("Requesting resources on  " + resourceRequest);
+            log.info("REQRequesting resources on  " + resourceRequest.getPreferredHost() + " for zcontainer" + resourceRequest.getExpectedContainerID());
 
             int memoryMb = resourceRequest.getMemoryMB();
             int cpuCores = resourceRequest.getNumCores();
@@ -137,7 +137,7 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
 
     @Override
     public void launchStreamProcessor(SamzaResource resource, int containerID, CommandBuilder builder) {
-        log.info("received launch req for " + resource + " on ID : " + containerID + " with builder " + builder
+        log.info("received launch req for " + containerID + " on hostname : " +resource.getHost()  + " with builder " + builder
         );
         Container container = allocatedResources.get(resource);
         state.runningContainers.add(container);
@@ -178,7 +178,7 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
     public void onContainersAllocated(List<Container> containers) {
         List<SamzaResource> resources = new ArrayList<SamzaResource>();
         for(Container container : containers) {
-            log.info("Container allocated from RM " + container);
+            log.info("Container allocated from RM on " + container.getNodeId().getHost());
             final String id = container.getId().toString();
             String host = container.getNodeId().getHost();
             int memory = container.getResource().getMemory();

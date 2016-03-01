@@ -88,6 +88,10 @@ public class SamzaResourceRequest implements Comparable<SamzaResourceRequest> {
 
     @Override
     public int compareTo(SamzaResourceRequest o) {
+        if(requestTimestamp < o.requestTimestamp)
+            return -1;
+        if(requestTimestamp > o.requestTimestamp)
+            return 1;
         return 0;
     }
 }

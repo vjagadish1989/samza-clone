@@ -70,7 +70,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
 
             containerRequestState.updateStateAfterAssignment(request, preferredHost, container);
 
-            log.info("Found a container on the preferred host. Running on" +  expectedContainerId + " " + container.getResourceID() + " " + preferredHost);
+            log.info("Found_a_matched_container container on the preferred host. Running on" +  expectedContainerId + " " + container.getResourceID() + " " + preferredHost);
 
             //TODO; add builder niceties
             amClient.launchStreamProcessor(container, expectedContainerId, builder);
@@ -80,27 +80,24 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
             //containerUtil.runMatchedContainer(expectedContainerId, container);
           } else {
             // No allocated container on preferredHost
-            log.info(
-                "Could not find any allocated containers on preferred host {} for running container id {}",
-                preferredHost,
-                expectedContainerId);
+
             boolean expired = requestExpired(request);
+
             allocatedContainers = containerRequestState.getContainersOnAHost(ANY_HOST);
             if (!expired || allocatedContainers == null || allocatedContainers.size() == 0) {
+              //not expired, no containers found on any_host
               if(allocatedContainers == null || allocatedContainers.size()==0) {
-                log.info("Could not find an allocated container for this request on the preferred host " + request);
+                log.info("no containers found on any_host ");
               }
               if(!expired) {
-                log.info("Request " + request + " has not expired. Timeout is " + CONTAINER_REQUEST_TIMEOUT);
+                log.info("Request has not expired. Timeout is " + CONTAINER_REQUEST_TIMEOUT + " pcontainerID: " + expectedContainerId + " phostName: " + preferredHost);
               }
               break;
-            } else {
-              if (allocatedContainers.size() > 0) {
+            }
+            if(allocatedContainers.size()!=0 ) {
+
                 SamzaResource container = allocatedContainers.get(0);
-                log.info("Found available containers on ANY_HOST. Assigning request for container_id {} with " +
-                        "timestamp {} to container {}",
-                    new Object[] { String.valueOf(expectedContainerId), request.getRequestTimestamp(), container.getResourceID()
-                });
+                log.info("expired_run_on_any_host rcontainerID: " + expectedContainerId + " rhostname: " + preferredHost);
                 containerRequestState.updateStateAfterAssignment(request, ANY_HOST, container);
                 log.info("Running {} on {}", expectedContainerId, container.getResourceID());
 
@@ -110,7 +107,8 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
 
                 //containerUtil.runContainer(expectedContainerId, container);
               }
-            }
+            else
+             log.info("no_available_container  qcontainerID: " + expectedContainerId + " qhostName: " + preferredHost);
           }
         }
         // Release extra containers and update the entire system's state

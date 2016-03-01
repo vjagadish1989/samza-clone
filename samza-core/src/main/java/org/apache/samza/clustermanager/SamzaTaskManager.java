@@ -136,7 +136,7 @@ public class SamzaTaskManager implements JobCoordinatorListener {
     }
 
     public void onContainerAllocated(SamzaResource container) {
-        log.info("Adding a resource to the allocator queue " + container);
+        log.info("Container allocated from RM on " + container.getHost());
         containerAllocator.addContainer(container);
     }
 

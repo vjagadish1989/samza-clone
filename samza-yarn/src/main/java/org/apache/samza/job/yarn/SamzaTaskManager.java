@@ -135,6 +135,8 @@ class SamzaTaskManager implements YarnAppMasterListener {
 
   @Override
   public void onContainerAllocated(Container container) {
+    log.info("Container allocated from RM on " + container.getNodeId().getHost());
+
     containerAllocator.addContainer(container);
   }
 

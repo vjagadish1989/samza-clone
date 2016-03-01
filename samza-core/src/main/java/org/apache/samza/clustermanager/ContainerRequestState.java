@@ -112,8 +112,7 @@ public class ContainerRequestState {
       // Check if this host was requested for any of the containers
       if (requestCount == null || requestCount.get() == 0) {
         log.info(
-            "Request count for the allocatedContainer on {} is null or 0. This means that the host was not requested " +
-                "for running containers.Hence, saving the container {} in the buffer for ANY_HOST",
+            " not_asked {} saving the container {} in the buffer for ANY_HOST",
             hostName,
             resource.getResourceID()
         );
@@ -123,11 +122,11 @@ public class ContainerRequestState {
         List<SamzaResource> allocatedContainersOnThisHost = allocatedContainers.get(hostName);
         if (requestCountOnThisHost > 0) {
           if (allocatedContainersOnThisHost == null) {
-            log.info("Saving the container {} in the buffer for {}", resource.getResourceID(), hostName);
+            log.info("got_requested {} in the buffer for {}", resource.getResourceID(), hostName);
             addToAllocatedContainerList(hostName, resource);
           } else {
             if (allocatedContainersOnThisHost.size() < requestCountOnThisHost) {
-              log.info("Saving the container {} in the buffer for {}", resource.getResourceID(), hostName);
+              log.info("got_requested {} in the buffer for {}", resource.getResourceID(), hostName);
               addToAllocatedContainerList(hostName, resource);
             } else {
               /**
@@ -135,7 +134,7 @@ public class ContainerRequestState {
                * requestCount != 0, it will be greater than the total request count for that host. Hence, it should be
                * assigned to ANY_HOST
                */
-              log.debug(
+              log.info(
                   "The number of containers already allocated on {} is greater than what was " +
                       "requested, which is {}. Hence, saving the container {} in the buffer for ANY_HOST",
                   new Object[]{
@@ -148,8 +147,8 @@ public class ContainerRequestState {
             }
           }
         } else {
-          log.debug(
-              "This host was never requested. Hence, saving the container {} in the buffer for ANY_HOST",
+          log.info(
+              "useless_requested This host was never requested. {} {} {}",
               new Object[]{
                   hostName,
                   requestCountOnThisHost,
@@ -160,7 +159,7 @@ public class ContainerRequestState {
         }
       }
     } else {
-      log.debug("Saving the container {} in the buffer for ANY_HOST", resource.getResourceID());
+      log.info("ha_notenabled Saving the container {} in the buffer for ANY_HOST", resource.getResourceID());
       addToAllocatedContainerList(ANY_HOST, resource);
     }
   }

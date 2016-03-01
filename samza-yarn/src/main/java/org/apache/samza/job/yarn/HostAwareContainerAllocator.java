@@ -63,11 +63,6 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
           String preferredHost = request.getPreferredHost();
           int expectedContainerId = request.getExpectedContainerId();
 
-          log.info(
-              "Handling request for container id {} on preferred host {}",
-              expectedContainerId,
-              preferredHost);
-
           List<Container> allocatedContainers = containerRequestState.getContainersOnAHost(preferredHost);
           if (allocatedContainers != null && allocatedContainers.size() > 0) {
             // Found allocated container at preferredHost
@@ -75,33 +70,31 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
 
             containerRequestState.updateStateAfterAssignment(request, preferredHost, container);
 
-            log.info("Running {} on {}", expectedContainerId, container.getId());
+            log.info("Found_a_matched_container container on the preferred host. Running on" +  expectedContainerId + " "  + " " + preferredHost);
             containerUtil.runMatchedContainer(expectedContainerId, container);
           } else {
             // No allocated container on preferredHost
-            log.info(
-                "Did not find any allocated containers on preferred host {} for running container id {}",
-                preferredHost,
-                expectedContainerId);
             boolean expired = requestExpired(request);
             allocatedContainers = containerRequestState.getContainersOnAHost(ANY_HOST);
             if (!expired || allocatedContainers == null || allocatedContainers.size() == 0) {
-              log.info("Either the request timestamp {} is greater than container request timeout {}ms or we couldn't " +
-                      "find any free allocated containers in the buffer. Breaking out of loop.",
-                  request.getRequestTimestamp(),
-                  CONTAINER_REQUEST_TIMEOUT);
+              if(allocatedContainers == null || allocatedContainers.size()==0) {
+                log.info("no containers found on any_host ");
+              }
+              if(!expired) {
+                log.info("Request has not expired. Timeout is " + CONTAINER_REQUEST_TIMEOUT + " pcontainerID: " + expectedContainerId + " phostName: " + preferredHost);
+              }
               break;
             } else {
               if (allocatedContainers.size() > 0) {
                 Container container = allocatedContainers.get(0);
-                log.info("Found available containers on ANY_HOST. Assigning request for container_id {} with " +
-                        "timestamp {} to container {}",
-                    new Object[] { String.valueOf(expectedContainerId), request.getRequestTimestamp(), container.getId()
-                });
+                log.info("expired_run_on_any_host rcontainerID: " + expectedContainerId + " rhostname: " + preferredHost);
                 containerRequestState.updateStateAfterAssignment(request, ANY_HOST, container);
                 log.info("Running {} on {}", expectedContainerId, container.getId());
                 containerUtil.runContainer(expectedContainerId, container);
               }
+              else
+              log.info("no_available_container  qcontainerID: " + expectedContainerId + " qhostName: " + preferredHost);
+
             }
           }
         }
