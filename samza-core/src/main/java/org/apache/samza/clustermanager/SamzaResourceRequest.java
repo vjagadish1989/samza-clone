@@ -13,6 +13,7 @@ public class SamzaResourceRequest implements Comparable<SamzaResourceRequest> {
     String requestID;
     int expectedContainerID;
     long requestTimestamp;
+    long requestTimeStampNanos;
 
     private static final Logger log = LoggerFactory.getLogger(SamzaResourceRequest.class);
 
@@ -39,7 +40,8 @@ public class SamzaResourceRequest implements Comparable<SamzaResourceRequest> {
         this.requestID = requestID;
         this.expectedContainerID = expectedContainerID;
         this.requestTimestamp = System.currentTimeMillis();
-        log.info("Resource Request created for " + this.expectedContainerID + " on " + this.preferredHost  );
+        this.requestTimeStampNanos = System.nanoTime();
+        log.info("Resource Request created for " + this.expectedContainerID + " on " + this.preferredHost + " " + this.requestTimestamp  );
     }
 
     public String getRequestID() {
@@ -88,9 +90,9 @@ public class SamzaResourceRequest implements Comparable<SamzaResourceRequest> {
 
     @Override
     public int compareTo(SamzaResourceRequest o) {
-        if(requestTimestamp < o.requestTimestamp)
+        if(requestTimeStampNanos < o.requestTimeStampNanos)
             return -1;
-        if(requestTimestamp > o.requestTimestamp)
+        if(requestTimeStampNanos > o.requestTimeStampNanos)
             return 1;
         return 0;
     }
