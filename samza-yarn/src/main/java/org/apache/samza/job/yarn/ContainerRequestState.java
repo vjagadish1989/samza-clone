@@ -79,6 +79,7 @@ public class ContainerRequestState {
   public synchronized void updateRequestState(SamzaContainerRequest request) {
 
     log.info("REQRequesting resources on  " + request.getPreferredHost() + " for zcontainer" + request.getExpectedContainerId());
+    log.info(request.getIssuedRequest().toString());
     amClient.addContainerRequest(request.getIssuedRequest());
 
     requestsQueue.add(request);

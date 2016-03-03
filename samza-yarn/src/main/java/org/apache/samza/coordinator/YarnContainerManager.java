@@ -146,6 +146,7 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
 
     @Override
     public void cancelResourceRequest(SamzaResourceRequest request) {
+        //log.info("cacelling request " + conta);
         AMRMClient.ContainerRequest containerRequest = requestsMap.get(request);
         amClient.removeContainerRequest(containerRequest);
     }

@@ -60,6 +60,8 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
       while (isRunning.get()) {
         while (!containerRequestState.getRequestsQueue().isEmpty()) {
           SamzaContainerRequest request = containerRequestState.getRequestsQueue().peek();
+          log.info("Handling request: " + request.expectedContainerId + " " + request.getRequestTimestamp() + " " + request.getPreferredHost());
+
           String preferredHost = request.getPreferredHost();
           int expectedContainerId = request.getExpectedContainerId();
 

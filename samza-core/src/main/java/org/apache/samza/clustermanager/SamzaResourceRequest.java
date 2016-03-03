@@ -90,10 +90,15 @@ public class SamzaResourceRequest implements Comparable<SamzaResourceRequest> {
 
     @Override
     public int compareTo(SamzaResourceRequest o) {
-        if(requestTimeStampNanos < o.requestTimeStampNanos)
+        //if(requestTimeStampNanos < o.requestTimeStampNanos)
+        //    return -1;
+        //if(requestTimeStampNanos > o.requestTimeStampNanos)
+        //    return 1;
+        if(this.requestTimestamp < o.requestTimestamp)
             return -1;
-        if(requestTimeStampNanos > o.requestTimeStampNanos)
+        if(this.requestTimestamp > o.requestTimestamp)
             return 1;
+
         return 0;
     }
 }

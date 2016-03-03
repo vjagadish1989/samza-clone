@@ -104,7 +104,7 @@ object SamzaContainer extends Logging {
    * constructor.
    */
   def readJobModel(url: String, initialDelayMs: Int = scala.util.Random.nextInt(DEFAULT_READ_JOBMODEL_DELAY_MS)) = {
-    info("Fetching configuration from: %s" format url)
+    info("Fetching configuration from: %s with delay %s" format (url, initialDelayMs))
     SamzaObjectMapper
       .getObjectMapper
       .readValue(
