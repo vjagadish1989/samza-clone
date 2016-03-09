@@ -32,7 +32,7 @@ import org.apache.samza.system.SystemStreamPartition
 import org.apache.samza.util.{Util, CommandLine, Logging}
 import org.apache.samza.{Partition, SamzaException}
 import scala.collection.JavaConversions._
-import org.apache.samza.coordinator.JobModelReader$
+import org.apache.samza.coordinator.JobModelReader
 
 import scala.collection.immutable.HashMap
 

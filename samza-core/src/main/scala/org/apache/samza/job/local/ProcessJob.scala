@@ -23,7 +23,7 @@ import java.io.{InputStream, OutputStream}
 import java.util.concurrent.CountDownLatch
 
 import org.apache.samza.SamzaException
-import org.apache.samza.coordinator.JobModelReader$
+import org.apache.samza.coordinator.JobModelReader
 import org.apache.samza.job.ApplicationStatus.{New, Running, UnsuccessfulFinish}
 import org.apache.samza.job.{ApplicationStatus, CommandBuilder, StreamJob}
 import org.apache.samza.util.Logging

@@ -21,7 +21,7 @@ package org.apache.samza.job.local
 
 import org.apache.samza.config.Config
 import org.apache.samza.config.TaskConfig._
-import org.apache.samza.coordinator.JobModelReader$
+import org.apache.samza.coordinator.JobModelReader
 import org.apache.samza.job.{CommandBuilder, ShellCommandBuilder, StreamJob, StreamJobFactory}
 import org.apache.samza.util.{Logging, Util}
 

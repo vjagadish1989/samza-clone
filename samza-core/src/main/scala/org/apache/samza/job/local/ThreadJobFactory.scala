@@ -29,7 +29,7 @@ import org.apache.samza.config.TaskConfig._
 import org.apache.samza.container.SamzaContainer
 import org.apache.samza.job.{ StreamJob, StreamJobFactory }
 import org.apache.samza.config.JobConfig._
-import org.apache.samza.coordinator.JobModelReader$
+import org.apache.samza.coordinator.JobModelReader
 
 /**
  * Creates a new Thread job with the given config

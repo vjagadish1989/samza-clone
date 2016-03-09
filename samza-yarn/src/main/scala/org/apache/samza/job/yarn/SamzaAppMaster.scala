@@ -36,7 +36,7 @@ import org.apache.samza.metrics.MetricsRegistryMap
 import org.apache.samza.util.hadoop.HttpFileSystem
 import org.apache.samza.util.Logging
 import org.apache.samza.serializers.model.SamzaObjectMapper
-import org.apache.samza.coordinator.JobModelReader$
+import org.apache.samza.coordinator.JobModelReader
 import org.apache.samza.SamzaException
 
 /**
