@@ -10,7 +10,7 @@ import org.apache.samza.SamzaException;
 import org.apache.samza.clustermanager.*;
 import org.apache.samza.config.Config;
 import org.apache.samza.config.YarnConfig;
-import org.apache.samza.coordinator.JobCoordinator;
+import org.apache.samza.coordinator.JobModelReader;
 import org.apache.samza.job.CommandBuilder;
 import org.apache.samza.job.coordinator.*;
 import org.apache.samza.job.coordinator.SamzaAppMasterService;
@@ -45,7 +45,7 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
 
     //      val state = new SamzaAppState(jobCoordinator, -1, containerId, nodeHostString, nodePortString.toInt, nodeHttpPortString.toInt)
 
-    public YarnContainerManager (Config config, JobCoordinator coordinator, ContainerProcessManagerCallback callback ) {
+    public YarnContainerManager (Config config, JobModelReader coordinator, ContainerProcessManagerCallback callback ) {
         _callback = callback;
 
         hConfig = new YarnConfiguration();

@@ -82,7 +82,7 @@ class ApplicationMasterRestServlet(config: Config, state: SamzaAppState, registr
       case (containerId, container) =>
         val yarnContainerId = container.id.toString
         val containerMap = new HashMap[String, Object]
-        val taskModels = state.jobCoordinator.jobModel.getContainers.get(containerId).getTasks
+        val taskModels = state.jobModelReader.jobModel.getContainers.get(containerId).getTasks
         containerMap.put("yarn-address", container.nodeHttpAddress)
         containerMap.put("start-time", container.startTime.toString)
         containerMap.put("up-time", container.upTime.toString)

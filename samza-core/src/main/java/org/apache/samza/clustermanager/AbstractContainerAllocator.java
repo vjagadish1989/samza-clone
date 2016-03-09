@@ -116,7 +116,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
       cmdBuilderClassName = ShellCommandBuilder.class.getName();
     }
     CommandBuilder cmdBuilder = (CommandBuilder) Util.getObj(cmdBuilderClassName);
-    cmdBuilder.setConfig(config).setId(samzaContainerId).setUrl(state.jobCoordinator.server().getUrl());
+    cmdBuilder.setConfig(config).setId(samzaContainerId).setUrl(state.jobModelReader.server().getUrl());
     return cmdBuilder;
   }
   /**

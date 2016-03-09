@@ -55,7 +55,7 @@ class SamzaAppMasterMetrics(
     (reporterName, reporter)
   }).toMap
 
-   def onInit() {
+   def start() {
     val mRunningContainers = newGauge("running-containers", () => state.runningContainers.size)
     val mNeededContainers = newGauge("needed-containers", () => state.neededContainers.get())
     val mCompletedContainers = newGauge("completed-containers", () => state.completedContainers.get())
@@ -81,7 +81,7 @@ class SamzaAppMasterMetrics(
     reporters.values.foreach(_.start)
   }
 
-   def onShutdown() {
+   def stop() {
     reporters.values.foreach(_.stop)
   }
 }

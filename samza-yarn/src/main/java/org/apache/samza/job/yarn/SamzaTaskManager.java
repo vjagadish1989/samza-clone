@@ -107,7 +107,7 @@ class SamzaTaskManager implements YarnAppMasterListener {
     state.neededContainers.set(state.containerCount);
 
     // Request initial set of containers
-    Map<Integer, String> containerToHostMapping = state.jobCoordinator.jobModel().getAllContainerLocality();
+    Map<Integer, String> containerToHostMapping = state.jobModelReader.jobModel().getAllContainerLocality();
 
     containerAllocator.requestContainers(containerToHostMapping);
 
@@ -212,7 +212,7 @@ class SamzaTaskManager implements YarnAppMasterListener {
         if(containerId != -1) {
           state.neededContainers.incrementAndGet();
           // Find out previously running container location
-          String lastSeenOn = state.jobCoordinator.jobModel().getContainerToHostValue(containerId, SetContainerHostMapping.HOST_KEY);
+          String lastSeenOn = state.jobModelReader.jobModel().getContainerToHostValue(containerId, SetContainerHostMapping.HOST_KEY);
           if (!hostAffinityEnabled || lastSeenOn == null) {
             lastSeenOn = ContainerAllocator.ANY_HOST;
           }

@@ -19,7 +19,7 @@
 
 package org.apache.samza.clustermanager;
 
-import org.apache.samza.coordinator.JobCoordinator;
+import org.apache.samza.coordinator.JobModelReader;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,8 +29,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SamzaAppState {
-  public final JobCoordinator jobCoordinator;
+  public final JobModelReader jobModelReader;
 
+  /**
+   * JMX Server URL, if enabled
+   * Used for displaying in the AM UI. See scalate/WEB-INF/views/index.scaml
+   */
+  public String jmxUrl = "";
+  /**
+   * JMX Server Tunneling URL, if enabled
+   * Used for displaying in the AM UI. See scalate/WEB-INF/views/index.scaml
+   */
+  public String jmxTunnelingUrl = "";
   /**
    * The following state variables are required for the correct functioning of the TaskManager
    * Some of them are shared between the AMRMCallbackThread and the ContainerAllocator thread, as mentioned below.
@@ -100,9 +110,9 @@ public class SamzaAppState {
 
   public AtomicInteger matchedContainerRequests = new AtomicInteger(0);
 
-  public SamzaAppState(JobCoordinator jobCoordinator
+  public SamzaAppState(JobModelReader jobModelReader
                       ) {
-    this.jobCoordinator = jobCoordinator;
+    this.jobModelReader = jobModelReader;
 
   }
 }

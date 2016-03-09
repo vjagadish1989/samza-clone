@@ -43,7 +43,7 @@ import java.util.Map;
  *    (See {@link org.apache.samza.clustermanager.ContainerAllocator} or {@link org.apache.samza.clustermanager.HostAwareContainerAllocator})
  */
 
-public class SamzaTaskManager implements JobCoordinatorListener {
+public class SamzaTaskManager   {
     private static final Logger log = LoggerFactory.getLogger(SamzaTaskManager.class);
 
     private final boolean hostAffinityEnabled;
@@ -97,7 +97,7 @@ public class SamzaTaskManager implements JobCoordinatorListener {
         return tooManyFailedContainers || state.completedContainers.get() == state.containerCount || !allocatorThread.isAlive();
     }
 
-    public void onInit() {
+    public void start() {
         log.info("started on Init of  samza task manager");
 
         state.containerCount = jobConfig.getContainerCount();
@@ -105,7 +105,7 @@ public class SamzaTaskManager implements JobCoordinatorListener {
         state.neededContainers.set(state.containerCount);
 
         // Request initial set of containers
-        Map<Integer, String> containerToHostMapping = state.jobCoordinator.jobModel().getAllContainerLocality();
+        Map<Integer, String> containerToHostMapping = state.jobModelReader.jobModel().getAllContainerLocality();
 
         containerAllocator.requestContainers(containerToHostMapping);
 
@@ -120,7 +120,7 @@ public class SamzaTaskManager implements JobCoordinatorListener {
 
     }
 
-    public void onShutdown() {
+    public void stop() {
         log.info("Called onShutdown of Samza task manager");
 
         // Shutdown allocator thread
@@ -216,7 +216,7 @@ public class SamzaTaskManager implements JobCoordinatorListener {
                 if(containerId != -1) {
                     state.neededContainers.incrementAndGet();
                     // Find out previously running container location
-                    String lastSeenOn = state.jobCoordinator.jobModel().getContainerToHostValue(containerId, SetContainerHostMapping.HOST_KEY);
+                    String lastSeenOn = state.jobModelReader.jobModel().getContainerToHostValue(containerId, SetContainerHostMapping.HOST_KEY);
                     if (!hostAffinityEnabled || lastSeenOn == null) {
                         lastSeenOn = ContainerAllocator.ANY_HOST;
                     }

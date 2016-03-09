@@ -21,7 +21,7 @@ public class YarnAppState {
          * Used for displaying in the AM UI. Usage found in {@link org.apache.samza.webapp.ApplicationMasterRestServlet}
          * and scalate/WEB-INF/views/index.scaml
          */
-        public final JobCoordinator jobCoordinator;
+        public final JobModelReader jobModelReader;
 
         public final int taskId;
         /**
@@ -90,13 +90,13 @@ public class YarnAppState {
     public AtomicBoolean jobHealthy = new AtomicBoolean(true);
 
 
-    public YarnAppState(JobCoordinator jobCoordinator,
-                         int taskId,
-                         ContainerId amContainerId,
-                         String nodeHost,
-                         int nodePort,
-                         int nodeHttpPort) {
-        this.jobCoordinator = jobCoordinator;
+    public YarnAppState(JobModelReader jobModelReader,
+                        int taskId,
+                        ContainerId amContainerId,
+                        String nodeHost,
+                        int nodePort,
+                        int nodeHttpPort) {
+        this.jobModelReader = jobModelReader;
         this.taskId = taskId;
         this.amContainerId = amContainerId;
         this.nodeHost = nodeHost;
@@ -109,7 +109,7 @@ public class YarnAppState {
     @Override
     public String toString() {
         return "YarnAppState{" +
-                "jobCoordinator=" + jobCoordinator +
+                "jobCoordinator=" + jobModelReader +
                 ", taskId=" + taskId +
                 ", amContainerId=" + amContainerId +
                 ", nodeHost='" + nodeHost + '\'' +
