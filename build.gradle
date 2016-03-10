@@ -378,13 +378,13 @@ project(":samza-shell") {
   }
 
   // Usage: ./gradlew samza-shell:checkpointTool \
-  //    -PconfigPath=file:///path/to/job/config.properties -PnewOffsets=file:///path/to/new/offsets.properties
+  //    -PconfigPath=file:///path/to/job/config.properties -PnewOffsets=file:///path/to/refactor/offsets.properties
   task checkpointTool(type:JavaExec) {
     description 'Command-line tool to inspect and manipulate the job’s checkpoint'
     main = 'org.apache.samza.checkpoint.CheckpointTool'
     classpath = configurations.gradleShell
     if (project.hasProperty('configPath')) args += ['--config-path', configPath]
-    if (project.hasProperty('newOffsets')) args += ['--new-offsets', newOffsets]
+    if (project.hasProperty('newOffsets')) args += ['--refactor-offsets', newOffsets]
     jvmArgs = ["-Dlog4j.configuration=file:src/main/resources/log4j-console.xml"]
   }
 

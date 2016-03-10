@@ -57,7 +57,7 @@ class JmxServer(requestedPort: Int) extends Logging {
     def updateSystemProperty(prop: String, value: String) = {
       val existingProp = System.getProperty(prop)
       if (existingProp == null) {
-        debug("Setting new system property of %s to %s" format (prop, value))
+        debug("Setting refactor system property of %s to %s" format (prop, value))
         System.setProperty(prop, value)
       } else {
         info("Not overriding system property %s as already has value %s" format (prop, existingProp))

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.samza.coordinator;
+package org.apache.samza.job.yarn.refactor;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
@@ -41,14 +41,11 @@ import org.apache.samza.config.TaskConfig;
 import org.apache.samza.config.YarnConfig;
 import org.apache.samza.job.CommandBuilder;
 import org.apache.samza.job.ShellCommandBuilder;
-import org.apache.samza.job.yarn.SamzaAppState;
-import org.apache.samza.job.yarn.YarnContainer;
 import org.apache.samza.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.*;
 

@@ -42,7 +42,7 @@ object HdfsConfig {
   val BASE_OUTPUT_DIR = "systems.%s.producer.hdfs.base.output.dir"
   val BASE_OUTPUT_DIR_DEFAULT = "/user/%s/%s"
 
-  // how much data to write before splitting off a new partfile
+  // how much data to write before splitting off a refactor partfile
   val WRITE_BATCH_SIZE = "systems.%s.producer.hdfs.write.batch.size.bytes"
   val WRITE_BATCH_SIZE_DEFAULT = (1024L * 1024L * 256L).toString
 
@@ -92,7 +92,7 @@ class HdfsConfig(config: Config) extends ScalaMapConfig(config) {
    * the user may configure a date format (suitable for inclusion in a file path)
    * using <code>SimpleDateFormat</code> formatting that the Bucketer implementation will
    * use to generate HDFS paths and filenames. The more granular this date format, the more
-   * often a bucketing HdfsWriter will begin a new date-path bucket when creating the next output file.
+   * often a bucketing HdfsWriter will begin a refactor date-path bucket when creating the next output file.
    */
   def getDatePathFormatter(systemName: String): SimpleDateFormat = {
     new SimpleDateFormat(getOrElse(HdfsConfig.DATE_PATH_FORMAT_STRING format systemName, HdfsConfig.DATE_PATH_FORMAT_STRING_DEFAULT))

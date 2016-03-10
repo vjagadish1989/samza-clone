@@ -270,7 +270,7 @@ class TestKeyValueStores(typeOfStore: String, storeConfig: String) {
    * This test specifically targets an issue in Scala 2.8.1's DoubleLinkedList
    * implementation. The issue is that it doesn't work. More specifically,
    * creating a DoubleLinkedList from an existing list does not update the
-   * "prev" field of the existing list's head to point to the new head. As a
+   * "prev" field of the existing list's head to point to the refactor head. As a
    * result, in Scala 2.8.1, every DoubleLinkedList node's prev field is null.
    * Samza gets around this by manually updating the field itself. See SAMZA-80
    * for details.
@@ -314,7 +314,7 @@ class TestKeyValueStores(typeOfStore: String, storeConfig: String) {
     // cache because it was just flushed.
 
     // Get rid of 1 from the cache by reading every other element, and then 
-    // putting one new element.
+    // putting one refactor element.
     letters
             .slice(2, TestKeyValueStores.CacheSize)
             .map(b(_))

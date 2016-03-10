@@ -33,7 +33,7 @@ public abstract class AbstractCoordinatorStreamManager {
   private final String source;
 
   /**
-   * Creates a new {@link AbstractCoordinatorStreamManager} with a given coordinator stream producer, consumer and with a given source.
+   * Creates a refactor {@link AbstractCoordinatorStreamManager} with a given coordinator stream producer, consumer and with a given source.
    * @param coordinatorStreamProducer the {@link CoordinatorStreamSystemProducer} which should be used with the {@link AbstractCoordinatorStreamManager}
    * @param coordinatorStreamConsumer the {@link CoordinatorStreamSystemConsumer} which should be used with the {@link AbstractCoordinatorStreamManager}
    * @param source ths source for the coordinator stream producer

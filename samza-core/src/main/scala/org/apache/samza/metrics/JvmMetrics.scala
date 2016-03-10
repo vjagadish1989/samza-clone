@@ -54,7 +54,7 @@ class JvmMetrics(val registry: MetricsRegistry) extends MetricsHelper with Runna
   val gMemHeapUsedM = newGauge("mem-heap-used-mb", 0.0F)
   val gMemHeapCommittedM = newGauge("mem-heap-committed-mb", 0.0F)
   val gMemHeapMaxM = newGauge("mem-heap-max-mb", 0.0F)
-  val gThreadsNew = newGauge("threads-new", 0L)
+  val gThreadsNew = newGauge("threads-refactor", 0L)
   val gThreadsRunnable = newGauge("threads-runnable", 0L)
   val gThreadsBlocked = newGauge("threads-blocked", 0L)
   val gThreadsWaiting = newGauge("threads-waiting", 0L)

@@ -33,7 +33,7 @@ public class OutgoingMessageEnvelope {
   private final Object message;
 
   /**
-   * Constructs a new OutgoingMessageEnvelope from specified components.
+   * Constructs a refactor OutgoingMessageEnvelope from specified components.
    * @param systemStream Object representing the appropriate stream of which this envelope will be sent on.
    * @param keySerializerName String representing the serializer used for serializing this envelope's key.
    * @param messageSerializerName String representing the serializer used for serializing this envelope's message.
@@ -51,7 +51,7 @@ public class OutgoingMessageEnvelope {
   }
 
   /**
-   * Constructs a new OutgoingMessageEnvelope from specified components.
+   * Constructs a refactor OutgoingMessageEnvelope from specified components.
    * @param systemStream Object representing the appropriate stream of which this envelope will be sent on.
    * @param partitionKey A key representing which partition of the systemStream to send this envelope on.
    * @param key A deserialized key to be used for the message.
@@ -62,7 +62,7 @@ public class OutgoingMessageEnvelope {
   }
 
   /**
-   * Constructs a new OutgoingMessageEnvelope from specified components.
+   * Constructs a refactor OutgoingMessageEnvelope from specified components.
    * @param systemStream Object representing the appropriate stream of which this envelope will be sent on.
    * @param key A deserialized key to be used for the message.
    * @param message A deserialized message to be sent in this envelope.
@@ -72,7 +72,7 @@ public class OutgoingMessageEnvelope {
   }
 
   /**
-   * Constructs a new OutgoingMessageEnvelope from specified components.
+   * Constructs a refactor OutgoingMessageEnvelope from specified components.
    * @param systemStream Object representing the appropriate stream of which this envelope will be sent on.
    * @param message A deserialized message to be sent in this envelope.
    */

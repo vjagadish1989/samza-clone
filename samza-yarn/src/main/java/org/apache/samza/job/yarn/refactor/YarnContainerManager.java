@@ -1,4 +1,4 @@
-package org.apache.samza.coordinator;
+package org.apache.samza.job.yarn.refactor;
 
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.*;
@@ -12,9 +12,6 @@ import org.apache.samza.config.Config;
 import org.apache.samza.config.YarnConfig;
 import org.apache.samza.coordinator.JobModelReader;
 import org.apache.samza.job.CommandBuilder;
-import org.apache.samza.job.coordinator.*;
-import org.apache.samza.job.coordinator.SamzaAppMasterService;
-import org.apache.samza.job.yarn.*;
 import org.apache.samza.metrics.MetricsRegistryMap;
 import org.apache.samza.util.hadoop.HttpFileSystem;
 import org.slf4j.Logger;
@@ -32,7 +29,7 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
 
     AMRMClientAsync<AMRMClient.ContainerRequest> amClient;
     ContainerProcessManagerCallback _callback;
-    ContainerUtil util;
+    org.apache.samza.job.yarn.refactor.ContainerUtil util;
     YarnConfiguration hConfig;
     YarnAppState state;
 
@@ -43,9 +40,13 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
     Map<SamzaResource, Container> allocatedResources = new HashMap<SamzaResource, Container>();
     Map<SamzaResourceRequest, AMRMClient.ContainerRequest> requestsMap = new HashMap<>();
 
-    //      val state = new SamzaAppState(jobCoordinator, -1, containerId, nodeHostString, nodePortString.toInt, nodeHttpPortString.toInt)
+    //      val state = refactor SamzaAppState(jobCoordinator, -1, containerId, nodeHostString, nodePortString.toInt, nodeHttpPortString.toInt)
 
-    public YarnContainerManager (Config config, JobModelReader coordinator, ContainerProcessManagerCallback callback ) {
+    public YarnContainerManager ( JobModelReader coordinator, ContainerProcessManagerCallback callback ) {
+      this(coordinator.jobModel().getConfig(), coordinator, callback);
+    }
+        public YarnContainerManager (Config config, JobModelReader coordinator, ContainerProcessManagerCallback callback ) {
+
         _callback = callback;
 
         hConfig = new YarnConfiguration();
@@ -69,7 +70,8 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
         log.info(state.toString());
 
         this.service = new SamzaAppMasterService(config, this.state, registry);
-        service.onInit();
+        log.info("yo yo1");
+        //service.onInit();
 
 
 
@@ -79,9 +81,14 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
         util = new ContainerUtil(config, hConfig);
     }
 
+
     @Override
     public void start() {
-        //      val state = new SamzaAppState(jobCoordinator, -1, containerId, nodeHostString, nodePortString.toInt, nodeHttpPortString.toInt)
+        //      val state = refactor SamzaAppState(jobCoordinator, -1, containerId, nodeHostString, nodePortString.toInt, nodeHttpPortString.toInt)
+
+
+        service.onInit();
+
         log.info("entering yarn container mgr start");
         amClient.init(hConfig);
         amClient.start();
@@ -158,6 +165,7 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
         amClient.stop();
         service.onShutdown();
     }
+
 
 
 

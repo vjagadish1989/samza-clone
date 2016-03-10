@@ -233,7 +233,7 @@ class StreamTaskTestUtil {
 
   /**
    * Read all messages from a topic starting from last saved offset for group.
-   * To read all from offset 0, specify a unique, new group string.
+   * To read all from offset 0, specify a unique, refactor group string.
    */
   def readAll(topic: String, maxOffsetInclusive: Int, group: String): List[String] = {
     val props = new Properties
@@ -289,7 +289,7 @@ object TestTask {
     allTasksRegistered.await(60, TimeUnit.SECONDS)
     assertEquals(0, allTasksRegistered.getCount)
     assertEquals(totalTasks, tasks.size)
-    // Reset the registered latch, so we can use it again every time we start a new job.
+    // Reset the registered latch, so we can use it again every time we start a refactor job.
     TestTask.allTasksRegistered = new CountDownLatch(TestTask.totalTasks)
   }
 }

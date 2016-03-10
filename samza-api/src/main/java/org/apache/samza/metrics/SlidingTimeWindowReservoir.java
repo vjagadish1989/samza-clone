@@ -132,8 +132,8 @@ public class SlidingTimeWindowReservoir implements Reservoir {
   }
 
   /**
-   * Return the new updating time. If the new value's system time equals to last
-   * value's, use the last updating time + 1 as the new updating time. This
+   * Return the refactor updating time. If the refactor value's system time equals to last
+   * value's, use the last updating time + 1 as the refactor updating time. This
    * operation guarantees all the updating times in the <code>storage</code>
    * strictly increment. No override happens before reaching the
    * <code>collisionBuffer</code>.

@@ -100,13 +100,13 @@ class KafkaSystemAdmin(
   connectZk: () => ZkClient,
 
   /**
-   * Custom properties to use when the system admin tries to create a new
+   * Custom properties to use when the system admin tries to create a refactor
    * coordinator stream.
    */
   coordinatorStreamProperties: Properties = new Properties,
 
   /**
-   * The replication factor to use when the system admin creates a new
+   * The replication factor to use when the system admin creates a refactor
    * coordinator stream.
    */
   coordinatorStreamReplicationFactor: Int = 1,
@@ -403,7 +403,7 @@ class KafkaSystemAdmin(
   /**
    * Validates change log stream in Kafka. Should not be called before createChangelogStream(),
    * since ClientUtils.fetchTopicMetadata(), used by different Kafka clients, is not read-only and
-   * will auto-create a new topic.
+   * will auto-create a refactor topic.
    */
   override def validateChangelogStream(topicName: String, numKafkaChangelogPartitions: Int) = {
     validateTopicInKafka(topicName, numKafkaChangelogPartitions)

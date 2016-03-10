@@ -26,7 +26,7 @@ public class Partition implements Comparable<Partition> {
   private final int partition;
 
   /**
-   * Constructs a new Samza stream partition from a specified partition number.
+   * Constructs a refactor Samza stream partition from a specified partition number.
    * @param partition An integer identifying the partition in a Samza stream.
    */
   public Partition(int partition) {

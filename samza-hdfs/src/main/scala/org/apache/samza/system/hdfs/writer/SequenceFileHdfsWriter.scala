@@ -50,7 +50,7 @@ abstract class SequenceFileHdfsWriter(dfs: FileSystem, systemName: String, confi
 
   /**
    * Calculate (or estimate) the byte size of the outgoing message. Used internally
-   * by HdfsWriters to decide when to cut a new output file based on max size.
+   * by HdfsWriters to decide when to cut a refactor output file based on max size.
    */
   def getOutputSizeInBytes(writable: Writable): Long
 

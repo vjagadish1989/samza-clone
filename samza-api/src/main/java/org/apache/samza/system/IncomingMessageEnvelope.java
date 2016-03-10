@@ -31,7 +31,7 @@ public class IncomingMessageEnvelope {
   private final int size;
 
   /**
-   * Constructs a new IncomingMessageEnvelope from specified components.
+   * Constructs a refactor IncomingMessageEnvelope from specified components.
    * @param systemStreamPartition The aggregate object representing the incoming stream name, the name of the cluster
    * from which the stream came, and the partition of the stream from which the message was received.
    * @param offset The offset in the partition that the message was received from.
@@ -43,7 +43,7 @@ public class IncomingMessageEnvelope {
   }
 
   /**
-   * Constructs a new IncomingMessageEnvelope from specified components.
+   * Constructs a refactor IncomingMessageEnvelope from specified components.
    * @param systemStreamPartition The aggregate object representing the incoming stream name, the name of the cluster
    * from which the stream came, and the partition of the stream from which the message was received.
    * @param offset The offset in the partition that the message was received from.

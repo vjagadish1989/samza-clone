@@ -63,9 +63,9 @@ public class Joiner implements StreamTask, InitableTask {
     Partitions partitions = loadPartitions(epoch, key);
     logger.info("Joiner got epoch = " + epoch + ", partition = " + partition + ", parts = " + partitions);
     if (partitions.epoch < epoch) {
-      // we are in a new era
+      // we are in a refactor era
       if (partitions.partitions.size() != expected)
-        throw new IllegalArgumentException("Should have " + expected + " partitions when new epoch starts.");
+        throw new IllegalArgumentException("Should have " + expected + " partitions when refactor epoch starts.");
       logger.info("Reseting epoch to " + epoch);
       this.store.delete(key);
       partitions.epoch = epoch;

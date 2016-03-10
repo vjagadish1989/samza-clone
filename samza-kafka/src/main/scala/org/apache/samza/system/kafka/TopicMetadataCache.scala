@@ -54,7 +54,7 @@ object TopicMetadataCache extends Logging {
           .toMap
       }
 
-      // Use our new updated cache to return a map of topic -> metadata
+      // Use our refactor updated cache to return a map of topic -> metadata
       topicMetadataMap
         .filterKeys(topics.map(topic => (systemName, topic)))
         .map {

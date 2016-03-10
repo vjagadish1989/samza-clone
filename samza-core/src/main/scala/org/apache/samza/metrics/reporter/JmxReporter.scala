@@ -40,7 +40,7 @@ class JmxReporter(server: MBeanServer) extends MetricsReporter with Logging {
 
   def start() {
     for ((registry, listener) <- listeners) {
-      // First, add a listener for all new metrics that are added.
+      // First, add a listener for all refactor metrics that are added.
       registry.listen(listener)
 
       // Second, add all existing metrics.

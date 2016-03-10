@@ -1,4 +1,4 @@
-package org.apache.samza.coordinator;
+package org.apache.samza.job.yarn.refactor;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.samza.clustermanager.*;
@@ -6,7 +6,8 @@ import org.apache.samza.config.Config;
 import org.apache.samza.config.MapConfig;
 import org.apache.samza.config.ShellCommandConfig;
 import org.apache.samza.config.YarnConfig;
-import org.apache.samza.job.coordinator.SamzaAppMasterMetrics;
+import org.apache.samza.metrics.SamzaAppMasterMetrics;
+import org.apache.samza.coordinator.JobModelReader;
 import org.apache.samza.metrics.JmxServer;
 import org.apache.samza.metrics.MetricsRegistryMap;
 import org.apache.samza.serializers.model.SamzaObjectMapper;

@@ -17,16 +17,14 @@
  * under the License.
  */
 
-package org.apache.samza.job.coordinator
+package org.apache.samza.job.yarn.refactor
 
 import org.apache.samza.config.Config
-import org.apache.samza.coordinator.YarnAppState
 import org.apache.samza.coordinator.server.HttpServer
 import org.apache.samza.coordinator.stream.CoordinatorStreamWriter
 import org.apache.samza.coordinator.stream.messages.SetConfig
 import org.apache.samza.metrics.ReadableMetricsRegistry
 import org.apache.samza.util.Logging
-import org.apache.samza.webapp.{ApplicationMasterRestServlet, ApplicationMasterWebServlet}
 
 /**
  * Samza's application master runs a very basic HTTP/JSON service to allow
@@ -43,11 +41,12 @@ class SamzaAppMasterService(config: Config, state: YarnAppState, registry: Reada
     info("Starting webapp at a random rpc and tracking port")
 
     rpcApp = new HttpServer(resourceBasePath = "scalate")
-    //rpcApp.addServlet("/*", new ApplicationMasterRestServlet(config, state, registry))
+    //TODO: The state variables for the UI have to be refactored. Save that for a separate RB.
+    //rpcApp.addServlet("/*", refactor ApplicationMasterRestServlet(config, state, registry))
     rpcApp.start
 
     webApp = new HttpServer(resourceBasePath = "scalate")
-    //webApp.addServlet("/*", new ApplicationMasterWebServlet(config, state))
+    //webApp.addServlet("/*", refactor ApplicationMasterWebServlet(config, state))
     webApp.start
 
     state.jobModelReader.start

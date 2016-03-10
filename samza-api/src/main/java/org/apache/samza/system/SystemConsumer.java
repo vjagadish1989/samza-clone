@@ -51,15 +51,15 @@ import java.util.Set;
  * "head" (the underlying system has been checked, and returned an empty set).
  * If at head, an empty list is returned.</li>
  * <li>If timeout &gt;= 0, poll will return any messages that are currently
- * available for any of the SystemStreamPartitions specified. If no new messages
+ * available for any of the SystemStreamPartitions specified. If no refactor messages
  * are available, it will wait up to timeout milliseconds for messages from any
  * SystemStreamPartition to become available. It will return an empty list if
- * the timeout is hit, and no new messages are available.</li>
+ * the timeout is hit, and no refactor messages are available.</li>
  * <li>Nothing will be called after stop has been invoked.</li>
  * <li>Poll will only be called for registered SystemStreamPartition.</li>
  * <li>The SystemConsumer can't assume that a given SystemStreamPartition's
  * messages will ever be read. It shouldn't run out of memory or deadlock all
- * new message arrivals if one SystemStreamPartition is never read from.</li>
+ * refactor message arrivals if one SystemStreamPartition is never read from.</li>
  * <li>Any exception thrown by the SystemConsumer means that the SamzaContainer
  * should halt.</li>
  * </ul>
@@ -85,7 +85,7 @@ import java.util.Set;
  * 
  * <p>
  * Selector-based implementations typically setup NIO-based non-blocking socket
- * that can be selected for new data when poll is called.
+ * that can be selected for refactor data when poll is called.
  * </p>
  * 
  * <p>
@@ -99,7 +99,7 @@ public interface SystemConsumer {
    * A constant that can be used in the poll method's timeout parameter to
    * denote that the poll invocation should block until at least one message is
    * available for one of the SystemStreamPartitions supplied, or until all
-   * SystemStreamPartitions supplied are at head (have no new messages available
+   * SystemStreamPartitions supplied are at head (have no refactor messages available
    * since the last poll invocation was made for each SystemStreamPartition).
    */
   public static int BLOCK_ON_OUTSTANDING_MESSAGES = -1;
@@ -147,7 +147,7 @@ public interface SystemConsumer {
    * </p>
    * 
    * @param systemStreamPartitions
-   *          A set of SystemStreamPartition to poll for new messages. If
+   *          A set of SystemStreamPartition to poll for refactor messages. If
    *          SystemConsumer has messages available for other registered
    *          SystemStreamPartitions, but they are not in the
    *          systemStreamPartitions set in a given poll invocation, they can't
@@ -159,16 +159,16 @@ public interface SystemConsumer {
    *          returned an empty set). If at head, an empty map is returned. If
    *          timeout &gt;= 0, poll will return any messages that are currently
    *          available for any of the SystemStreamPartitions specified. If no
-   *          new messages are available, it will wait up to timeout
+   *          refactor messages are available, it will wait up to timeout
    *          milliseconds for messages from any SystemStreamPartition to become
    *          available. It will return an empty map if the timeout is hit, and
-   *          no new messages are available.
+   *          no refactor messages are available.
    * @return A map from SystemStreamPartitions to any available
    *         IncomingMessageEnvelopes for the SystemStreamPartitions. If no
    *         messages are available for a SystemStreamPartition that was
    *         supplied in the polling set, the map will not contain a key for the
    *         SystemStreamPartition. Will return an empty map, not null, if no
-   *         new messages are available for any SystemStreamPartitions in the
+   *         refactor messages are available for any SystemStreamPartitions in the
    *         input set.
    * @throws InterruptedException
    *          Thrown when a blocking poll has been interrupted by another

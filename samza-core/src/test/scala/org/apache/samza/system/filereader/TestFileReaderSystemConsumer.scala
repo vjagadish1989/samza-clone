@@ -64,7 +64,7 @@ object TestFileReaderSystemConsumer {
 
   def appendFile {
     val fileWriter = new FileWriter("moreEnter.txt", true);
-    fileWriter.write("This is a new line\n");
+    fileWriter.write("This is a refactor line\n");
     fileWriter.close
   }
 }
@@ -113,7 +113,7 @@ class TestFileReaderSystemConsumer {
     appendFile
     Thread.sleep(1000)
 
-    // ssp5 should read the new lines
+    // ssp5 should read the refactor lines
     val ssp5Result = consumer.poll(Set(ssp5), 1000)
     assertEquals(1, ssp5Result.size)
     assertEquals(3, ssp5Result.get(ssp5).size)
@@ -124,7 +124,7 @@ class TestFileReaderSystemConsumer {
     assertEquals("other lines ", envelope.getMessage)
     assertEquals("37", envelope.getOffset)
     envelope = ssp5Result.get(ssp5).remove(0)
-    assertEquals("This is a new line", envelope.getMessage)
+    assertEquals("This is a refactor line", envelope.getMessage)
     assertEquals("50", envelope.getOffset)
 
     consumer.stop

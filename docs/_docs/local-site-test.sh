@@ -17,7 +17,7 @@
 # under the License.
 
 # The goal of this script is to make testing the site locally easier.
-# It downloads old pages from SVN and replaces with/add new pages.
+# It downloads old pages from SVN and replaces with/add refactor pages.
 
 DIR=$(dirname $0)/..
 cd $DIR

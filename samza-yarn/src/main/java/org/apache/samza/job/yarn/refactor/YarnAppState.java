@@ -1,9 +1,10 @@
-package org.apache.samza.coordinator;
+package org.apache.samza.job.yarn.refactor;
 
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
+import org.apache.samza.coordinator.JobModelReader;
 
 import java.net.URL;
 import java.util.HashSet;

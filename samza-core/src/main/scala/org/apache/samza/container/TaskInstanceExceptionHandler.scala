@@ -85,7 +85,7 @@ class TaskInstanceExceptionHandler(
 
 object TaskInstanceExceptionHandler {
   /**
-   * Creates a new TaskInstanceExceptionHandler using the provided
+   * Creates a refactor TaskInstanceExceptionHandler using the provided
    * configuration.
    *
    * @param metrics The {@link TaskInstanceMetrics} used to track exception

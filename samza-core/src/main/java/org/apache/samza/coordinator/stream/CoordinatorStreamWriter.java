@@ -91,7 +91,7 @@ public class CoordinatorStreamWriter {
    * @param key   defines the name of the configuration being set. For example, for setting the number of yarn containers,
    *              the key is "yarn.container.count"
    * @param value defines the value associated with the key. For example, if the key is "yarn.container.count" the value
-   *              is the new number of containers.
+   *              is the refactor number of containers.
    */
   private void sendSetConfigMessage(String key, String value) {
     log.info("sent SetConfig message with key = " + key + " and value = " + value);

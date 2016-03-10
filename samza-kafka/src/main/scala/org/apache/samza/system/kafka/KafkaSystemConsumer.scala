@@ -81,7 +81,7 @@ private[kafka] class KafkaSystemConsumer(
    * below 1000, a fetch request will be executed to get more data for it.
    *
    * Increasing this parameter will decrease the latency between when a queue
-   * is drained of messages and when new messages are enqueued, but also leads
+   * is drained of messages and when refactor messages are enqueued, but also leads
    * to an increase in memory usage since more messages will be held in memory.
    */
   fetchThreshold: Int = 50000,
@@ -108,7 +108,7 @@ private[kafka] class KafkaSystemConsumer(
    * below 1000, a fetch request will be executed to get more data for it.
    *
    * Increasing this parameter will decrease the latency between when a queue
-   * is drained of messages and when new messages are enqueued, but also leads
+   * is drained of messages and when refactor messages are enqueued, but also leads
    * to an increase in memory usage since more messages will be held in memory.
    *
    * The default value is -1, which means this is not used. When the value

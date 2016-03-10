@@ -30,8 +30,8 @@ import java.util.Set;
  * not generally enumerate the elements of those sets.  For example, a SystemStreamPartitionGrouper that
  * groups SystemStreamPartitions (each with 4 partitions) by their partition, would end up generating
  * four TaskNames: 0, 1, 2, 3.  These TaskNames describe the partitions but do not list all of the
- * SystemStreamPartitions, which allows new SystemStreamPartitions to be added later without changing
- * the definition of the TaskNames, assuming these new SystemStreamPartitions do not have more than
+ * SystemStreamPartitions, which allows refactor SystemStreamPartitions to be added later without changing
+ * the definition of the TaskNames, assuming these refactor SystemStreamPartitions do not have more than
  * four partitions.  On the other hand, a SystemStreamPartitionGrouper that wanted each SystemStreamPartition
  * to be its own, unique group would use the SystemStreamPartition's entire description to generate
  * the TaskNames.

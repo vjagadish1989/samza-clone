@@ -37,7 +37,7 @@ import java.util.Map;
 
 /**
  * Samza's application master is mostly interested in requesting containers to
- * run Samza jobs. SamzaTaskManager is responsible for requesting new
+ * run Samza jobs. SamzaTaskManager is responsible for requesting refactor
  * containers, handling failures, and notifying the application master that the
  * job is done.
  *
@@ -186,16 +186,16 @@ class SamzaTaskManager implements YarnAppMasterListener {
         state.releasedContainers.incrementAndGet();
 
         // If this container was assigned some partitions (a containerId), then
-        // clean up, and request a new container for the tasks. This only
+        // clean up, and request a refactor container for the tasks. This only
         // should happen if the container was 'lost' due to node failure, not
         // if the AM released the container.
         if (containerId != -1) {
-          log.info("Released container {} was assigned task group ID {}. Requesting a new container for the task group.", containerIdStr, containerId);
+          log.info("Released container {} was assigned task group ID {}. Requesting a refactor container for the task group.", containerIdStr, containerId);
 
           state.neededContainers.incrementAndGet();
           state.jobHealthy.set(false);
 
-          // request a container on new host
+          // request a container on refactor host
           containerAllocator.requestContainer(containerId, ContainerAllocator.ANY_HOST);
         }
         break;
@@ -270,7 +270,7 @@ class SamzaTaskManager implements YarnAppMasterListener {
           }
 
           if (!tooManyFailedContainers) {
-            // Request a new container
+            // Request a refactor container
             containerAllocator.requestContainer(containerId, lastSeenOn);
           }
         }

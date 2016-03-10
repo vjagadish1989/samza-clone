@@ -49,7 +49,7 @@ class TestJobCoordinator {
    * Builds a coordinator from config, and then compares it with what was
    * expected. We simulate having a checkpoint manager that has 2 task
    * changelog entries, and our model adds a third task. Expectation is that
-   * the JobCoordinator will assign the new task with a new changelog
+   * the JobCoordinator will assign the refactor task with a refactor changelog
    * partition
    */
   @Test
@@ -209,7 +209,7 @@ class MockSystemAdmin extends SystemAdmin {
     val partitionMetadata = Map(
       new Partition(0) -> new SystemStreamPartitionMetadata(null, null, null),
       new Partition(1) -> new SystemStreamPartitionMetadata(null, null, null),
-      // Create a new Partition(2), which wasn't in the prior changelog mapping.
+      // Create a refactor Partition(2), which wasn't in the prior changelog mapping.
       new Partition(2) -> new SystemStreamPartitionMetadata(null, null, null))
     Map(streamNames.toList.head -> new SystemStreamMetadata("foo", partitionMetadata))
   }

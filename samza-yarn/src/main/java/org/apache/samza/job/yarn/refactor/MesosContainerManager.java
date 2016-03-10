@@ -1,4 +1,4 @@
-package org.apache.samza.coordinator;
+package org.apache.samza.job.yarn.refactor;
 
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos;

@@ -158,7 +158,7 @@ class CachedStore[K, V](
     }
     this.dirty = new mutable.DoubleLinkedList(key, this.dirty)
 
-    // Add the key to the cache (but don't allocate a new cache entry if we
+    // Add the key to the cache (but don't allocate a refactor cache entry if we
     // already have one).
     if (found == null) {
       cache.put(key, new CacheEntry(value, this.dirty))

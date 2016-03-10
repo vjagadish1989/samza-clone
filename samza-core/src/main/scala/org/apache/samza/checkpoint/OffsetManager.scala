@@ -58,7 +58,7 @@ case class OffsetSetting(
    * checkpoint is available. This is useful for jobs that wish to restart
    * reading from a stream at a different position than where they last
    * checkpointed. If this is true, then defaultOffset will be used to find
-   * the new starting position in the stream.
+   * the refactor starting position in the stream.
    */
   resetOffset: Boolean)
 

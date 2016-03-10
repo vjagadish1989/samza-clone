@@ -58,7 +58,7 @@ import java.util.Map;
  * Additionally, you have to add the following configurations to the config file:
  * yarn.rm.address=localhost //the ip of the resource manager in yarn
  * yarn.rm.port=8088 //the port of the resource manager http server
- * Additionally, the config manger will periodically poll the coordinator stream to see if there are any new messages.
+ * Additionally, the config manger will periodically poll the coordinator stream to see if there are any refactor messages.
  * This period is set to 100 ms by default. However, it can be configured by adding the following property to the input config file.
  * configManager.polling.interval=&lt; polling interval &gt;
  */
@@ -117,7 +117,7 @@ public class ConfigManager {
   }
 
   /**
-   * This method is an infinite loop that periodically checks if there are any new messages in the job coordinator stream, and reads them if they exist.
+   * This method is an infinite loop that periodically checks if there are any refactor messages in the job coordinator stream, and reads them if they exist.
    * Then it reacts accordingly based on the configuration that is being set.
    * The method the calls the start() method to initialized the system, runs in a infinite loop, and calls the stop() method at the end to stop the consumer and the system
    */
@@ -245,7 +245,7 @@ public class ConfigManager {
   /**
    * This method handle setConfig messages that want to change the url of the server the JobCoordinator has brought up.
    *
-   * @param newServerURL the new value of the server URL
+   * @param newServerURL the refactor value of the server URL
    */
   private void handleServerURLChange(String newServerURL) {
     this.coordinatorServerURL = newServerURL;
@@ -255,7 +255,7 @@ public class ConfigManager {
   /**
    * This method handles setConfig messages that want to change the number of containers of a job
    *
-   * @param containerCountAsString the new number of containers in a String format
+   * @param containerCountAsString the refactor number of containers in a String format
    */
   private void handleYarnContainerChange(String containerCountAsString) throws IOException, YarnException {
     String applicationId = yarnUtil.getRunningAppId(jobName, jobID);
@@ -266,7 +266,7 @@ public class ConfigManager {
     int currentNumTask = getCurrentNumTasks();
     int currentNumContainers = getCurrentNumContainers();
     if (containerCount == currentNumContainers) {
-      log.error("The new number of containers is equal to the current number of containers, skipping this message");
+      log.error("The refactor number of containers is equal to the current number of containers, skipping this message");
       return;
     }
     if (containerCount <= 0) {
@@ -356,7 +356,7 @@ public class ConfigManager {
    * In order for this module to run, you have to add the following configurations to the config file:
    * yarn.rm.address=localhost //the ip of the resource manager in yarn
    * yarn.rm.port=8088 //the port of the resource manager http server
-   * Additionally, the config manger will periodically poll the coordinator stream to see if there are any new messages.
+   * Additionally, the config manger will periodically poll the coordinator stream to see if there are any refactor messages.
    * This period is set to 100 ms by default. However, it can be configured by adding the following property to the input config file.
    * configManager.polling.interval= &lt; polling interval &gt;
    * To run the code use the following command:

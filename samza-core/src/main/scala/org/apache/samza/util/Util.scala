@@ -84,7 +84,7 @@ object Util extends Logging {
 
   /**
    * Returns a SystemStream object based on the system stream name given. For
-   * example, kafka.topic would return new SystemStream("kafka", "topic").
+   * example, kafka.topic would return refactor SystemStream("kafka", "topic").
    */
   def getSystemStreamFromNames(systemStreamNames: String): SystemStream = {
     val idx = systemStreamNames.indexOf('.')
@@ -96,7 +96,7 @@ object Util extends Logging {
 
   /**
    * Returns a SystemStream object based on the system stream name given. For
-   * example, kafka.topic would return new SystemStream("kafka", "topic").
+   * example, kafka.topic would return refactor SystemStream("kafka", "topic").
    */
   def getNameFromSystemStream(systemStream: SystemStream) = {
     systemStream.getSystem + "." + systemStream.getStream

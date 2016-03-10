@@ -40,7 +40,7 @@ object SystemConsumers {
  * The SystemConsumers class coordinates between all SystemConsumers, the
  * MessageChooser, and the SamzaContainer. Its job is to poll each
  * SystemConsumer for messages, update the
- * {@link org.apache.samza.system.chooser.MessageChooser} with new incoming
+ * {@link org.apache.samza.system.chooser.MessageChooser} with refactor incoming
  * messages, poll the MessageChooser for the next message to process, and
  * return that message to the SamzaContainer.
  */
@@ -52,7 +52,7 @@ class SystemConsumers(
   chooser: MessageChooser,
 
   /**
-   * A map of SystemConsumers that should be polled for new messages.
+   * A map of SystemConsumers that should be polled for refactor messages.
    */
   consumers: Map[String, SystemConsumer],
 
@@ -71,7 +71,7 @@ class SystemConsumers(
    * poll each SystemConsumer with a timeout next time it tries to poll for
    * messages. Setting the timeout to 0 means that SamzaContainer's main
    * thread will sit in a tight loop polling every SystemConsumer over and
-   * over again if no new messages are available.
+   * over again if no refactor messages are available.
    */
   noNewMessagesTimeout: Int = SystemConsumers.DEFAULT_NO_NEW_MESSAGES_TIMEOUT,
 
@@ -85,9 +85,9 @@ class SystemConsumers(
   /**
    * <p>Defines an upper bound for how long the SystemConsumers will wait
    * before polling systems for more data. The default setting is 50ms, which
-   * means that SystemConsumers will poll for new messages for all
+   * means that SystemConsumers will poll for refactor messages for all
    * SystemStreamPartitions with empty buffers every 50ms. SystemConsumers
-   * will also poll for new messages any time that there are no available
+   * will also poll for refactor messages any time that there are no available
    * messages to process, or any time the MessageChooser returns a null
    * IncomingMessageEnvelope.</p>
    *
@@ -120,13 +120,13 @@ class SystemConsumers(
   /**
    * Default timeout to noNewMessagesTimeout. Every time SystemConsumers
    * receives incoming messages, it sets timeout to 0. Every time
-   * SystemConsumers receives no new incoming messages from the MessageChooser,
+   * SystemConsumers receives no refactor incoming messages from the MessageChooser,
    * it sets timeout to noNewMessagesTimeout again.
    */
   var timeout = noNewMessagesTimeout
 
   /**
-   * The last time that systems were polled for new messages.
+   * The last time that systems were polled for refactor messages.
    */
   var lastPollMs = 0L
 
@@ -136,7 +136,7 @@ class SystemConsumers(
   var totalUnprocessedMessages = 0
 
   debug("Got stream consumers: %s" format consumers)
-  debug("Got no new message timeout: %s" format noNewMessagesTimeout)
+  debug("Got no refactor message timeout: %s" format noNewMessagesTimeout)
 
   metrics.setTimeout(() => timeout)
   metrics.setNeededByChooser(() => emptySystemStreamPartitionsBySystem.size)
@@ -199,7 +199,7 @@ class SystemConsumers(
 
       trace("Chooser returned an incoming message envelope: %s" format envelopeFromChooser)
 
-      // Ok to give the chooser a new message from this stream.
+      // Ok to give the chooser a refactor message from this stream.
       timeout = 0
       metrics.choseObject.inc
       metrics.systemStreamMessagesChosen(envelopeFromChooser.getSystemStreamPartition).inc
@@ -215,7 +215,7 @@ class SystemConsumers(
   }
 
   /**
-   * Poll all SystemStreamPartitions for which there are currently no new
+   * Poll all SystemStreamPartitions for which there are currently no refactor
    * messages to process.
    */
   private def poll(systemName: String) {
@@ -277,12 +277,12 @@ class SystemConsumers(
   }
 
   private def refresh {
-    trace("Refreshing chooser with new messages.")
+    trace("Refreshing chooser with refactor messages.")
 
     // Update last poll time so we don't poll too frequently.
     lastPollMs = clock()
 
-    // Poll every system for new messages.
+    // Poll every system for refactor messages.
     consumers.keys.map(poll(_))
   }
 

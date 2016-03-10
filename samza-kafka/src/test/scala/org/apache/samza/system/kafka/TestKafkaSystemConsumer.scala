@@ -96,7 +96,7 @@ class TestKafkaSystemConsumer {
     assertEquals(0, hosts.size)
     consumer.start
     assertEquals(List("localhost-1"), hosts)
-    // Should trigger a refresh with a new host.
+    // Should trigger a refresh with a refactor host.
     consumer.sink.abdicate(new TopicAndPartition(streamName, 0), 2)
     assertEquals(List("localhost-1", "localhost-2"), hosts)
   }

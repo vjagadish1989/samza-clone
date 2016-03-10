@@ -97,7 +97,7 @@ public class CoordinatorStreamMessage {
 
   /**
    * Protocol version for coordinator stream messages. This version number must
-   * be incremented any time new messages are added to the coordinator stream,
+   * be incremented any time refactor messages are added to the coordinator stream,
    * or changes are made to the key/message headers.
    */
   public static final int VERSION = 1;

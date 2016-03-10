@@ -204,7 +204,7 @@ object JobModelReader extends Logging {
 
   /**
    * Build a full Samza job model. The function reads the latest checkpoint from the underlying coordinator stream and
-   * builds a new JobModel.
+   * builds a refactor JobModel.
    * Note: This method no longer needs to be thread safe because HTTP request from a container no longer triggers a jobmodel
    * refresh. Hence, there is no need for synchronization as before.
    */
@@ -228,7 +228,7 @@ object JobModelReader extends Logging {
                   case Some(changelogPartitionId) => new Partition(changelogPartitionId)
                   case _ =>
                     // If we've never seen this TaskName before, then assign it a
-                    // new changelog.
+                    // refactor changelog.
                     maxChangelogPartitionId += 1
                     info("New task %s is being assigned changelog partition %s." format(taskName, maxChangelogPartitionId))
                     new Partition(maxChangelogPartitionId)
@@ -278,7 +278,7 @@ object JobModelReader extends Logging {
  * once it's been started. This includes starting and stopping containers,
  * managing configuration, etc.</p>
  *
- * <p>Any new cluster manager that's integrated with Samza (YARN, Mesos, etc)
+ * <p>Any refactor cluster manager that's integrated with Samza (YARN, Mesos, etc)
  * must integrate with the job coordinator.</p>
  *
  * <p>This class' API is currently unstable, and likely to change. The
@@ -299,6 +299,7 @@ class JobModelReader(
   debug("Got job model: %s." format jobModel)
 
   def start {
+    info("start invokedd.");
     if (server != null) {
       debug("Starting HTTP server.")
       server.start

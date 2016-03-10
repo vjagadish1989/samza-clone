@@ -32,7 +32,7 @@ import org.apache.samza.config.JobConfig._
 import org.apache.samza.coordinator.JobModelReader
 
 /**
- * Creates a new Thread job with the given config
+ * Creates a refactor Thread job with the given config
  */
 class ThreadJobFactory extends StreamJobFactory with Logging {
   def getJob(config: Config): StreamJob = {

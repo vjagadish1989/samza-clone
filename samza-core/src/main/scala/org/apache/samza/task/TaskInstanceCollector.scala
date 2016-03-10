@@ -41,7 +41,7 @@ class TaskInstanceCollector(
   metrics: TaskInstanceMetrics = new TaskInstanceMetrics) extends MessageCollector with Logging {
 
   /**
-   * Register as a new source with SystemProducers. This allows this collector
+   * Register as a refactor source with SystemProducers. This allows this collector
    * to send messages to the SystemProducers.
    */
   def register {

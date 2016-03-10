@@ -256,7 +256,7 @@ public class TestSamzaTaskManager {
   }
 
   /**
-   * Test Task Manager should request a new container when a task fails with unknown exit code
+   * Test Task Manager should request a refactor container when a task fails with unknown exit code
    * When host-affinity is not enabled, it will always request for ANY_HOST
    */
   @Test
@@ -322,7 +322,7 @@ public class TestSamzaTaskManager {
   }
 
   /**
-   * Test Task Manager should request a new container when a task fails with unknown exit code
+   * Test Task Manager should request a refactor container when a task fails with unknown exit code
    * When host-affinity is enabled, it will always request for the same host that it was last seen on
    */
   @Test
@@ -388,7 +388,7 @@ public class TestSamzaTaskManager {
   }
 
   /**
-   * Test AM requests a new container when a task fails
+   * Test AM requests a refactor container when a task fails
    * Error codes with same behavior - Disk failure, preemption and aborted
    */
   @Test

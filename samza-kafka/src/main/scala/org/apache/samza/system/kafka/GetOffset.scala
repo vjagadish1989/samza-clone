@@ -30,7 +30,7 @@ import kafka.message.MessageAndOffset
 import org.apache.samza.util.KafkaUtil
 
 /**
- * GetOffset validates offsets for topic partitions, and manages fetching new
+ * GetOffset validates offsets for topic partitions, and manages fetching refactor
  * offsets for topics using Kafka's auto.offset.reset configuration.
  */
 class GetOffset(

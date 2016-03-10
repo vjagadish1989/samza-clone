@@ -119,7 +119,7 @@ class TestStatefulTask extends StreamTaskTestUtil {
     var count = 0
 
     // We should get the original four messages in the stream (1,2,3,2).
-    // Note that this will trigger four new outgoing messages to the STATE_TOPIC.
+    // Note that this will trigger four refactor outgoing messages to the STATE_TOPIC.
     while (task.received.size < 4 && count < 100) {
       Thread.sleep(600)
       count += 1

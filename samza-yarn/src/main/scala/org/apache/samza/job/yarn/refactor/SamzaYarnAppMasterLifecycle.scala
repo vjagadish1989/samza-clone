@@ -17,13 +17,12 @@
  * under the License.
  */
 
-package org.apache.samza.job.coordinator
+package org.apache.samza.job.yarn.refactor
 
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus
 import org.apache.hadoop.yarn.client.api.AMRMClient.ContainerRequest
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync
 import org.apache.samza.SamzaException
-import org.apache.samza.coordinator.YarnAppState
 import org.apache.samza.job.yarn.YarnAppMasterListener
 import org.apache.samza.util.Logging
 

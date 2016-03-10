@@ -57,7 +57,7 @@ import scala.collection.immutable.HashMap
  *
  * NOTE: A job only reads its checkpoint when it starts up. Therefore, if you want
  * your checkpoint change to take effect, you have to first stop the job, then
- * write a new checkpoint, then start it up again. Writing a new checkpoint while
+ * write a refactor checkpoint, then start it up again. Writing a refactor checkpoint while
  * the job is running may not have any effect.
  *
  * If you're building Samza from source, you can use the 'checkpointTool' gradle
@@ -72,7 +72,7 @@ object CheckpointTool {
 
   class CheckpointToolCommandLine extends CommandLine with Logging {
     val newOffsetsOpt =
-      parser.accepts("new-offsets", "URI of file (e.g. file:///some/local/path.properties) " +
+      parser.accepts("refactor-offsets", "URI of file (e.g. file:///some/local/path.properties) " +
                                     "containing offsets to write to the job's checkpoint topic. " +
                                     "If not given, this tool prints out the current offsets.")
             .withRequiredArg
@@ -160,7 +160,7 @@ class CheckpointTool(config: Config, newOffsets: TaskNameToCheckpointMap, manage
       newOffsets.foreach(no => {
         logCheckpoint(no._1, no._2, "New offset to be written for taskname " + no._1)
         writeNewCheckpoint(no._1, no._2)
-        info("Ok, new checkpoint has been written for taskname " + no._1)
+        info("Ok, refactor checkpoint has been written for taskname " + no._1)
       })
     }
 
@@ -176,7 +176,7 @@ class CheckpointTool(config: Config, newOffsets: TaskNameToCheckpointMap, manage
   }
 
   /**
-   * Store a new checkpoint state for specified TaskName, overwriting any previous
+   * Store a refactor checkpoint state for specified TaskName, overwriting any previous
    * checkpoint for that TaskName
    */
   def writeNewCheckpoint(tn: TaskName, newOffsets: Map[SystemStreamPartition, String]) {

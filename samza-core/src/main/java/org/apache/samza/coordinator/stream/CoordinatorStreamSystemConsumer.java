@@ -247,8 +247,8 @@ public class CoordinatorStreamSystemConsumer {
   /**
    * Checks whether or not there are any messages after a given iterator on the coordinator stream
    *
-   * @param iterator The iterator to check if there are any new messages after this point
-   * @return True if there are new messages after the iterator, false otherwise
+   * @param iterator The iterator to check if there are any refactor messages after this point
+   * @return True if there are refactor messages after the iterator, false otherwise
    */
   public boolean hasNewMessages(SystemStreamPartitionIterator iterator) {
     if (iterator == null) {
