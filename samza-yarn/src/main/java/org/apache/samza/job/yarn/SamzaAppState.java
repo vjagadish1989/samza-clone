@@ -87,7 +87,7 @@ public class SamzaAppState {
   public String jmxTunnelingUrl = "";
   /**
    * Job Coordinator URL
-   * Usage in {@link org.apache.samza.job.yarn.SamzaAppMasterService} &amp; ContainerUtil
+   * Usage in {@link org.apache.samza.job.yarn.SamzaAppMasterService} &amp; YarnContainerRunner
    */
   public URL coordinatorUrl = null;
   /**

@@ -17,204 +17,283 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Implements a JobCoordinator that uses
+ * Implements a JobCoordinator that is completely independent of the underlying cluster
+ * manager system. This {@link ClusterBasedJobCoordinator} handles functionality common
+ * to both Yarn and Mesos. It takes care of
+ *  1. Requesting resources from an underlying {@link ContainerProcessManager}.
+ *  2. Ensuring that placement of containers to resources happens as per host affinity.
  *
+ *  Any offer based cluster management system that must integrate with Samza will merely
+ *  implement a {@link ContainerManagerFactory} and a {@link ContainerProcessManager}.
+ *  This class is not thread-safe, Hence, invocations should not invoke
+ *  methods from different threads.
+ *
+ * TODO:
+ * 1. Refactor ContainerProcessManager to also handle process liveness, process start
+ * callbacks
+ * 2. Refactor the JobModelReader to be an interface.
+ * 3. Make ClusterBasedJobCoordinator implement the JobCoordinator API as in SAMZA-881.
+ * 4. Refactor UI state variables.
+ * 5. Add another constructor that takes in a JobModelReader and a Config object.
+ * 6. Unit tests.
+ * 7. Documentation for the newly added configs.
  */
 public class ClusterBasedJobCoordinator implements ContainerProcessManagerCallback {
+  /**
+   * A ContainerProcessManager takes care of requesting resources from a pool of resources
+   */
+  private ContainerProcessManager processManager;
 
-    private ContainerProcessManager processManager;
-    private SamzaAppState state;
-    private SamzaAppMasterMetrics metrics;
-    private SamzaTaskManager taskManager;
 
-    private JobModelReader jobModelReader;
+  private SamzaAppState state;
 
-    /**
-     * Registry of components to register metrics to.
-     */
-    private MetricsRegistryMap registry;
+  /**
+   * Metrics to track stats around container failures, needed containers etc.
+   */
+  private SamzaAppMasterMetrics metrics;
 
-    /*
-     * The interval for polling the Task Manager for shutdown.
-     */
-    private long taskManagerPollInterval;
+  /**
+   * Handles callback for allocated containers, failed containers.
+   */
+  private SamzaTaskManager taskManager;
 
-    /*
-     * Config specifies if a Jmx server should be started on this Job Coordinator
-     */
-    private boolean isJmxEnabled;
+  private JobModelReader jobModelReader;
 
-    /**
-     * Tracks the exception occuring in any callbacks from the ContainerProcessManager. Any errors from the
-     * ContainerProcessManager will trigger shutdown of the YarnJobCoordinator.
-     */
-    private Exception storedException;
+  /**
+   * Registry of components to register metrics to.
+   */
+  private MetricsRegistryMap registry;
 
-    private static final Logger log = LoggerFactory.getLogger(ClusterBasedJobCoordinator.class);
+  /*
+   * The interval for polling the Task Manager for shutdown.
+   */
+  private long taskManagerPollInterval;
 
-    private Config coordinatorSystemConfig ;
+  /*
+   * Config specifies if a Jmx server should be started on this Job Coordinator
+   */
+  private boolean isJmxEnabled;
 
-    private boolean isStarted;
+  /**
+   * Tracks the exception occuring in any callbacks from the ContainerProcessManager. Any errors from the
+   * ContainerProcessManager will trigger shutdown of the YarnJobCoordinator.
+   */
+  private Throwable storedException;
 
-    private JmxServer jmxServer;
+  private static final Logger log = LoggerFactory.getLogger(ClusterBasedJobCoordinator.class);
 
-    /**
-     * Creates an YarnJobCoordinator instance providing a config object.
-     * @param coordinatorSystemConfig the coordinator stream config that can be used to read the
-     * {@link org.apache.samza.job.model.JobModel from.
-     */
-    public ClusterBasedJobCoordinator(Config coordinatorSystemConfig) {
-          this.coordinatorSystemConfig = coordinatorSystemConfig;
-         }
+  private final Config coordinatorSystemConfig;
 
-    private ContainerManagerFactory getContainerProcessManagerFactory(String containerProcessManagerFactory) {
-       ContainerManagerFactory factory;
+  private boolean isStarted;
+
+  private JmxServer jmxServer;
+
+  /**
+   * Creates an YarnJobCoordinator instance providing a config object.
+   *
+   * @param coordinatorSystemConfig the coordinator stream config that can be used to read the
+   *                                {@link org.apache.samza.job.model.JobModel from.
+   */
+  public ClusterBasedJobCoordinator(Config coordinatorSystemConfig)
+  {
+    this.coordinatorSystemConfig = coordinatorSystemConfig;
+  }
+
+  /**
+   * Starts the JobCoordinator.
+   * TODO:
+   * 1. Make start() completely async when called from the StreamProcessor and run it in a
+   * daemon thread.
+   * 2. Also, expose an API that invocations can use to get status of the JobCoordinator
+   *
+   */
+  public void start()
+  {
+    if (isStarted)
+    {
+        log.info("Attempting to start an already started job coordinator. ");
+        return;
+    }
+    isStarted = true;
+
+    try
+    {
+      registry = new MetricsRegistryMap();
+      jobModelReader = JobModelReader.apply(coordinatorSystemConfig, registry);
+      Config config = jobModelReader.jobModel().getConfig();
+
+      ClusterManagerConfig clusterManagerConfig = new ClusterManagerConfig(config);
+      taskManagerPollInterval = clusterManagerConfig.getJobCoordinatorSleepInterval();
+      isJmxEnabled = clusterManagerConfig.getJmxServerEnabled();
+
+      log.info("Got coordinator system config {} ", coordinatorSystemConfig);
+
+      ContainerManagerFactory factory = getContainerProcessManagerFactory(clusterManagerConfig);
+      this.processManager = factory.getContainerProcessManager(jobModelReader, this);
+
+      state = new SamzaAppState(jobModelReader);
+      metrics = new SamzaAppMasterMetrics(config, state, registry);
+      taskManager = new SamzaTaskManager(config, state, processManager);
+
+
+      if (isJmxEnabled) {
+          jmxServer = new JmxServer();
+          state.jmxUrl = jmxServer.getJmxUrl();
+          state.jmxTunnelingUrl = jmxServer.getTunnelingJmxUrl();
+      }
+
+      log.info("Starting Yarn Job Coordinator");
+
+      processManager.start();
+      metrics.start();
+      taskManager.start();
+
+      boolean isInterrupted = false;
+
+      while (!taskManager.shouldShutdown() && !isInterrupted && storedException == null)
+      {
         try {
-            factory = (ContainerManagerFactory) Class.forName(containerProcessManagerFactory).newInstance();
-            factory.getContainerProcessManager(jobModelReader, this);
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-            throw new SamzaException(e);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            throw new SamzaException(e);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new SamzaException(e);
+          Thread.sleep(taskManagerPollInterval);
         }
-        return factory;
+        catch (InterruptedException e) {
+          isInterrupted = true;
+          log.error("Interrupted in job coordinator loop {} ", e);
+          e.printStackTrace();
+        }
+      }
+    }
+    catch (Throwable e) {
+        log.error("exception throw runtime {} ", e);
+        e.printStackTrace();
+        throw new SamzaException(e);
+    }
+    finally {
+        //TODO: Prevent stop from being called multiple times or make methods resilient.
+        stop();
+    }
+  }
+
+  /**
+   * Returns an instantiated {@link ContainerManagerFactory} from a {@link ClusterManagerConfig}
+   * @param clusterManagerConfig, the cluster manager config to parse.
+   *
+   */
+  private ContainerManagerFactory getContainerProcessManagerFactory(final ClusterManagerConfig clusterManagerConfig)
+  {
+    final String containerManagerFactoryClass = clusterManagerConfig.getContainerManagerClass();
+    final ContainerManagerFactory factory;
+
+    try
+    {
+      factory = (ContainerManagerFactory) Class.forName(containerManagerFactoryClass).newInstance();
+    }
+    catch (InstantiationException e) {
+      e.printStackTrace();
+      throw new SamzaException(e);
+    }
+    catch (IllegalAccessException e) {
+      e.printStackTrace();
+      throw new SamzaException(e);
+    }
+    catch (ClassNotFoundException e) {
+      e.printStackTrace();
+      throw new SamzaException(e);
+    }
+    return factory;
+  }
+
+  /**
+   * Stops all components of the JobCoordinator.
+   */
+  public void stop() {
+      if (metrics != null)
+          metrics.stop();
+      log.info("stopped metrics reporters");
+
+      if (taskManager != null)
+          taskManager.stop();
+      log.info("stopped task manager");
+
+      if (processManager != null)
+          processManager.stop();
+      log.info("stopped container process manager");
+
+      if (jmxServer != null) {
+          jmxServer.stop();
+      }
+      log.info("stopped Jmx Server");
+  }
+
+  /**
+   * Delegate callback handling to the taskmanager
+   * @param resources a list of available resources.
+   */
+  @Override
+  public void onResourcesAvailable(List<SamzaResource> resources)
+  {
+      for (SamzaResource resource : resources) {
+          taskManager.onContainerAllocated(resource);
+      }
+  }
+
+  /**
+   * We currently don't react to withdrawn Resources.
+   * @param resources
+   */
+  @Override
+  public void onResourcesWithdrawn(List<SamzaResource> resources)
+  {
+
+  }
+
+  /**
+   * Delegate callbacks of resource completion to the taskManager
+   * @param resourceStatuses
+   */
+  @Override
+  public void onResourcesCompleted(List<StreamProcessorStatus> resourceStatuses)
+  {
+      for (StreamProcessorStatus resourceStatus : resourceStatuses)
+      {
+          taskManager.onContainerCompleted(resourceStatus);
+      }
+  }
+
+  /**
+   * An error in the callback terminates the JobCoordinator
+   * @param e
+   */
+  @Override
+  public void onError(Throwable e)
+  {
+      log.error("Stored exception : {}", e);
+      storedException = e;
+  }
+
+  /**
+   * The entry point for the {@link ClusterBasedJobCoordinator}
+   *
+   * @param args
+   * @throws IOException
+   */
+  public static void main(String args[])
+  {
+    Config coordinatorSystemConfig = null;
+    final String COORDINATOR_SYSTEM_ENV = System.getenv(ShellCommandConfig.ENV_COORDINATOR_SYSTEM_CONFIG());
+    try
+    {
+      log.info("Parsing coordinator system config {}", COORDINATOR_SYSTEM_ENV);
+      coordinatorSystemConfig = new MapConfig(SamzaObjectMapper.getObjectMapper().readValue(COORDINATOR_SYSTEM_ENV, Config.class));
+    }
+    catch (IOException e)
+    {
+      e.printStackTrace();
+      log.error("Exception while reading coordinator stream config {}", e);
+      throw new SamzaException(e);
     }
 
-    public void start()  {
-        if(isStarted) {
-            log.info("Attempting to start an already started job coordinator. ");
-            return;
-        }
-
-
-        isStarted = true;
-        try {
-        registry = new MetricsRegistryMap();
-        jobModelReader = JobModelReader.apply(coordinatorSystemConfig, registry);
-        Config config = jobModelReader.jobModel().getConfig();
-
-        ClusterManagerConfig clusterManagerConfig = new ClusterManagerConfig(config);
-        taskManagerPollInterval = clusterManagerConfig.getJobCoordinatorSleepInterval();
-        isJmxEnabled = clusterManagerConfig.getJmxServerEnabled();
-
-        //instantiate data members
-        log.info("Got coordinator system config: " + coordinatorSystemConfig);
-
-        String containerManagerFactoryClass = clusterManagerConfig.getContainerManagerClass();
-        ContainerManagerFactory factory = getContainerProcessManagerFactory(containerManagerFactoryClass);
-        this.processManager = factory.getContainerProcessManager(jobModelReader, this);
-
-        //processManager = refactor YarnContainerManager(config, jobModelReader, this);
-        state = new SamzaAppState(jobModelReader);
-        metrics = new SamzaAppMasterMetrics(config, state, registry);
-        taskManager = new SamzaTaskManager(config, state, processManager);
-
-
-        if(isJmxEnabled) {
-            jmxServer = new JmxServer();
-            state.jmxUrl = jmxServer.getJmxUrl();
-            state.jmxTunnelingUrl = jmxServer.getTunnelingJmxUrl();
-        }
-
-        log.info("Starting Yarn Job Coordinator");
-
-            processManager.start();
-            metrics.start();
-            taskManager.start();
-
-            boolean isInterrupted = false;
-
-            while (!taskManager.shouldShutdown() && !isInterrupted && storedException == null) {
-                try {
-                    Thread.sleep(taskManagerPollInterval);
-                } catch (InterruptedException e) {
-                    isInterrupted = true;
-                    log.error("Interrupted in job coordinator loop {} ", e);
-                    e.printStackTrace();
-                }
-            }
-        }
-        catch(Throwable e) {
-            log.error("exception throw runtime {} ", e);
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
-        finally {
-            //TODO: Prevent stop from being called multiple times or make methods resilient.
-            stop();
-        }
-    }
-
-    public void stop() {
-        if(metrics!=null)
-            metrics.stop();
-        log.info("stopped 1");
-        if(taskManager!=null)
-            taskManager.stop();
-        log.info("stopped 2");
-
-        if(processManager!=null)
-            processManager.stop();
-        log.info("stopped 3");
-
-        if (jmxServer!=null) {
-            jmxServer.stop();
-        }
-        log.info("stopped 4");
-
-    }
-
-    @Override
-    public void onResourcesAvailable(List<SamzaResource> resources) {
-        for(SamzaResource resource : resources) {
-            taskManager.onContainerAllocated(resource);
-        }
-    }
-
-    @Override
-    public void onResourcesWithdrawn(List<SamzaResource> resources) {
-
-    }
-
-    @Override
-    public void onResourcesCompleted(List<SamzaResourceStatus> resourceStatuses) {
-        for(SamzaResourceStatus resourceStatus : resourceStatuses) {
-            taskManager.onContainerCompleted(resourceStatus);
-        }
-    }
-
-    @Override
-    public void onError(Exception e) {
-        log.error("Stored exception : {}", e);
-        storedException = e;
-    }
-
-    /**
-     * The entry point for the {@link ClusterBasedJobCoordinator}
-     * @param args
-     * @throws IOException
-     */
-    public static void main (String args[]) {
-        Config coordinatorSystemConfig = null;
-        final String COORDINATOR_SYSTEM_ENV = System.getenv(ShellCommandConfig.ENV_COORDINATOR_SYSTEM_CONFIG());
-        try
-        {
-            log.info("Parsing {}", COORDINATOR_SYSTEM_ENV);
-            coordinatorSystemConfig = new MapConfig(SamzaObjectMapper.getObjectMapper().readValue(COORDINATOR_SYSTEM_ENV, Config.class));
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            log.error("Exception while reading coordinator stream config {}", e);
-            throw new SamzaException(e);
-        }
-
-        log.info("Got coordinator system config: {}  ", coordinatorSystemConfig);
-        ClusterBasedJobCoordinator jc = new ClusterBasedJobCoordinator(coordinatorSystemConfig);
-        jc.start();
-    }
+    log.info("Got coordinator system config: {}  ", coordinatorSystemConfig);
+    ClusterBasedJobCoordinator jc = new ClusterBasedJobCoordinator(coordinatorSystemConfig);
+    jc.start();
+  }
 }

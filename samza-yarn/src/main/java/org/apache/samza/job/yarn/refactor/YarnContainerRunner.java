@@ -49,8 +49,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-public class ContainerUtil {
-  private static final Logger log = LoggerFactory.getLogger(ContainerUtil.class);
+/**
+ * A Helper class to run container processes on Yarn. This encapsulates quite a bit of YarnContainer
+ * boiler plate.
+ */
+public class YarnContainerRunner {
+  private static final Logger log = LoggerFactory.getLogger(YarnContainerRunner.class);
 
   private final Config config;
   private final YarnConfiguration yarnConfiguration;
@@ -59,8 +63,13 @@ public class ContainerUtil {
   private final YarnConfig yarnConfig;
   private final TaskConfig taskConfig;
 
-  public ContainerUtil(Config config,
-                       YarnConfiguration yarnConfiguration) {
+  /**
+   * Create a new Runner from a Config.
+   * @param config
+   * @param yarnConfiguration
+   */
+  public YarnContainerRunner(Config config,
+                             YarnConfiguration yarnConfiguration) {
     this.config = config;
     this.yarnConfiguration = yarnConfiguration;
 
@@ -89,46 +98,45 @@ public class ContainerUtil {
       cmdBuilderClassName = ShellCommandBuilder.class.getName();
     }
 
-       //TODO: fix coord url
-      String command = cmdBuilder.buildCommand();
-      log.info("Container ID {} using command {}", samzaContainerId, command);
+    String command = cmdBuilder.buildCommand();
+    log.info("Container ID {} using command {}", samzaContainerId, command);
 
-      log.info("Container ID {} using environment variables: ", samzaContainerId);
-      Map<String, String> env = new HashMap<String, String>();
-      for (Map.Entry<String, String> entry: cmdBuilder.buildEnvironment().entrySet()) {
-        String escapedValue = Util.envVarEscape(entry.getValue());
-        env.put(entry.getKey(), escapedValue);
-        log.info("{}={} ", entry.getKey(), escapedValue);
-      }
+    log.info("Container ID {} using environment variables: ", samzaContainerId);
+    Map<String, String> env = new HashMap<String, String>();
+    for (Map.Entry<String, String> entry: cmdBuilder.buildEnvironment().entrySet()) {
+      String escapedValue = Util.envVarEscape(entry.getValue());
+      env.put(entry.getKey(), escapedValue);
+      log.info("{}={} ", entry.getKey(), escapedValue);
+    }
 
-      Path path = new Path(yarnConfig.getPackagePath());
-      log.info("Starting container ID {} using package path {}", samzaContainerId, path);
+    Path path = new Path(yarnConfig.getPackagePath());
+    log.info("Starting container ID {} using package path {}", samzaContainerId, path);
 
-      startContainer(
-          path,
-          container,
-          env,
-          getFormattedCommand(
-              ApplicationConstants.LOG_DIR_EXPANSION_VAR,
-              command,
-              ApplicationConstants.STDOUT,
-              ApplicationConstants.STDERR)
-      );
+    startContainer(
+        path,
+        container,
+        env,
+        getFormattedCommand(
+            ApplicationConstants.LOG_DIR_EXPANSION_VAR,
+            command,
+            ApplicationConstants.STDOUT,
+            ApplicationConstants.STDERR)
+    );
 
 
-      log.info("Claimed container ID {} for container {} on node {} (http://{}/node/containerlogs/{}).",
-          new Object[]{
-              samzaContainerId,
-              containerIdStr,
-              container.getNodeId().getHost(),
-              container.getNodeHttpAddress(),
-              containerIdStr}
-      );
+    log.info("Claimed container ID {} for container {} on node {} (http://{}/node/containerlogs/{}).",
+        new Object[]{
+            samzaContainerId,
+            containerIdStr,
+            container.getNodeId().getHost(),
+            container.getNodeHttpAddress(),
+            containerIdStr}
+    );
 
       log.info("Started container ID {}", samzaContainerId);
   }
 
-  protected void startContainer(Path packagePath,
+  private void startContainer(Path packagePath,
                                 Container container,
                                 Map<String, String> env,
                                 final String cmd) {

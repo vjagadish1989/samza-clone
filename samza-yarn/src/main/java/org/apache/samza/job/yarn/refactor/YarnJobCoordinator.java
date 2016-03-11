@@ -139,8 +139,8 @@ public class YarnJobCoordinator implements ContainerProcessManagerCallback {
     }
 
     @Override
-    public void onResourcesCompleted(List<SamzaResourceStatus> resourceStatuses) {
-        for(SamzaResourceStatus resourceStatus : resourceStatuses) {
+    public void onResourcesCompleted(List<StreamProcessorStatus> resourceStatuses) {
+        for(StreamProcessorStatus resourceStatus : resourceStatuses) {
             taskManager.onContainerCompleted(resourceStatus);
         }
     }

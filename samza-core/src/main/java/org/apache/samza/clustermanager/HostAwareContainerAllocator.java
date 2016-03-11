@@ -75,7 +75,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
             log.info("Found_a_matched_container container on the preferred host. Running on" +  expectedContainerId + " " + container.getResourceID() + " " + preferredHost);
 
             //TODO; add builder niceties
-            amClient.launchStreamProcessor(container, expectedContainerId, builder);
+            containerProcessManager.launchStreamProcessor(container, expectedContainerId, builder);
             state.matchedContainerRequests.incrementAndGet();
             state.runningContainers.put(request.expectedContainerID, container);
 
@@ -104,7 +104,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
                 log.info("Running {} on {}", expectedContainerId, container.getResourceID());
 
                 //TODO: builder niceities
-                amClient.launchStreamProcessor(container, expectedContainerId, builder);
+                containerProcessManager.launchStreamProcessor(container, expectedContainerId, builder);
                 state.runningContainers.put(request.expectedContainerID, container);
 
                 //containerUtil.runContainer(expectedContainerId, container);

@@ -42,7 +42,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
   public static final int DEFAULT_CONTAINER_MEM = 1024;
   public static final int DEFAULT_CPU_CORES = 1;
 
-  protected final ContainerProcessManager amClient;
+  protected final ContainerProcessManager containerProcessManager;
   protected final int ALLOCATOR_SLEEP_TIME;
   protected final int containerMaxMemoryMb;
   protected final int containerMaxCpuCore;
@@ -59,11 +59,11 @@ public abstract class AbstractContainerAllocator implements Runnable {
   // state that controls the lifecycle of the allocator thread
   protected AtomicBoolean isRunning = new AtomicBoolean(true);
 
-  public AbstractContainerAllocator(ContainerProcessManager amClient,
+  public AbstractContainerAllocator(ContainerProcessManager containerProcessManager,
                                     ContainerRequestState containerRequestState,
                                     Config config, SamzaAppState state) {
     JobConfig jobConfig = new JobConfig(config);
-    this.amClient = amClient;
+    this.containerProcessManager = containerProcessManager;
     this.ALLOCATOR_SLEEP_TIME = jobConfig.getAllocatorSleepTime();
     this.containerRequestState = containerRequestState;
     this.containerMaxMemoryMb = jobConfig.getContainerMemoryMb();
@@ -100,7 +100,6 @@ public abstract class AbstractContainerAllocator implements Runnable {
    * @param preferredHost Name of the host that you prefer to run the container on
    */
   public final void requestContainer(int expectedContainerId, String preferredHost) {
-    //TODO: give a legit req id
     SamzaResourceRequest request = new SamzaResourceRequest(this.containerMaxCpuCore, this.containerMaxMemoryMb, preferredHost, UUID.randomUUID().toString() ,expectedContainerId);
     List<SamzaResourceRequest> requests = new ArrayList<SamzaResourceRequest>(Collections.<SamzaResourceRequest>singletonList(request));
     containerRequestState.addResourceRequest(requests);

@@ -70,7 +70,7 @@ public class ContainerAllocator extends AbstractContainerAllocator {
           //containerUtil.runContainer(request.expectedContainerID, container);
           //TODO: get builder and validate
           CommandBuilder builder = getCommandBuilder(request.expectedContainerID);
-          amClient.launchStreamProcessor(container, request.expectedContainerID, builder);
+          containerProcessManager.launchStreamProcessor(container, request.expectedContainerID, builder);
 
           if (state.neededContainers.decrementAndGet() == 0) {
             state.jobHealthy.set(true);

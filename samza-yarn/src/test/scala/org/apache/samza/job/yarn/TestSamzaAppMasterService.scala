@@ -34,7 +34,7 @@ import scala.collection.JavaConversions._
 import org.apache.samza.config.Config
 import org.apache.samza.config.JobConfig.Config2Job
 import org.apache.samza.container.TaskName
-import org.apache.samza.coordinator.JobModelReader$
+import org.apache.samza.coordinator.{JobModelReader, JobModelReader$}
 import org.apache.samza.coordinator.stream.MockCoordinatorStreamSystemFactory
 
 class TestSamzaAppMasterService {

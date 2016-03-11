@@ -8,7 +8,7 @@ import java.util.List;
 public interface ContainerProcessManagerCallback {
     public void onResourcesAvailable (List<SamzaResource> resources);
     public void onResourcesWithdrawn (List<SamzaResource> resources);
-    public void onResourcesCompleted (List<SamzaResourceStatus> resources);
-    public void onError (Exception e);
+    public void onResourcesCompleted (List<StreamProcessorStatus> resources);
+    public void onError (Throwable e);
 
 }

@@ -193,7 +193,7 @@ public class ContainerRequestState {
       requestsToCountMap.get(request.getPreferredHost()).decrementAndGet();
     }
     // To avoid getting back excess containers
-    //TODO: amClient.removeContainerRequest(request.getIssuedRequest());
+    //TODO: containerProcessManager.removeContainerRequest(request.getIssuedRequest());
     manager.cancelResourceRequest(request);
 
   }
@@ -217,7 +217,7 @@ public class ContainerRequestState {
             manager.releaseResources(containers, null);
             for (SamzaResource c : containers) {
               log.info("Releasing extra container {} allocated on {}", c.getResourceID(), host);
-              //amClient.releaseAssignedContainer(c.getId());
+              //containerProcessManager.releaseAssignedContainer(c.getId());
               numReleasedContainers++;
             }
           }
@@ -236,7 +236,7 @@ public class ContainerRequestState {
           log.info("Releasing extra allocated container - {}", c.getResourceID());
           toRelease.add(c);
 
-          //amClient.releaseAssignedContainer(c.getId());
+          //containerProcessManager.releaseAssignedContainer(c.getId());
           numReleasedContainers++;
         }
         manager.releaseResources(toRelease, null);

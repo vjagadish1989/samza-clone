@@ -31,7 +31,7 @@ import scala.collection.JavaConversions._
 import org.apache.samza.Partition
 import org.apache.samza.config.Config
 import org.apache.samza.config.MapConfig
-import org.apache.samza.coordinator.JobModelReader$
+import org.apache.samza.coordinator.{JobModelReader, JobModelReader$}
 import org.apache.samza.coordinator.server.{ServletBase, HttpServer, JobServlet}
 import org.apache.samza.job.model.ContainerModel
 import org.apache.samza.job.model.JobModel

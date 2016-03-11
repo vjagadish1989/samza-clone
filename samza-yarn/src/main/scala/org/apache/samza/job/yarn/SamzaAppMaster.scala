@@ -116,7 +116,7 @@ object SamzaAppMaster extends Logging with AMRMClientAsync.CallbackHandler {
       amClient.start
       listeners.foreach(_.onInit)
       var isShutdown: Boolean = false
-      // have the loop to prevent the process from exiting until the job is to shutdown or error occurs on amClient
+      // have the loop to prevent the process from exiting until the job is to shutdown or error occurs on containerProcessManager
       while (!isShutdown && !listeners.map(_.shouldShutdown).reduceLeft(_ || _) && storedException == null) {
         try {
           Thread.sleep(interval)
@@ -134,7 +134,7 @@ object SamzaAppMaster extends Logging with AMRMClientAsync.CallbackHandler {
       } catch {
         case e: Exception => warn("Listener %s failed to shutdown." format listener, e)
       })
-      // amClient has to be stopped
+      // containerProcessManager has to be stopped
       amClient.stop
     }
   }
@@ -153,7 +153,7 @@ object SamzaAppMaster extends Logging with AMRMClientAsync.CallbackHandler {
   override def getProgress: Float = 0.0F
 
   override def onError(e: Throwable): Unit = {
-    error("Error occured in amClient's callback", e)
+    error("Error occured in containerProcessManager's callback", e)
     storedException = e
   }
 

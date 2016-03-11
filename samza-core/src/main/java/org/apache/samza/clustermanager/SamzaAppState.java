@@ -64,7 +64,7 @@ public class SamzaAppState {
   /**
    * ContainerStatus of failed containers.
    */
-  public ConcurrentMap<String, SamzaResourceStatus> failedContainersStatus = new ConcurrentHashMap<String, SamzaResourceStatus>();
+  public ConcurrentMap<String, StreamProcessorStatus> failedContainersStatus = new ConcurrentHashMap<String, StreamProcessorStatus>();
 
   /**
    * Number of containers configured for the job
@@ -102,7 +102,7 @@ public class SamzaAppState {
 
   /**
    * State indicating whether the job is healthy or not
-   * Modified by both the AMRMCallbackThread and the ContainerAllocator thread
+   * Modified by both the callback handler and the ContainerAllocator thread
    */
   public AtomicBoolean jobHealthy = new AtomicBoolean(true);
 

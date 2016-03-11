@@ -34,7 +34,7 @@ import org.junit.Assert._
 import org.junit.Test
 import org.mockito.Mockito
 import java.net.URL
-import org.apache.samza.coordinator.JobModelReader$
+import org.apache.samza.coordinator.{JobModelReader, JobModelReader$}
 
 class TestSamzaAppMasterLifecycle {
   val coordinator = new JobModelReader(null, null)

@@ -56,11 +56,11 @@ public class SamzaTaskManager   {
     private final AbstractContainerAllocator containerAllocator;
     private final Thread allocatorThread;
 
-    private  ContainerProcessManager manager = null;
+    private final ContainerProcessManager manager;
 
     // State
     private boolean tooManyFailedContainers = false;
-    private Map<Integer, ResourceFailure> containerFailures = new HashMap<Integer, ResourceFailure>();
+    private final Map<Integer, ResourceFailure> containerFailures = new HashMap<Integer, ResourceFailure>();
 
     public SamzaTaskManager(Config config,
                             SamzaAppState state,
@@ -98,7 +98,7 @@ public class SamzaTaskManager   {
     }
 
     public void start() {
-        log.info("started on Init of  samza task manager");
+        log.info("Starting the Samza task manager");
 
         state.containerCount = jobConfig.getContainerCount();
 
@@ -112,8 +112,6 @@ public class SamzaTaskManager   {
         // Start container allocator thread
         log.info("Starting the container allocator thread");
         allocatorThread.start();
-        log.info("finished on Init of  samza task manager");
-
     }
 
     public void onReboot() {
@@ -144,7 +142,7 @@ public class SamzaTaskManager   {
      * This methods handles the onContainerCompleted callback from the RM. Based on the ContainerExitStatus, it decides
      * whether a container that exited is marked as complete or failure.
      */
-    public void onContainerCompleted(SamzaResourceStatus containerStatus) {
+    public void onContainerCompleted(StreamProcessorStatus containerStatus) {
         String containerIdStr = containerStatus.resourceID;
         int containerId = -1;
         for(Map.Entry<Integer, SamzaResource> entry: state.runningContainers.entrySet()) {
@@ -162,7 +160,7 @@ public class SamzaTaskManager   {
 
         int exitStatus = containerStatus.getExitCode();
         switch(exitStatus) {
-            case SamzaResourceStatus.SUCCESS:
+            case StreamProcessorStatus.SUCCESS:
                 log.info("Container {} completed successfully.", containerIdStr);
 
                 state.completedContainers.incrementAndGet();
@@ -178,9 +176,9 @@ public class SamzaTaskManager   {
                 }
                 break;
 
-            case SamzaResourceStatus.DISK_FAIL:
-            case SamzaResourceStatus.ABORTED:
-            case SamzaResourceStatus.PREEMPTED:
+            case StreamProcessorStatus.DISK_FAIL:
+            case StreamProcessorStatus.ABORTED:
+            case StreamProcessorStatus.PREEMPTED:
                 log.info("Got an exit code of {}. This means that container {} was "
                                 + "killed by YARN, either due to being released by the application "
                                 + "master or being 'lost' due to node failures etc. or due to preemption by the RM",

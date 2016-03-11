@@ -19,7 +19,7 @@
 
 package org.apache.samza.job.local;
 
-import org.apache.samza.coordinator.JobModelReader$
+import org.apache.samza.coordinator.{JobModelReader, JobModelReader$}
 import org.junit.Assert._
 import org.junit.Test
 import org.apache.samza.job.ApplicationStatus
