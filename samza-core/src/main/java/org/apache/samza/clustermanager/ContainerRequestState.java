@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -205,43 +206,37 @@ public class ContainerRequestState {
    */
   public synchronized int releaseExtraContainers() {
     int numReleasedContainers = 0;
-
-    if (hostAffinityEnabled) {
-      if (requestsQueue.isEmpty()) {
-        log.debug("Container Requests Queue is empty.");
-
+    if (requestsQueue.isEmpty()) {
+      log.debug("Container Requests Queue is empty.");
+      if (hostAffinityEnabled) {
         List<String> allocatedHosts = getAllocatedHosts();
         for (String host : allocatedHosts) {
-          List<SamzaResource> containers = getContainersOnAHost(host);
-          if (containers != null) {
-            manager.releaseResources(containers, null);
-            for (SamzaResource c : containers) {
-              log.info("Releasing extra container {} allocated on {}", c.getResourceID(), host);
-              //containerProcessManager.releaseAssignedContainer(c.getId());
-              numReleasedContainers++;
-            }
-          }
+          numReleasedContainers += releaseContainersForHost(host);
         }
-
-        clearState();
+      } else {
+        numReleasedContainers += releaseContainersForHost(ANY_HOST);
       }
-    } else {
-      if (requestsQueue.isEmpty()) {
-        log.debug("No more pending requests in Container Requests Queue.");
+      clearState();
+    }
+    return numReleasedContainers;
+  }
 
-        List<SamzaResource> availableContainers = getContainersOnAHost(ANY_HOST);
-        List<SamzaResource> toRelease = new ArrayList<SamzaResource>();
-        while(availableContainers != null && !availableContainers.isEmpty()) {
-          SamzaResource c = availableContainers.remove(0);
-          log.info("Releasing extra allocated container - {}", c.getResourceID());
-          toRelease.add(c);
-
-          //containerProcessManager.releaseAssignedContainer(c.getId());
-          numReleasedContainers++;
-        }
-        manager.releaseResources(toRelease, null);
-        clearState();
+  /**
+   * Releases all allocated containers for the specified host.
+   * @param host  the host for which the containers should be released.
+   * @return      the number of containers released.
+   */
+  private int releaseContainersForHost(String host) {
+    int numReleasedContainers = 0;
+    List<SamzaResource> containers = getContainersOnAHost(host);
+    if (containers != null) {
+      for (SamzaResource c : containers) {
+        log.info("Releasing extra container {} allocated on {}", c.getResourceID(), host);
+        manager.releaseResources(Collections.singletonList(c), null);
+        numReleasedContainers++;
       }
+
+
     }
     return numReleasedContainers;
   }

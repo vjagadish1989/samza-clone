@@ -53,7 +53,7 @@ public class YarnJobCoordinator implements ContainerProcessManagerCallback {
      * Tracks the exception occuring in any callbacks from the ContainerProcessManager. Any errors from the
      * ContainerProcessManager will trigger shutdown of the YarnJobCoordinator.
      */
-    private Exception storedException;
+    private Throwable storedException;
 
     private static final Logger log = LoggerFactory.getLogger(YarnJobCoordinator.class);
 
@@ -146,7 +146,7 @@ public class YarnJobCoordinator implements ContainerProcessManagerCallback {
     }
 
     @Override
-    public void onError(Exception e) {
+    public void onError(Throwable e) {
          log.error("Stored exception : {}", e);
          storedException = e;
     }

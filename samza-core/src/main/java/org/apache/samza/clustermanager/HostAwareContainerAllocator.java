@@ -53,9 +53,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
    * allocatedContainers buffer keyed by "ANY_HOST".
    */
   @Override
-  public void run() {
-    try {
-      while (isRunning.get()) {
+  public void assignContainerRequests()  {
         while (!containerRequestState.getRequestsQueue().isEmpty()) {
 
           SamzaResourceRequest request = containerRequestState.getRequestsQueue().peek();
@@ -75,13 +73,15 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
             log.info("Found_a_matched_container container on the preferred host. Running on" +  expectedContainerId + " " + container.getResourceID() + " " + preferredHost);
 
             //TODO; add builder niceties
-            containerProcessManager.launchStreamProcessor(container, expectedContainerId, builder);
+            try {
+              containerProcessManager.launchStreamProcessor(container, expectedContainerId, builder);
+            } catch (SamzaContainerLaunchException e) {
+              e.printStackTrace();
+            }
             state.matchedContainerRequests.incrementAndGet();
             state.runningContainers.put(request.expectedContainerID, container);
 
-            //containerUtil.runMatchedContainer(expectedContainerId, container);
           } else {
-            // No allocated container on preferredHost
 
             boolean expired = requestExpired(request);
 
@@ -103,9 +103,12 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
                 containerRequestState.updateStateAfterAssignment(request, ANY_HOST, container);
                 log.info("Running {} on {}", expectedContainerId, container.getResourceID());
 
-                //TODO: builder niceities
+              try {
                 containerProcessManager.launchStreamProcessor(container, expectedContainerId, builder);
-                state.runningContainers.put(request.expectedContainerID, container);
+              } catch (SamzaContainerLaunchException e) {
+                e.printStackTrace();
+              }
+              state.runningContainers.put(request.expectedContainerID, container);
 
                 //containerUtil.runContainer(expectedContainerId, container);
               }
@@ -116,13 +119,6 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
         // Release extra containers and update the entire system's state
         containerRequestState.releaseExtraContainers();
 
-        Thread.sleep(ALLOCATOR_SLEEP_TIME);
-      }
-    } catch (InterruptedException ie) {
-      log.info("Got an InterruptedException in HostAwareContainerAllocator thread!", ie);
-    } catch (Exception e) {
-      log.info("Got an unknown Exception in HostAwareContainerAllocator thread!", e);
-    }
   }
 
   private boolean requestExpired(SamzaResourceRequest request) {

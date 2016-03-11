@@ -48,9 +48,7 @@ public class ContainerAllocator extends AbstractContainerAllocator {
    * Since host-affinity is not enabled, all allocated container resources are buffered in the list keyed by "ANY_HOST".
    * */
   @Override
-  public void run() {
-    while(isRunning.get()) {
-      try {
+  public void assignContainerRequests() {
         List<SamzaResource> allocatedContainers = containerRequestState.getContainersOnAHost(ANY_HOST);
         while (!containerRequestState.getRequestsQueue().isEmpty() && allocatedContainers != null && allocatedContainers.size() > 0) {
 
@@ -70,7 +68,11 @@ public class ContainerAllocator extends AbstractContainerAllocator {
           //containerUtil.runContainer(request.expectedContainerID, container);
           //TODO: get builder and validate
           CommandBuilder builder = getCommandBuilder(request.expectedContainerID);
-          containerProcessManager.launchStreamProcessor(container, request.expectedContainerID, builder);
+          try {
+            containerProcessManager.launchStreamProcessor(container, request.expectedContainerID, builder);
+          } catch (SamzaContainerLaunchException e) {
+            e.printStackTrace();
+          }
 
           if (state.neededContainers.decrementAndGet() == 0) {
             state.jobHealthy.set(true);
@@ -82,10 +84,5 @@ public class ContainerAllocator extends AbstractContainerAllocator {
         // If requestQueue is empty, all extra containers in the buffer should be released.
         containerRequestState.releaseExtraContainers();
 
-        Thread.sleep(ALLOCATOR_SLEEP_TIME);
-      } catch (InterruptedException e) {
-        log.info("Got InterruptedException in AllocatorThread. Pending Container request(s) cannot be fulfilled!!", e);
-      }
-    }
   }
 }

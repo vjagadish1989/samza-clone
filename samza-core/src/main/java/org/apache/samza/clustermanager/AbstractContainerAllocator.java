@@ -24,8 +24,14 @@ import org.apache.samza.config.TaskConfig;
 import org.apache.samza.job.CommandBuilder;
 import org.apache.samza.job.ShellCommandBuilder;
 import org.apache.samza.util.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -37,6 +43,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * See {@link ContainerAllocator} and {@link HostAwareContainerAllocator}
  */
 public abstract class AbstractContainerAllocator implements Runnable {
+  private static final Logger log = LoggerFactory.getLogger(AbstractContainerAllocator.class);
   public static final String ANY_HOST = ContainerRequestState.ANY_HOST;
   public static final int DEFAULT_PRIORITY = 0;
   public static final int DEFAULT_CONTAINER_MEM = 1024;
@@ -50,14 +57,11 @@ public abstract class AbstractContainerAllocator implements Runnable {
   Config config = null;
   SamzaAppState state;
 
-  @Override
-  public abstract void run();
-
   // containerRequestState indicate the state of all unfulfilled container requests and allocated containers
   protected final ContainerRequestState containerRequestState;
 
   // state that controls the lifecycle of the allocator thread
-  protected AtomicBoolean isRunning = new AtomicBoolean(true);
+  private AtomicBoolean isRunning = new AtomicBoolean(true);
 
   public AbstractContainerAllocator(ContainerProcessManager containerProcessManager,
                                     ContainerRequestState containerRequestState,
@@ -73,6 +77,35 @@ public abstract class AbstractContainerAllocator implements Runnable {
     this.config = config;
   }
 
+  /**
+   * Continuously assigns requested containers to the allocated containers provided by the cluster manager.
+   * The loop frequency is governed by thread sleeps for ALLOCATOR_SLEEP_TIME ms.
+   *
+   * Terminates when the isRunning flag is cleared.
+   */
+  @Override
+  public void run() {
+    while(isRunning.get()) {
+      try {
+        assignContainerRequests();
+
+        // Release extra containers and update the entire system's state
+        containerRequestState.releaseExtraContainers();
+
+        Thread.sleep(ALLOCATOR_SLEEP_TIME);
+      } catch (InterruptedException e) {
+        log.info("Got InterruptedException in AllocatorThread.", e);
+      } catch (Exception e) {
+        log.error("Got unknown Exception in AllocatorThread.", e);
+      }
+    }
+  }
+
+  /**
+   * Assigns the container requests from the queue to the allocated containers from the cluster manager and
+   * runs them.
+   */
+  protected abstract void assignContainerRequests();
 
   /**
    * Called during initial request for containers
@@ -101,7 +134,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
    */
   public final void requestContainer(int expectedContainerId, String preferredHost) {
     SamzaResourceRequest request = new SamzaResourceRequest(this.containerMaxCpuCore, this.containerMaxMemoryMb, preferredHost, UUID.randomUUID().toString() ,expectedContainerId);
-    List<SamzaResourceRequest> requests = new ArrayList<SamzaResourceRequest>(Collections.<SamzaResourceRequest>singletonList(request));
+    List<SamzaResourceRequest> requests = new ArrayList<>(Collections.<SamzaResourceRequest>singletonList(request));
     containerRequestState.addResourceRequest(requests);
     state.containerRequests.incrementAndGet();
   }

@@ -11,7 +11,7 @@ public interface ContainerProcessManager {
     public void start();
     public void requestResources (List<SamzaResourceRequest> resourceRequest, ContainerProcessManagerCallback callback);
     public void releaseResources (List<SamzaResource> resources, ContainerProcessManagerCallback callback);
-    public void launchStreamProcessor (SamzaResource resource, int containerID, CommandBuilder builder);
+    public void launchStreamProcessor (SamzaResource resource, int containerID, CommandBuilder builder) throws SamzaContainerLaunchException;
     public void cancelResourceRequest (SamzaResourceRequest request);
 
     public void stop();
