@@ -22,6 +22,7 @@ import org.apache.samza.config.Config;
 import org.apache.samza.job.CommandBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.xml.dtd.ANY;
 
 import java.util.List;
 
@@ -54,71 +55,38 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
    */
   @Override
   public void assignContainerRequests()  {
-        while (!containerRequestState.getRequestsQueue().isEmpty()) {
+    while (hasPendingRequest()) {
 
-          SamzaResourceRequest request = containerRequestState.getRequestsQueue().peek();
+          SamzaResourceRequest request = peekPendingRequest();;
           log.info("Handling request: " + request.expectedContainerID + " " + request.requestTimestamp + " " + request.preferredHost);
           String preferredHost = request.getPreferredHost();
           int expectedContainerId = request.expectedContainerID;
-            CommandBuilder builder = getCommandBuilder(expectedContainerId);
 
-          List<SamzaResource> allocatedContainers = containerRequestState.getContainersOnAHost(preferredHost);
-
-          if (allocatedContainers != null && allocatedContainers.size() > 0) {
+          if (hasAllocatedContainer(preferredHost)) {
             // Found allocated container at preferredHost
-            SamzaResource container = allocatedContainers.get(0);
-
-            containerRequestState.updateStateAfterAssignment(request, preferredHost, container);
-
-            log.info("Found_a_matched_container container on the preferred host. Running on" +  expectedContainerId + " " + container.getResourceID() + " " + preferredHost);
-
-            //TODO; add builder niceties
-            try {
-              containerProcessManager.launchStreamProcessor(container, expectedContainerId, builder);
-            } catch (SamzaContainerLaunchException e) {
-              e.printStackTrace();
-            }
+            log.info("Found_a_matched_container container on the preferred host. Running on" +  expectedContainerId + " " + request.getExpectedContainerID() + " " + preferredHost);
+            runContainer(request, preferredHost);
             state.matchedContainerRequests.incrementAndGet();
-            state.runningContainers.put(request.expectedContainerID, container);
 
           } else {
+            log.info("Did not find any allocated containers on preferred host {} for running container id {}",
+                preferredHost, expectedContainerId);
 
             boolean expired = requestExpired(request);
+            boolean containerAvailableOnAnyHost = hasAllocatedContainer(ANY_HOST);
 
-            allocatedContainers = containerRequestState.getContainersOnAHost(ANY_HOST);
-            if (!expired || allocatedContainers == null || allocatedContainers.size() == 0) {
-              //not expired, no containers found on any_host
-              if(allocatedContainers == null || allocatedContainers.size()==0) {
-                log.info("no containers found on any_host ");
-              }
-              if(!expired) {
-                log.info("Request has not expired. Timeout is " + CONTAINER_REQUEST_TIMEOUT + " pcontainerID: " + expectedContainerId + " phostName: " + preferredHost);
-              }
+            if(expired && containerAvailableOnAnyHost) {
+              log.info("Request expired. running on ANY_HOST");
+              runContainer(request, ANY_HOST);
+            }
+            else {
+              log.info("Either the request timestamp {} is greater than container request timeout {}ms or we couldn't "
+                      + "find any free allocated containers in the buffer. Breaking out of loop.",
+                  request.getRequestTimestamp(), CONTAINER_REQUEST_TIMEOUT);
               break;
             }
-            if(allocatedContainers.size()!=0 ) {
-
-                SamzaResource container = allocatedContainers.get(0);
-                log.info("expired_run_on_any_host rcontainerID: " + expectedContainerId + " rhostname: " + preferredHost);
-                containerRequestState.updateStateAfterAssignment(request, ANY_HOST, container);
-                log.info("Running {} on {}", expectedContainerId, container.getResourceID());
-
-              try {
-                containerProcessManager.launchStreamProcessor(container, expectedContainerId, builder);
-              } catch (SamzaContainerLaunchException e) {
-                e.printStackTrace();
-              }
-              state.runningContainers.put(request.expectedContainerID, container);
-
-                //containerUtil.runContainer(expectedContainerId, container);
-              }
-            else
-             log.info("no_available_container  qcontainerID: " + expectedContainerId + " qhostName: " + preferredHost);
           }
         }
-        // Release extra containers and update the entire system's state
-        containerRequestState.releaseExtraContainers();
-
   }
 
   private boolean requestExpired(SamzaResourceRequest request) {
