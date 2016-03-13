@@ -19,12 +19,13 @@ import java.util.List;
  *   }
  *
  *   public void onResourcesCompleted(List<SamzaResourceStatus> resourceStatus) {
- *     [check for exit code, and take actions]
+ *     [check for exit code to examine diagnostics, and take actions]
  *   }
  *
- *   public void onResourcesWithdrawn(List<SamzaResource> resources) {}
+ *   public void onError(Throwable error) {
+ *     [stop the container process manager]
+ *   }
  *
- *   public void onReboot() {}
  * }
  * }
  * </pre>
@@ -43,11 +44,13 @@ import java.util.List;
  * </pre>
  */
 
-/*
-1.Investigate what it means to kill a StreamProcessor, and add it as an API here.
-2.Consider an API for Container Process liveness - ie, to be notified when a StreamProcessor
-joins or leaves the group
-*/
+
+/***
+ * TODO:
+ * 1.Investigate what it means to kill a StreamProcessor, and add it as an API here.
+ * 2.Consider an API for Container Process liveness - ie, to be notified when a StreamProcessor
+ * joins or leaves the group
+ */
 
 public abstract class ContainerProcessManager
 {
