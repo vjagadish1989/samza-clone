@@ -1,6 +1,5 @@
 package org.apache.samza.clustermanager;
 
-import org.apache.samza.config.Config;
 import org.apache.samza.coordinator.JobModelReader;
 
 /**
@@ -8,5 +7,5 @@ import org.apache.samza.coordinator.JobModelReader;
  */
 public interface ContainerManagerFactory
 {
-    public ContainerProcessManager getContainerProcessManager(JobModelReader reader, ContainerProcessManagerCallback callback);
+    public ContainerProcessManager getContainerProcessManager(JobModelReader reader, ContainerProcessManager.Callback callback);
 }

@@ -5,7 +5,6 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.samza.clustermanager.ContainerProcessManager;
-import org.apache.samza.clustermanager.ContainerProcessManagerCallback;
 import org.apache.samza.clustermanager.SamzaResource;
 import org.apache.samza.clustermanager.SamzaResourceRequest;
 import org.apache.samza.job.CommandBuilder;
@@ -22,7 +21,7 @@ public class MesosContainerManager implements ContainerProcessManager, Scheduler
     Map<Protos.Offer, SamzaResource> resourcesMap = new HashMap<Protos.Offer, SamzaResource>();
     Map<Protos.OfferID,Protos.Offer > offersById = new HashMap<Protos.OfferID, Protos.Offer>();
 
-    ContainerProcessManagerCallback _callback;
+    Callback _callback;
 
     @Override
     public void start() {
@@ -30,7 +29,7 @@ public class MesosContainerManager implements ContainerProcessManager, Scheduler
     }
 
     @Override
-    public void requestResources(List<SamzaResourceRequest> resourceRequests, ContainerProcessManagerCallback callback) {
+    public void requestResources(List<SamzaResourceRequest> resourceRequests, Callback callback) {
         for(SamzaResourceRequest samzaRequest : resourceRequests)           {
         List<Protos.Request> requests = new ArrayList<Protos.Request>();
         Protos.Resource cpuResource =     buildCPUResource(samzaRequest.getNumCores());
@@ -40,7 +39,7 @@ public class MesosContainerManager implements ContainerProcessManager, Scheduler
     }
 
     @Override
-    public void releaseResources(List<SamzaResource> resources, ContainerProcessManagerCallback callback) {
+    public void releaseResources(List<SamzaResource> resources, Callback callback) {
         // NO-OP
     }
 

@@ -6,9 +6,9 @@ import org.apache.hadoop.yarn.client.api.AMRMClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.ConverterUtils;
-import org.apache.samza.SamzaException;
 import org.apache.samza.clustermanager.*;
 import org.apache.samza.config.Config;
+import org.apache.samza.config.ShellCommandConfig;
 import org.apache.samza.config.YarnConfig;
 import org.apache.samza.coordinator.JobModelReader;
 import org.apache.samza.job.CommandBuilder;
@@ -26,20 +26,16 @@ import java.util.Map;
  *
  * An {@link YarnContainerManager} implements a ContainerProcessManager using Yarn as the underlying
  * resource manager. This class is as an adaptor between Yarn and translates Yarn callbacks into
- * Samza specific callback methods as specified in ContainerProcessManagerCallback.
+ * Samza specific callback methods as specified in Callback.
  *
  */
 
-public class YarnContainerManager implements ContainerProcessManager, AMRMClientAsync.CallbackHandler {
+public class YarnContainerManager extends ContainerProcessManager implements AMRMClientAsync.CallbackHandler {
   /**
    * The containerProcessManager instance to request resources from yarn.
    */
   private final AMRMClientAsync<AMRMClient.ContainerRequest> amClient;
 
-  /**
-   * The callback to invoke for events from the yarn cluster
-   */
-  private final ContainerProcessManagerCallback _callback;
 
   /**
    * A helper class to launch Yarn containers.
@@ -61,7 +57,7 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
   final Map<SamzaResourceRequest, AMRMClient.ContainerRequest> requestsMap = new HashMap<>();
 
 
-  public YarnContainerManager ( JobModelReader coordinator, ContainerProcessManagerCallback callback ) {
+  public YarnContainerManager ( JobModelReader coordinator, Callback callback ) {
     this(coordinator.jobModel().getConfig(), coordinator, callback);
   }
 
@@ -72,10 +68,9 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
    * @param jobModelReader
    * @param callback callback to be invoked based on events from the ContainerProcessManager
    */
-  public YarnContainerManager (Config config, JobModelReader jobModelReader, ContainerProcessManagerCallback callback )
+  public YarnContainerManager (Config config, JobModelReader jobModelReader, ContainerProcessManager.Callback callback )
   {
-    _callback = callback;
-
+    super(callback);
     hConfig = new YarnConfiguration();
     hConfig.set("fs.http.impl", HttpFileSystem.class.getName());
 
@@ -122,10 +117,9 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
   /**
    * Request resources for running container processes.
    * @param resourceRequests
-   * @param callback
    */
   @Override
-  public void requestResources(List<SamzaResourceRequest> resourceRequests, ContainerProcessManagerCallback callback)
+  public void requestResources(List<SamzaResourceRequest> resourceRequests)
   {
     int DEFAULT_PRIORITY = 0;
     for(SamzaResourceRequest resourceRequest : resourceRequests)
@@ -165,11 +159,10 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
    * the resource, it can release them.
    *
    * @param resources
-   * @param callback
    */
 
   @Override
-  public void releaseResources(List<SamzaResource> resources, ContainerProcessManagerCallback callback)
+  public void releaseResources(List<SamzaResource> resources)
   {
     for(SamzaResource resource : resources)
     {
@@ -184,16 +177,16 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
    *
    * Requests the launch of a StreamProcessor with the specified ID on the resource
    * @param resource , the SamzaResource on which to launch the StreamProcessor
-   * @param containerID, the containerID of the launched resource
    * @param builder, the builder to build the resource launch command from
    *
    * TODO: Support non-builder methods to launch resources. Maybe, refactor into a ContainerLaunchStrategy interface
    */
 
   @Override
-  public void launchStreamProcessor(SamzaResource resource, int containerID, CommandBuilder builder)
-  {
-      log.info("received launch request for {} on hostname {}", containerID, resource.getHost());
+  public void launchStreamProcessor(SamzaResource resource, CommandBuilder builder) throws SamzaContainerLaunchException {
+      String containerIDStr = builder.buildEnvironment().get(ShellCommandConfig.ENV_CONTAINER_ID());
+      int containerID = Integer.parseInt(containerIDStr);
+      log.info("received launch request for {} on hostname {}", containerID , resource.getHost());
       Container container = allocatedResources.get(resource);
       state.runningContainers.add(container);
       yarnContainerRunner.runContainer(containerID, container, builder);
@@ -202,7 +195,7 @@ public class YarnContainerManager implements ContainerProcessManager, AMRMClient
   /**
    *
    * Remove a previously submitted resource request. The previous container request may have
-   * been submitted. Even after the remove request, a ContainerProcessManagerCallback implementation must
+   * been submitted. Even after the remove request, a Callback implementation must
    * be prepared to receive an allocation for the previous request. This is merely a best effort cancellation.
    *
    * @param request the request to be cancelled

@@ -24,7 +24,7 @@ import java.util.List;
  * 2.Make JobModelReader conform to a standard interface.
  * 4.Get the process manager implementation from a factory
  */
-public class YarnJobCoordinator implements ContainerProcessManagerCallback {
+public class YarnJobCoordinator implements ContainerProcessManager.Callback {
 
     private ContainerProcessManager processManager;
     private SamzaAppState state;
@@ -132,10 +132,6 @@ public class YarnJobCoordinator implements ContainerProcessManagerCallback {
         }
     }
 
-    @Override
-    public void onResourcesWithdrawn(List<SamzaResource> resources) {
-
-    }
 
     @Override
     public void onResourcesCompleted(List<StreamProcessorStatus> resourceStatuses) {

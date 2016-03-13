@@ -39,7 +39,7 @@ import java.util.List;
  * 6. Unit tests.
  * 7. Documentation for the newly added configs.
  */
-public class ClusterBasedJobCoordinator implements ContainerProcessManagerCallback {
+public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callback {
   /**
    * A ContainerProcessManager takes care of requesting resources from a pool of resources
    */
@@ -234,16 +234,6 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManagerCallba
       for (SamzaResource resource : resources) {
           taskManager.onContainerAllocated(resource);
       }
-  }
-
-  /**
-   * We currently don't react to withdrawn Resources.
-   * @param resources
-   */
-  @Override
-  public void onResourcesWithdrawn(List<SamzaResource> resources)
-  {
-
   }
 
   /**

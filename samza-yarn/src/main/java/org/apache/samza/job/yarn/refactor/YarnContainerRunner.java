@@ -36,6 +36,7 @@ import org.apache.hadoop.yarn.security.AMRMTokenIdentifier;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.apache.samza.SamzaException;
+import org.apache.samza.clustermanager.SamzaContainerLaunchException;
 import org.apache.samza.config.Config;
 import org.apache.samza.config.TaskConfig;
 import org.apache.samza.config.YarnConfig;
@@ -87,7 +88,7 @@ public class YarnContainerRunner {
 
 
 
-  public void runContainer(int samzaContainerId, Container container, CommandBuilder cmdBuilder) {
+  public void runContainer(int samzaContainerId, Container container, CommandBuilder cmdBuilder) throws SamzaContainerLaunchException {
     String containerIdStr = ConverterUtils.toString(container.getId());
     log.info("Got available container ID ({}) for container: {}", samzaContainerId, container);
 
@@ -139,7 +140,7 @@ public class YarnContainerRunner {
   private void startContainer(Path packagePath,
                                 Container container,
                                 Map<String, String> env,
-                                final String cmd) {
+                                final String cmd) throws SamzaContainerLaunchException {
     log.info("starting container {} {} {} {}",
         new Object[]{packagePath, container, env, cmd});
 
@@ -197,10 +198,10 @@ public class YarnContainerRunner {
       nmClient.startContainer(container, context);
     } catch (YarnException ye) {
       log.error("Received YarnException when starting container: " + container.getId(), ye);
-      throw new SamzaException("Received YarnException when starting container: " + container.getId());
+      throw new SamzaContainerLaunchException("Received YarnException when starting container: " + container.getId(), ye);
     } catch (IOException ioe) {
       log.error("Received IOException when starting container: " + container.getId(), ioe);
-      throw new SamzaException("Received IOException when starting container: " + container.getId());
+      throw new SamzaContainerLaunchException("Received IOException when starting container: " + container.getId(), ioe);
     }
   }
 
