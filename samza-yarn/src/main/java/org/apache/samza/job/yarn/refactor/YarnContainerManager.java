@@ -228,12 +228,12 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    */
   @Override
   public void onContainersCompleted(List<ContainerStatus> statuses) {
-    List<StreamProcessorStatus> samzaResrcStatuses = new ArrayList<>();
+    List<SamzaResourceStatus> samzaResrcStatuses = new ArrayList<>();
 
     for(ContainerStatus status: statuses) {
       log.info("Container completed from RM " + status);
 
-      StreamProcessorStatus samzaResrcStatus = new StreamProcessorStatus(status.getContainerId().toString(), status.getDiagnostics(), status.getExitStatus());
+      SamzaResourceStatus samzaResrcStatus = new SamzaResourceStatus(status.getContainerId().toString(), status.getDiagnostics(), status.getExitStatus());
       samzaResrcStatuses.add(samzaResrcStatus);
     }
     _callback.onResourcesCompleted(samzaResrcStatuses);

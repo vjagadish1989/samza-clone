@@ -142,7 +142,7 @@ public class SamzaTaskManager   {
      * This methods handles the onContainerCompleted callback from the RM. Based on the ContainerExitStatus, it decides
      * whether a container that exited is marked as complete or failure.
      */
-    public void onContainerCompleted(StreamProcessorStatus containerStatus) {
+    public void onContainerCompleted(SamzaResourceStatus containerStatus) {
         String containerIdStr = containerStatus.resourceID;
         int containerId = -1;
         for(Map.Entry<Integer, SamzaResource> entry: state.runningContainers.entrySet()) {
@@ -160,7 +160,7 @@ public class SamzaTaskManager   {
 
         int exitStatus = containerStatus.getExitCode();
         switch(exitStatus) {
-            case StreamProcessorStatus.SUCCESS:
+            case SamzaResourceStatus.SUCCESS:
                 log.info("Container {} completed successfully.", containerIdStr);
 
                 state.completedContainers.incrementAndGet();
@@ -176,9 +176,9 @@ public class SamzaTaskManager   {
                 }
                 break;
 
-            case StreamProcessorStatus.DISK_FAIL:
-            case StreamProcessorStatus.ABORTED:
-            case StreamProcessorStatus.PREEMPTED:
+            case SamzaResourceStatus.DISK_FAIL:
+            case SamzaResourceStatus.ABORTED:
+            case SamzaResourceStatus.PREEMPTED:
                 log.info("Got an exit code of {}. This means that container {} was "
                                 + "killed by YARN, either due to being released by the application "
                                 + "master or being 'lost' due to node failures etc. or due to preemption by the RM",

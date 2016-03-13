@@ -67,9 +67,10 @@ public abstract class ContainerProcessManager
   public abstract void requestResources (List<SamzaResourceRequest> resourceRequest);
 
   /***
-   * Remove a previously submitted resource request. The previous container request may have been submitted.
-   * Even after the remove request, a ContainerProcessManagerCallback implementation must be prepared to receive
-   * an allocation for the previous request. This is merely a best effort cancellation.
+   * Remove a previously submitted resource request. The previous container request may
+   * have been submitted. Even after the remove request, a ContainerProcessManagerCallback
+   * implementation must be prepared to receive an allocation for the previous request.
+   * This is merely a best effort cancellation.
    *
    * @param request, the resource request that must be cancelled
    */
@@ -85,8 +86,9 @@ public abstract class ContainerProcessManager
   /***
    * Requests the launch of a StreamProcessor with the specified context on the resource.
    * @param resource
-   * @param builder A builder implementation that encapsulates the context for the StreamProcessor. A builder
-   *               encapsulates the ID for the processor, the build environment, the build command to run etc.
+   * @param builder A builder implementation that encapsulates the context for the
+   *                StreamProcessor. A builder encapsulates the ID for the processor, the
+   *                build environment, the command to execute etc.
    * @throws SamzaContainerLaunchException
    *
    */
@@ -110,17 +112,19 @@ public abstract class ContainerProcessManager
 
     /***
      * This callback is invoked when resources are no longer available to the application. A
-     * resource could be marked 'completed' in scenarios like - failure of disk on the host, pre-emption of the resource
-     * to another StreamProcessor, exit or termination of the StreamProcessor running in the resource.
+     * resource could be marked 'completed' in scenarios like - failure of disk on the host,
+     * pre-emption of the resource to another StreamProcessor, exit or termination of the
+     * StreamProcessor running in the resource.
      *
-     * The StreamProcessorStatus contains diagnostics on why the failure occured
-     * @param resources status for the StreamProcessors that completed.
+     * The SamzaResourceStatus contains diagnostics on why the failure occured
+     * @param resources statuses for the resources that were completed.
      */
-    public void onResourcesCompleted (List<StreamProcessorStatus> resources);
+    public void onResourcesCompleted (List<SamzaResourceStatus> resources);
 
     /***
-     * This callback is invoked when there is an error in the ContainerProcessManager. This is guaranteed
-     * to be invoked when there is an uncaught exception in any other ContainerProcessManager callbacks.
+     * This callback is invoked when there is an error in the ContainerProcessManager. This is
+     * guaranteed to be invoked when there is an uncaught exception in any other
+     * ContainerProcessManager callbacks.
      * @param e
      */
     public void onError (Throwable e);

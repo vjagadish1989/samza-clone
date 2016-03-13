@@ -64,7 +64,7 @@ public class SamzaAppState {
   /**
    * ContainerStatus of failed containers.
    */
-  public ConcurrentMap<String, StreamProcessorStatus> failedContainersStatus = new ConcurrentHashMap<String, StreamProcessorStatus>();
+  public ConcurrentMap<String, SamzaResourceStatus> failedContainersStatus = new ConcurrentHashMap<String, SamzaResourceStatus>();
 
   /**
    * Number of containers configured for the job

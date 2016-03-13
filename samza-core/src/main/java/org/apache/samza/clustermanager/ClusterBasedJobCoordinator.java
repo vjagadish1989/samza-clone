@@ -241,9 +241,9 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    * @param resourceStatuses
    */
   @Override
-  public void onResourcesCompleted(List<StreamProcessorStatus> resourceStatuses)
+  public void onResourcesCompleted(List<SamzaResourceStatus> resourceStatuses)
   {
-      for (StreamProcessorStatus resourceStatus : resourceStatuses)
+      for (SamzaResourceStatus resourceStatus : resourceStatuses)
       {
           taskManager.onContainerCompleted(resourceStatus);
       }

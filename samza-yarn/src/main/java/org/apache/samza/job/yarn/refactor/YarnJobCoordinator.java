@@ -22,7 +22,6 @@ import java.util.List;
  * TODO:
  * 1.Make YarnJobCoordinator implement the JobCoordinator interface.
  * 2.Make JobModelReader conform to a standard interface.
- * 4.Get the process manager implementation from a factory
  */
 public class YarnJobCoordinator implements ContainerProcessManager.Callback {
 
@@ -134,8 +133,8 @@ public class YarnJobCoordinator implements ContainerProcessManager.Callback {
 
 
     @Override
-    public void onResourcesCompleted(List<StreamProcessorStatus> resourceStatuses) {
-        for(StreamProcessorStatus resourceStatus : resourceStatuses) {
+    public void onResourcesCompleted(List<SamzaResourceStatus> resourceStatuses) {
+        for(SamzaResourceStatus resourceStatus : resourceStatuses) {
             taskManager.onContainerCompleted(resourceStatus);
         }
     }

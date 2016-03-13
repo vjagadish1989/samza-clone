@@ -1,7 +1,7 @@
 package org.apache.samza.clustermanager;
 
 /**
- * <p><code>StreamProcessorStatus</code> represents the current status of a
+ * <p><code>SamzaResourceStatus</code> represents the current status of a
  * <code>StreamProcessor</code> and the resource it is on.</p>
  *
  * <p>It provides details such as:
@@ -15,7 +15,7 @@ package org.apache.samza.clustermanager;
  * The exact semantics of various exit codes and failure modes are evolving.
  *
  */
-public class StreamProcessorStatus
+public class SamzaResourceStatus
 {
   String resourceID;
   String diagnostics;
@@ -26,7 +26,7 @@ public class StreamProcessorStatus
   public static final int PREEMPTED=2;
   public static final int DISK_FAIL=3;
 
-  public StreamProcessorStatus(String resourceID, String diagnostics, int exitCode) {
+  public SamzaResourceStatus(String resourceID, String diagnostics, int exitCode) {
       this.resourceID = resourceID;
       this.diagnostics = diagnostics;
       this.exitCode = exitCode;
@@ -58,7 +58,7 @@ public class StreamProcessorStatus
 
   @Override
   public String toString() {
-      return "StreamProcessorStatus{" +
+      return "SamzaResourceStatus{" +
               "resourceID='" + resourceID + '\'' +
               ", diagnostics='" + diagnostics + '\'' +
               ", exitCode=" + exitCode +
