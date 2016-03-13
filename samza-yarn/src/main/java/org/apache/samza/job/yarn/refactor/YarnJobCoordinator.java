@@ -21,8 +21,7 @@ import java.util.List;
  * Implements a JobCoordinator that runs Samza using Yarn as the cluster manager.
  * TODO:
  * 1.Make YarnJobCoordinator implement the JobCoordinator interface.
- * 2.Make YarnJobCoordinator extend from ClusterManagingJobCoordinator
- * 3.Make JobModelReader conform to a standard interface.
+ * 2.Make JobModelReader conform to a standard interface.
  * 4.Get the process manager implementation from a factory
  */
 public class YarnJobCoordinator implements ContainerProcessManagerCallback {

@@ -25,8 +25,9 @@ import java.util.List;
  *
  *  Any offer based cluster management system that must integrate with Samza will merely
  *  implement a {@link ContainerManagerFactory} and a {@link ContainerProcessManager}.
- *  This class is not thread-safe, Hence, invocations should not invoke
- *  methods from different threads.
+ *
+ *  This class is not thread-safe, Hence, invocations should be synchronized by
+ *  the callers.
  *
  * TODO:
  * 1. Refactor ContainerProcessManager to also handle process liveness, process start
@@ -101,10 +102,6 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManagerCallba
 
   /**
    * Starts the JobCoordinator.
-   * TODO:
-   * 1. Make start() completely async when called from the StreamProcessor and run it in a
-   * daemon thread.
-   * 2. Also, expose an API that invocations can use to get status of the JobCoordinator
    *
    */
   public void start()
@@ -188,14 +185,17 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManagerCallba
       factory = (ContainerManagerFactory) Class.forName(containerManagerFactoryClass).newInstance();
     }
     catch (InstantiationException e) {
+      log.error("Instantiation exception when creating ContainerManager", e);
       e.printStackTrace();
       throw new SamzaException(e);
     }
     catch (IllegalAccessException e) {
+      log.error("Illegal access exception when creating ContainerManager", e);
       e.printStackTrace();
       throw new SamzaException(e);
     }
     catch (ClassNotFoundException e) {
+      log.error("ClassNotFound Exception when creating ContainerManager", e);
       e.printStackTrace();
       throw new SamzaException(e);
     }

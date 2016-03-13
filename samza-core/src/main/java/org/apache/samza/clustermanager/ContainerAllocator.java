@@ -49,40 +49,9 @@ public class ContainerAllocator extends AbstractContainerAllocator {
    * */
   @Override
   public void assignContainerRequests() {
-        List<SamzaResource> allocatedContainers = containerRequestState.getContainersOnAHost(ANY_HOST);
-        while (!containerRequestState.getRequestsQueue().isEmpty() && allocatedContainers != null && allocatedContainers.size() > 0) {
-
-          PriorityBlockingQueue<SamzaResourceRequest> q = containerRequestState.getRequestsQueue();
-          for (SamzaResourceRequest r : q)   {
-            log.info(r.toString());
-          }
-
-          SamzaResourceRequest request = containerRequestState.getRequestsQueue().peek();
-          SamzaResource container = allocatedContainers.get(0);
-
-          // Update state
-          containerRequestState.updateStateAfterAssignment(request, ANY_HOST, container);
-
-          // Cancel request and run container
-          log.info("Running {} on {}", request.expectedContainerID, container.getResourceID());
-          //containerUtil.runContainer(request.expectedContainerID, container);
-          //TODO: get builder and validate
-          CommandBuilder builder = getCommandBuilder(request.expectedContainerID);
-          try {
-            containerProcessManager.launchStreamProcessor(container, request.expectedContainerID, builder);
-          } catch (SamzaContainerLaunchException e) {
-            e.printStackTrace();
-          }
-
-          if (state.neededContainers.decrementAndGet() == 0) {
-            state.jobHealthy.set(true);
-          }
-          state.runningContainers.put(request.expectedContainerID, container);
-
-        }
-
-        // If requestQueue is empty, all extra containers in the buffer should be released.
-        containerRequestState.releaseExtraContainers();
-
+    while (hasPendingRequest() && hasAllocatedContainer(ANY_HOST)) {
+      SamzaResourceRequest request = peekPendingRequest();
+      runContainer(request, ANY_HOST);
+    }
   }
 }
