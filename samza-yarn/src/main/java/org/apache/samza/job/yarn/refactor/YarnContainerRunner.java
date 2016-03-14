@@ -102,13 +102,8 @@ public class YarnContainerRunner {
     String command = cmdBuilder.buildCommand();
     log.info("Container ID {} using command {}", samzaContainerId, command);
 
-    log.info("Container ID {} using environment variables: ", samzaContainerId);
-    Map<String, String> env = new HashMap<String, String>();
-    for (Map.Entry<String, String> entry: cmdBuilder.buildEnvironment().entrySet()) {
-      String escapedValue = Util.envVarEscape(entry.getValue());
-      env.put(entry.getKey(), escapedValue);
-      log.info("{}={} ", entry.getKey(), escapedValue);
-    }
+    Map<String, String> env = getEscapedEnvironmentVariablesMap(cmdBuilder);
+    printContainerEnvironmentVariables(samzaContainerId, env);
 
     Path path = new Path(yarnConfig.getPackagePath());
     log.info("Starting container ID {} using package path {}", samzaContainerId, path);
@@ -152,7 +147,7 @@ public class YarnContainerRunner {
       fileStatus = packagePath.getFileSystem(yarnConfiguration).getFileStatus(packagePath);
     } catch (IOException ioe) {
       log.error("IO Exception when accessing the package status from the filesystem", ioe);
-      throw new SamzaException("IO Exception when accessing the package status from the filesystem");
+      throw new SamzaContainerLaunchException("IO Exception when accessing the package status from the filesystem");
     }
 
     packageResource.setResource(packageUrl);
@@ -180,7 +175,7 @@ public class YarnContainerRunner {
 
     } catch (IOException ioe) {
       ioe.printStackTrace();
-      throw new SamzaException("IO Exception when writing credentials to output buffer");
+      throw new SamzaContainerLaunchException("IO Exception when writing credentials to output buffer");
     }
 
     ContainerLaunchContext context = Records.newRecord(ContainerLaunchContext.class);
@@ -204,6 +199,37 @@ public class YarnContainerRunner {
       throw new SamzaContainerLaunchException("Received IOException when starting container: " + container.getId(), ioe);
     }
   }
+
+
+  /**
+   * @param samzaContainerId  the Samza container Id for logging purposes.
+   * @param env               the Map of environment variables to their respective values.
+   */
+  private void printContainerEnvironmentVariables(int samzaContainerId, Map<String, String> env) {
+    StringBuilder sb = new StringBuilder();
+    for (Map.Entry<String, String> entry : env.entrySet()) {
+      sb.append(String.format("\n%s=%s", entry.getKey(), entry.getValue()));
+    }
+    log.info("Container ID {} using environment variables: {}", samzaContainerId, sb.toString());
+  }
+
+
+  /**
+   * Gets the environment variables from the specified {@link CommandBuilder} and escapes certain characters.
+   *
+   * @param cmdBuilder        the command builder containing the environment variables.
+   * @return                  the map containing the escaped environment variables.
+   */
+  private Map<String, String> getEscapedEnvironmentVariablesMap(CommandBuilder cmdBuilder) {
+    Map<String, String> env = new HashMap<String, String>();
+    for (Map.Entry<String, String> entry : cmdBuilder.buildEnvironment().entrySet()) {
+      String escapedValue = Util.envVarEscape(entry.getValue());
+      env.put(entry.getKey(), escapedValue);
+    }
+
+    return env;
+  }
+
 
   private String getFormattedCommand(String logDirExpansionVar,
                                      String command,

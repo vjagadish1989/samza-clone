@@ -73,31 +73,29 @@ public class ContainerRequestState {
    * Adds {@link SamzaResourceRequest} to the requestsQueue queue.
    * If host-affinity is enabled, it updates the requestsToCountMap as well.
    *
-   * @param requests {@link SamzaResourceRequest} that was sent to the RM
+   * @param request {@link SamzaResourceRequest} that was sent to the RM
    */
-  public synchronized void addResourceRequest(List<SamzaResourceRequest> requests) {
+  public synchronized void addResourceRequest(SamzaResourceRequest request) {
 
-    for (SamzaResourceRequest request : requests) {
-      requestsQueue.add(request);
-      String preferredHost = request.getPreferredHost();
-      if (hostAffinityEnabled) {
-        if (requestsToCountMap.containsKey(preferredHost)) {
-          requestsToCountMap.get(preferredHost).incrementAndGet();
-        } else {
-          requestsToCountMap.put(preferredHost, new AtomicInteger(1));
-        }
-        /**
-         * The following is important to correlate allocated container data with the requestsQueue made before. If
-         * the preferredHost is requested for the first time, the state should reflect that the allocatedContainers
-         * list is empty and NOT null.
-         */
-        if (!allocatedContainers.containsKey(preferredHost)) {
-          allocatedContainers.put(preferredHost, new ArrayList<SamzaResource>());
-        }
+    requestsQueue.add(request);
+    String preferredHost = request.getPreferredHost();
+    if (hostAffinityEnabled) {
+      if (requestsToCountMap.containsKey(preferredHost)) {
+        requestsToCountMap.get(preferredHost).incrementAndGet();
+      } else {
+        requestsToCountMap.put(preferredHost, new AtomicInteger(1));
+      }
+      /**
+       * The following is important to correlate allocated container data with the requestsQueue made before. If
+       * the preferredHost is requested for the first time, the state should reflect that the allocatedContainers
+       * list is empty and NOT null.
+       */
+      if (!allocatedContainers.containsKey(preferredHost)) {
+        allocatedContainers.put(preferredHost, new ArrayList<SamzaResource>());
       }
     }
     //TODO: do this externally
-    manager.requestResources(requests, null);
+    manager.requestResources(request);
   }
 
   /**
@@ -232,7 +230,7 @@ public class ContainerRequestState {
     if (containers != null) {
       for (SamzaResource c : containers) {
         log.info("Releasing extra container {} allocated on {}", c.getResourceID(), host);
-        manager.releaseResources(Collections.singletonList(c), null);
+        manager.releaseResources(c);
         numReleasedContainers++;
       }
 
@@ -251,7 +249,7 @@ public class ContainerRequestState {
    */
   public void releaseUnstartableContainer(SamzaResource container) {
     log.info("Releasing unstartable container {}", container.getResourceID());
-    manager.releaseResources(Collections.singletonList(container), null);
+    manager.releaseResources(container);
   }
 
   /**

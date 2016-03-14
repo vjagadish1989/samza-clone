@@ -58,7 +58,7 @@ public abstract class ContainerProcessManager
 
   public ContainerProcessManager(Callback callback)
   {
-    _callback = callback;
+    this._callback = callback;
   }
 
   public abstract void start();
@@ -67,7 +67,7 @@ public abstract class ContainerProcessManager
    * Request resources for running container processes
    * @param resourceRequest
    */
-  public abstract void requestResources (List<SamzaResourceRequest> resourceRequest);
+  public abstract void requestResources (SamzaResourceRequest resourceRequest);
 
   /***
    * Remove a previously submitted resource request. The previous container request may
@@ -84,7 +84,7 @@ public abstract class ContainerProcessManager
    * If the app cannot use the resource or wants to give up the resource, it can release them.
    * @param resources
    */
-  public abstract void releaseResources (List<SamzaResource> resources);
+  public abstract void releaseResources (SamzaResource resources);
 
   /***
    * Requests the launch of a StreamProcessor with the specified context on the resource.

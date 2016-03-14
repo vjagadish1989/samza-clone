@@ -19,12 +19,8 @@
 package org.apache.samza.clustermanager;
 
 import org.apache.samza.config.Config;
-import org.apache.samza.job.CommandBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.concurrent.PriorityBlockingQueue;
 
 /**
  * This is the default allocator thread that will be used by SamzaTaskManager.
@@ -49,9 +45,9 @@ public class ContainerAllocator extends AbstractContainerAllocator {
    * */
   @Override
   public void assignContainerRequests() {
-    while (hasPendingRequest() && hasAllocatedContainer(ANY_HOST)) {
+    while (hasPendingRequest() && hasAllocatedContainer(ContainerRequestState.ANY_HOST)) {
       SamzaResourceRequest request = peekPendingRequest();
-      runContainer(request, ANY_HOST);
+      runStreamProcessor(request, ContainerRequestState.ANY_HOST);
     }
   }
 }

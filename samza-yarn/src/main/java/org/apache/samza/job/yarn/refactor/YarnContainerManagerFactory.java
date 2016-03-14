@@ -1,5 +1,6 @@
 package org.apache.samza.job.yarn.refactor;
 
+import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.samza.clustermanager.ContainerManagerFactory;
 import org.apache.samza.clustermanager.ContainerProcessManager;
 import org.apache.samza.clustermanager.ContainerProcessManagerCallback;
@@ -14,7 +15,7 @@ public class YarnContainerManagerFactory implements ContainerManagerFactory {
 
     private static Logger log = LoggerFactory.getLogger(YarnContainerManagerFactory.class);
     @Override
-    public ContainerProcessManager getContainerProcessManager(JobModelReader reader, ContainerProcessManagerCallback callback) {
+    public ContainerProcessManager getContainerProcessManager(JobModelReader reader, ContainerProcessManager.Callback callback) {
         log.info("inside factory1 ");
 
         YarnContainerManager manager = new YarnContainerManager(reader.jobModel().getConfig(),reader, callback);

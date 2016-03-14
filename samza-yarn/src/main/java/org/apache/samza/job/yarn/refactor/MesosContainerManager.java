@@ -14,14 +14,18 @@ import java.util.*;
 /**
  * Created by jvenkatr on 2/5/16.
  */
-public class MesosContainerManager implements ContainerProcessManager, Scheduler {
+public class MesosContainerManager extends ContainerProcessManager implements Scheduler {
 
     MesosSchedulerDriver driver;
     Map<SamzaResource, Protos.Offer> offerMap = new HashMap<SamzaResource, Protos.Offer>();
     Map<Protos.Offer, SamzaResource> resourcesMap = new HashMap<Protos.Offer, SamzaResource>();
     Map<Protos.OfferID,Protos.Offer > offersById = new HashMap<Protos.OfferID, Protos.Offer>();
 
-    Callback _callback;
+    ContainerProcessManager.Callback _callback;
+
+    public MesosContainerManager(Callback callback) {
+        super(callback);
+    }
 
     @Override
     public void start() {
@@ -29,27 +33,24 @@ public class MesosContainerManager implements ContainerProcessManager, Scheduler
     }
 
     @Override
-    public void requestResources(List<SamzaResourceRequest> resourceRequests, Callback callback) {
-        for(SamzaResourceRequest samzaRequest : resourceRequests)           {
+    public void requestResources(SamzaResourceRequest samzaRequest) {
         List<Protos.Request> requests = new ArrayList<Protos.Request>();
         Protos.Resource cpuResource =     buildCPUResource(samzaRequest.getNumCores());
         Protos.Resource memResource =  buildMemResource(samzaRequest.getMemoryMB());
-        driver.requestResources(requests);
-    }
     }
 
     @Override
-    public void releaseResources(List<SamzaResource> resources, Callback callback) {
-        // NO-OP
-    }
-
-    @Override
-    public void launchStreamProcessor(SamzaResource resource, int containerID, CommandBuilder builder) {
+    public void launchStreamProcessor(SamzaResource resource, CommandBuilder builder) {
 
     }
 
     @Override
     public void cancelResourceRequest(SamzaResourceRequest request) {
+
+    }
+
+    @Override
+    public void releaseResources(SamzaResource resources) {
 
     }
 
@@ -101,7 +102,7 @@ public class MesosContainerManager implements ContainerProcessManager, Scheduler
         SamzaResource samzaResource = resourcesMap.get(offer);
         List<SamzaResource> resources = new ArrayList<SamzaResource>();
         resources.add(samzaResource);
-        _callback.onResourcesWithdrawn(resources);
+        //_callback.onResourcesWithdrawn(resources);
     }
 
     @Override

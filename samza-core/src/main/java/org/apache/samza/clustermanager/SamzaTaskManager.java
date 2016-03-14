@@ -122,7 +122,7 @@ public class SamzaTaskManager   {
         log.info("Called onShutdown of Samza task manager");
 
         // Shutdown allocator thread
-        containerAllocator.setIsRunning(false) ;
+        containerAllocator.stop() ;
         try {
             allocatorThread.join();
         } catch (InterruptedException ie) {
@@ -198,7 +198,7 @@ public class SamzaTaskManager   {
                     state.jobHealthy.set(false);
 
                     // request a container on refactor host
-                    containerAllocator.requestContainer(containerId, ContainerAllocator.ANY_HOST);
+                    containerAllocator.requestContainer(containerId, ContainerRequestState.ANY_HOST);
                 }
                 break;
 
@@ -216,7 +216,7 @@ public class SamzaTaskManager   {
                     // Find out previously running container location
                     String lastSeenOn = state.jobModelReader.jobModel().getContainerToHostValue(containerId, SetContainerHostMapping.HOST_KEY);
                     if (!hostAffinityEnabled || lastSeenOn == null) {
-                        lastSeenOn = ContainerAllocator.ANY_HOST;
+                        lastSeenOn = ContainerRequestState.ANY_HOST;
                     }
                     log.info("Container was last seen on " + lastSeenOn );
                     // A container failed for an unknown reason. Let's check to see if

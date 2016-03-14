@@ -19,12 +19,8 @@
 package org.apache.samza.clustermanager;
 
 import org.apache.samza.config.Config;
-import org.apache.samza.job.CommandBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.xml.dtd.ANY;
-
-import java.util.List;
 
 /**
  * This is the allocator thread that will be used by SamzaTaskManager when host-affinity is enabled for a job. It is similar to {@link ContainerAllocator}, except that it considers container locality for allocation.
@@ -65,7 +61,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
           if (hasAllocatedContainer(preferredHost)) {
             // Found allocated container at preferredHost
             log.info("Found_a_matched_container container on the preferred host. Running on" +  expectedContainerId + " " + request.getExpectedContainerID() + " " + preferredHost);
-            runContainer(request, preferredHost);
+            runStreamProcessor(request, preferredHost);
             state.matchedContainerRequests.incrementAndGet();
 
           } else {
@@ -73,11 +69,11 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
                 preferredHost, expectedContainerId);
 
             boolean expired = requestExpired(request);
-            boolean containerAvailableOnAnyHost = hasAllocatedContainer(ANY_HOST);
+            boolean containerAvailableOnAnyHost = hasAllocatedContainer(ContainerRequestState.ANY_HOST);
 
             if(expired && containerAvailableOnAnyHost) {
               log.info("Request expired. running on ANY_HOST");
-              runContainer(request, ANY_HOST);
+              runStreamProcessor(request, ContainerRequestState.ANY_HOST);
             }
             else {
               log.info("Either the request timestamp {} is greater than container request timeout {}ms or we couldn't "

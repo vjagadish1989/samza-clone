@@ -116,61 +116,57 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
 
   /**
    * Request resources for running container processes.
-   * @param resourceRequests
+   * @param resourceRequest
    */
   @Override
-  public void requestResources(List<SamzaResourceRequest> resourceRequests)
+  public void requestResources(SamzaResourceRequest resourceRequest)
   {
-    int DEFAULT_PRIORITY = 0;
-    for(SamzaResourceRequest resourceRequest : resourceRequests)
+    final int DEFAULT_PRIORITY = 0;
+    log.info("Requesting resources on  " + resourceRequest.getPreferredHost() + " for container " + resourceRequest.getExpectedContainerID());
+
+    int memoryMb = resourceRequest.getMemoryMB();
+    int cpuCores = resourceRequest.getNumCores();
+    String preferredHost = resourceRequest.getPreferredHost();
+    Resource capability = Resource.newInstance(memoryMb, cpuCores);
+    Priority priority =  Priority.newInstance(DEFAULT_PRIORITY);
+
+    AMRMClient.ContainerRequest issuedRequest=null;
+
+    if (preferredHost.equals("ANY_HOST"))
     {
-      log.info("Requesting resources on  " + resourceRequest.getPreferredHost() + " for container " + resourceRequest.getExpectedContainerID());
-
-      int memoryMb = resourceRequest.getMemoryMB();
-      int cpuCores = resourceRequest.getNumCores();
-      String preferredHost = resourceRequest.getPreferredHost();
-      Resource capability = Resource.newInstance(memoryMb, cpuCores);
-      Priority priority =  Priority.newInstance(DEFAULT_PRIORITY);
-
-      AMRMClient.ContainerRequest issuedRequest=null;
-
-      if (preferredHost.equals("ANY_HOST"))
-      {
-        log.info("Making a request for ANY_HOST " + preferredHost );
-        issuedRequest = new AMRMClient.ContainerRequest(capability, null, null, priority);
-      }
-      else
-      {
-        log.info("Making a preferred host request on " + preferredHost);
-        issuedRequest = new AMRMClient.ContainerRequest(
-                capability,
-                new String[]{preferredHost},
-                null,
-                priority);
-      }
-
-      requestsMap.put(resourceRequest, issuedRequest);
-      amClient.addContainerRequest(issuedRequest);
+      log.info("Making a request for ANY_HOST " + preferredHost );
+      issuedRequest = new AMRMClient.ContainerRequest(capability, null, null, priority);
     }
+    else
+    {
+      log.info("Making a preferred host request on " + preferredHost);
+      issuedRequest = new AMRMClient.ContainerRequest(
+              capability,
+              new String[]{preferredHost},
+              null,
+              priority);
+    }
+
+    requestsMap.put(resourceRequest, issuedRequest);
+    amClient.addContainerRequest(issuedRequest);
   }
 
   /**
    * Requests the YarnContainerManager to release a resource. If the app cannot use the resource or wants to give up
    * the resource, it can release them.
    *
-   * @param resources
+   * @param resource
    */
 
   @Override
-  public void releaseResources(List<SamzaResource> resources)
+  public void releaseResources(SamzaResource resource)
   {
-    for(SamzaResource resource : resources)
-    {
-      log.info("Release resource called {} ", resource);
-      Container container = allocatedResources.get(resource);
-      state.runningContainers.remove(container);
-      amClient.releaseAssignedContainer(container.getId());
-   }
+
+    log.info("Release resource called {} ", resource);
+    Container container = allocatedResources.get(resource);
+    state.runningContainers.remove(container);
+    amClient.releaseAssignedContainer(container.getId());
+
   }
 
   /**
