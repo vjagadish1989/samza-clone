@@ -34,7 +34,8 @@ class CachedStoreMetrics(
   val puts = newCounter("puts")
   val deletes = newCounter("deletes")
   val flushes = newCounter("flushes")
-  val flushBatchSize = newCounter("flush-batch-size")
+  val putAllDirtyEntriesBatchSize = newCounter("put-all-dirty-entries-batch-size")
+  val newIterator = newCounter("newitarator")
 
   def setDirtyCount(getValue: () => Int) {
     newGauge("dirty-count", getValue)

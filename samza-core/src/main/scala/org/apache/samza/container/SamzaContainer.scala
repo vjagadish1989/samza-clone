@@ -103,8 +103,8 @@ object SamzaContainer extends Logging {
    * assignments, and returns objects to be used for SamzaContainer's
    * constructor.
    */
-  def readJobModel(url: String, initialDelayMs: Int = scala.util.Random.nextInt(DEFAULT_READ_JOBMODEL_DELAY_MS)) = {
-    info("Fetching configuration from: %s with delay %s" format (url, initialDelayMs))
+  def readJobModel(url: String, initialDelayMs: Int = scala.util.Random.nextInt(DEFAULT_READ_JOBMODEL_DELAY_MS) + 1) = {
+    info("Fetching configuration from: %s" format url)
     SamzaObjectMapper
       .getObjectMapper
       .readValue(
@@ -120,7 +120,6 @@ object SamzaContainer extends Logging {
     val containerName = "samza-container-%s" format containerId
     val containerPID = Util.getContainerPID
 
-    info("BOO BAR BOO BAR BOO BAR!!");
     info("Setting up Samza container: %s" format containerName)
     info("Samza container PID: %s" format containerPID)
     info("Using configuration: %s" format config)

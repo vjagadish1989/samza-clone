@@ -231,6 +231,13 @@
                         </dl>
                     </td>
                 </tr>
+                <tr>
+                    <td class="property" id="job-checkpoint-validation-enabled">job.checkpoint.<br>validation.enabled</td>
+                    <td class="default">true</td>
+                    <td class="description">
+                        This setting controls if the job should fail(true) or just warn(false) in case the validation of checkpoint partition number fails. <br/> <b>CAUTION</b>: this configuration needs to be used w/ care. It should only be used as a work-around after the checkpoint has been auto-created with wrong number of partitions by mistake.
+                    </td>
+                </tr>
 
                 <tr>
                     <th colspan="3" class="section" id="task"><a href="../api/overview.html">Task configuration</a></th>
@@ -1518,9 +1525,14 @@
                     <td class="description">A date format (using Java's SimpleDataFormat syntax) appropriate for use in an HDFS Path, which can configure time-based bucketing of output files.</td>
                 </tr>
                 <tr>
-                  <td class="property" id="hdfs-write-batch-size-bytes">systems.*.producer.write.batch.size.bytes</td>
+                  <td class="property" id="hdfs-write-batch-size-bytes">systems.*.producer.hdfs.write.batch.size.bytes</td>
                   <td class="default">268435456</td>
                   <td class="description">The number of bytes of outgoing messages to write to each HDFS output file before cutting a new file. Defaults to 256MB if not set.</td>
+                </tr>
+                <tr>
+                    <td class="property" id="hdfs-write-batch-size-records">systems.*.producer.hdfs.write.batch.size.records</td>
+                    <td class="default">262144</td>
+                    <td class="description">The number of outgoing messages to write to each HDFS output file before cutting a new file. Defaults to 262144 if not set.</td>
                 </tr>
 
                 <tr>

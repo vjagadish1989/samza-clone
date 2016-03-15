@@ -16,11 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.samza.job.yarn;
 
-package org.apache.samza.storage.kv;
+/**
+ * {@code SamzaContainerLaunchException} indicates an {@link Exception} during container launch.
+ * It can wrap another type of {@link Throwable} or {@link Exception}. Ultimately, any exception thrown
+ * during container launch should be of this type so it can be handled explicitly.
+ */
+public class SamzaContainerLaunchException extends Exception {
 
-import java.util.Iterator;
+  private static final long serialVersionUID = -3957939806997013992L;
 
-public interface KeyValueIterator<K, V> extends Iterator<Entry<K, V>> {
-  public void close();
+  public SamzaContainerLaunchException() {
+    super();
+  }
+
+  public SamzaContainerLaunchException(String s, Throwable t) {
+    super(s, t);
+  }
+
+  public SamzaContainerLaunchException(String s) {
+    super(s);
+  }
+
+  public SamzaContainerLaunchException(Throwable t) {
+    super(t);
+  }
 }

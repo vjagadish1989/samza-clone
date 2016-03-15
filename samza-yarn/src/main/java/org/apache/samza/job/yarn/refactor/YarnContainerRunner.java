@@ -226,7 +226,6 @@ public class YarnContainerRunner {
       String escapedValue = Util.envVarEscape(entry.getValue());
       env.put(entry.getKey(), escapedValue);
     }
-
     return env;
   }
 

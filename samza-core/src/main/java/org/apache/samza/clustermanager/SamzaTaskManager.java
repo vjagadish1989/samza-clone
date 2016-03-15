@@ -18,6 +18,7 @@
  */
  package org.apache.samza.clustermanager;
 
+import org.apache.samza.config.ClusterManagerConfig;
 import org.apache.samza.config.Config;
 import org.apache.samza.config.JobConfig;
 import org.apache.samza.coordinator.stream.messages.SetContainerHostMapping;
@@ -27,14 +28,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Samza's application master requests containers to run Samza jobs. SamzaTaskManager is responsible for requesting
- * containers, handling failures, and notifying the application master that the
+ * SamzaTaskManager is responsible for requesting containers, handling failures, and notifying the application master that the
  * job is done.
  *
- * The following main threads are involved in the execution of the Samza AM:
+ * The following main threads are involved in the execution of the Samza :
  *  - The main thread (defined in SamzaAppMaster) that sends requests to the cluster manager.
  *  - The callback handler thread that receives the responses from cluster manager and handles:
- *      - Populating a buffer when a container is allocated by the RM
+ *      - Populating a buffer when a container is allocated by the cluster manager
  *        (allocatedContainers in {@link org.apache.samza.clustermanager.ContainerRequestState}
  *      - Identifying the cause of container failure & re-request containers from the cluster manager by adding request to the
  *        internal requestQueue in {@link org.apache.samza.clustermanager.ContainerRequestState}
@@ -58,6 +58,7 @@ public class SamzaTaskManager   {
   /**
    * Config for this Samza job
    */
+  private final ClusterManagerConfig clusterManagerConfig;
   private final JobConfig jobConfig;
 
   /**
@@ -87,17 +88,17 @@ public class SamzaTaskManager   {
                           SamzaAppState state,
                           ContainerProcessManager manager
                           ) {
-      log.info("initialized samza task manager");
       this.state = state;
+      this.clusterManagerConfig = new ClusterManagerConfig(config);
       this.jobConfig = new JobConfig(config);
       this.manager=manager;
 
-      this.hostAffinityEnabled = jobConfig.getHostAffinityEnabled();
+      this.hostAffinityEnabled = clusterManagerConfig.getHostAffinityEnabled();
 
       if (this.hostAffinityEnabled) {
           this.containerAllocator = new HostAwareContainerAllocator(
                   manager,
-                  jobConfig.getContainerRequestTimeout(),
+                  clusterManagerConfig.getContainerRequestTimeout(),
                   config,
                   state
           );
@@ -137,12 +138,8 @@ public class SamzaTaskManager   {
         allocatorThread.start();
     }
 
-    public void onReboot() {
-
-    }
-
     public void stop() {
-        log.info("Called onShutdown of Samza task manager");
+        log.info("Invoked stop of the Samza task manager");
 
         // Shutdown allocator thread
         containerAllocator.stop() ;
@@ -152,7 +149,7 @@ public class SamzaTaskManager   {
             log.info("Allocator Thread join() threw an interrupted exception", ie);
             // Should we throw exception here??
         }
-        log.info("finished onShutdown of Samza task manager");
+        log.info("Finished stop of Samza task manager");
 
     }
 
@@ -252,8 +249,8 @@ public class SamzaTaskManager   {
                     // 0, the app master will fail on any container failure. If the
                     // retry count is set to a number < 0, a container failure will
                     // never trigger an app master failure.
-                    int retryCount = jobConfig.getContainerRetryCount();
-                    int retryWindowMs = jobConfig.getContainerRetryWindowMs();
+                    int retryCount = clusterManagerConfig.getContainerRetryCount();
+                    int retryWindowMs = clusterManagerConfig.getContainerRetryWindowMs();
 
                     if (retryCount == 0) {
                         log.error("Container ID {} ({}) failed, and retry count is set to 0, so shutting down the application master, and marking the job as failed.", containerId, containerIdStr);

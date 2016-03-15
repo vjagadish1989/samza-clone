@@ -134,7 +134,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
 
       ClusterManagerConfig clusterManagerConfig = new ClusterManagerConfig(config);
       taskManagerPollInterval = clusterManagerConfig.getJobCoordinatorSleepInterval();
-      isJmxEnabled = clusterManagerConfig.getJmxServerEnabled();
+      isJmxEnabled = clusterManagerConfig.getJmxEnabled();
 
       log.info("Got coordinator system config {} ", coordinatorSystemConfig);
 

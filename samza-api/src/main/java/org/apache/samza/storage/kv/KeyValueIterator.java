@@ -17,25 +17,12 @@
  * under the License.
  */
 
-package org.apache.samza.storage.kv
+package org.apache.samza.storage.kv;
 
-import org.apache.samza.metrics.MetricsHelper
-import org.apache.samza.metrics.MetricsRegistry
-import org.apache.samza.metrics.MetricsRegistryMap
+import java.util.Iterator;
 
-class SerializedKeyValueStoreMetrics(
-  val storeName: String = "unknown",
-  val registry: MetricsRegistry = new MetricsRegistryMap) extends MetricsHelper {
-
-  val gets = newCounter("gets")
-  val ranges = newCounter("ranges")
-  val alls = newCounter("alls")
-  val puts = newCounter("puts")
-  val deletes = newCounter("deletes")
-  val flushes = newCounter("flushes")
-  val bytesSerialized = newCounter("bytes-serialized")
-  val bytesDeserialized = newCounter("bytes-deserialized")
-  val newIterator = newCounter("newiterator")
-
-  override def getPrefix = storeName + "-"
+public interface KeyValueIterator<K, V> extends Iterator<Entry<K, V>> {
+  public void close();
+  public void seekToFirst();
+  public void seek(K key);
 }
