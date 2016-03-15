@@ -27,70 +27,91 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Samza's application master is mostly interested in requesting containers to
- * run Samza jobs. SamzaTaskManager is responsible for requesting refactor
+ * Samza's application master requests containers to run Samza jobs. SamzaTaskManager is responsible for requesting
  * containers, handling failures, and notifying the application master that the
  * job is done.
  *
  * The following main threads are involved in the execution of the Samza AM:
- *  - The main thread (defined in SamzaAppMaster) that drive the AM to send out container requests to RM
- *  - The callback handler thread that receives the responses from RM and handles:
+ *  - The main thread (defined in SamzaAppMaster) that sends requests to the cluster manager.
+ *  - The callback handler thread that receives the responses from cluster manager and handles:
  *      - Populating a buffer when a container is allocated by the RM
  *        (allocatedContainers in {@link org.apache.samza.clustermanager.ContainerRequestState}
- *      - Identifying the cause of container failure & re-request containers from RM by adding request to the
+ *      - Identifying the cause of container failure & re-request containers from the cluster manager by adding request to the
  *        internal requestQueue in {@link org.apache.samza.clustermanager.ContainerRequestState}
  *  - The allocator thread defined here assigns the allocated containers to pending requests
  *    (See {@link org.apache.samza.clustermanager.ContainerAllocator} or {@link org.apache.samza.clustermanager.HostAwareContainerAllocator})
  */
 
 public class SamzaTaskManager   {
-    private static final Logger log = LoggerFactory.getLogger(SamzaTaskManager.class);
 
-    private final boolean hostAffinityEnabled;
-    private final SamzaAppState state;
+  private static final Logger log = LoggerFactory.getLogger(SamzaTaskManager.class);
+  /**
+   * Does this Samza Job need hostAffinity when containers are allocated.
+   */
+  private final boolean hostAffinityEnabled;
 
+  /**
+   * State variables tracking containers allocated, freed, running, released.
+   */
+  private final SamzaAppState state;
 
-    // Derived configs
-    private final JobConfig jobConfig;
+  /**
+   * Config for this Samza job
+   */
+  private final JobConfig jobConfig;
 
-    private final AbstractContainerAllocator containerAllocator;
-    private final Thread allocatorThread;
+  /**
+   * The Allocator matches requests to resources and executes processes.
+   */
+  private final AbstractContainerAllocator containerAllocator;
+  private final Thread allocatorThread;
 
-    private final ContainerProcessManager manager;
+  /**
+   * A standard interface to request resources.
+   */
+  private final ContainerProcessManager manager;
 
-    // State
-    private boolean tooManyFailedContainers = false;
-    private final Map<Integer, ResourceFailure> containerFailures = new HashMap<Integer, ResourceFailure>();
+  /**
+   * If there are too many failed container failures (configured by job.container.retry.count) for a
+   * container, the job exits.
+   */
+  private boolean tooManyFailedContainers = false;
 
-    public SamzaTaskManager(Config config,
-                            SamzaAppState state,
-                            ContainerProcessManager manager
-                            ) {
-        log.info("initialized samza task manager");
-        this.state = state;
-        this.jobConfig = new JobConfig(config);
-        this.manager=manager;
+  /**
+   * A map that keeps track of how many times each container failed. The key is the container ID, and the
+   * value is the {@link ResourceFailure} object that has a count of failures.
+   */
+  private final Map<Integer, ResourceFailure> containerFailures = new HashMap<Integer, ResourceFailure>();
 
-        this.hostAffinityEnabled = jobConfig.getHostAffinityEnabled();
+  public SamzaTaskManager(Config config,
+                          SamzaAppState state,
+                          ContainerProcessManager manager
+                          ) {
+      log.info("initialized samza task manager");
+      this.state = state;
+      this.jobConfig = new JobConfig(config);
+      this.manager=manager;
 
-        if (this.hostAffinityEnabled) {
-            this.containerAllocator = new HostAwareContainerAllocator(
-                    manager,
-                    jobConfig.getContainerRequestTimeout(),
-                    config,
-                    state
-            );
-        } else {
-            this.containerAllocator = new ContainerAllocator(
-                    manager,
-                    config,
-                    state);
-        }
+      this.hostAffinityEnabled = jobConfig.getHostAffinityEnabled();
 
-        this.allocatorThread = new Thread(this.containerAllocator, "Container Allocator Thread");
-        log.info("finished initialization of samza task manager");
+      if (this.hostAffinityEnabled) {
+          this.containerAllocator = new HostAwareContainerAllocator(
+                  manager,
+                  jobConfig.getContainerRequestTimeout(),
+                  config,
+                  state
+          );
+      } else {
+          this.containerAllocator = new ContainerAllocator(
+                  manager,
+                  config,
+                  state);
+      }
 
-    }
+      this.allocatorThread = new Thread(this.containerAllocator, "Container Allocator Thread");
+      log.info("finished initialization of samza task manager");
+
+  }
 
     public boolean shouldShutdown() {
         log.info(" check task manager" + tooManyFailedContainers + "" +state.completedContainers.get() + " " + state.containerCount + " " + allocatorThread.isAlive() );
@@ -142,6 +163,7 @@ public class SamzaTaskManager   {
      * This methods handles the onContainerCompleted callback from the RM. Based on the ContainerExitStatus, it decides
      * whether a container that exited is marked as complete or failure.
      */
+    //TODO: make this more modular as in SAMZA-867
     public void onContainerCompleted(SamzaResourceStatus containerStatus) {
         String containerIdStr = containerStatus.resourceID;
         int containerId = -1;

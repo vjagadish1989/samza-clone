@@ -34,7 +34,7 @@ public class ContainerAllocator extends AbstractContainerAllocator {
   public ContainerAllocator(ContainerProcessManager manager,
                             Config config, SamzaAppState state) {
     super(manager, new ContainerRequestState(false, manager), config, state);
-      }
+  }
 
   /**
    * During the run() method, the thread sleeps for ALLOCATOR_SLEEP_TIME ms. It tries to allocate any unsatisfied

@@ -1,9 +1,7 @@
 package org.apache.samza.job.yarn.refactor;
 
-import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.samza.clustermanager.ContainerManagerFactory;
 import org.apache.samza.clustermanager.ContainerProcessManager;
-import org.apache.samza.clustermanager.ContainerProcessManagerCallback;
 import org.apache.samza.coordinator.JobModelReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

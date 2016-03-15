@@ -51,47 +51,51 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
    */
   @Override
   public void assignContainerRequests()  {
-    while (hasPendingRequest()) {
+    while (hasPendingRequest())
+    {
+      SamzaResourceRequest request = peekPendingRequest();;
+      log.info("Handling request: " + request.expectedContainerID + " " + request.requestTimestamp + " " + request.preferredHost);
+      String preferredHost = request.getPreferredHost();
+      int expectedContainerId = request.expectedContainerID;
 
-          SamzaResourceRequest request = peekPendingRequest();;
-          log.info("Handling request: " + request.expectedContainerID + " " + request.requestTimestamp + " " + request.preferredHost);
-          String preferredHost = request.getPreferredHost();
-          int expectedContainerId = request.expectedContainerID;
+      if (hasAllocatedContainer(preferredHost)) {
+        // Found allocated container at preferredHost
+        log.info("Found_a_matched_container {} on the preferred host. Running on {}", expectedContainerId, preferredHost);
+        runStreamProcessor(request, preferredHost);
+        state.matchedContainerRequests.incrementAndGet();
 
-          if (hasAllocatedContainer(preferredHost)) {
-            // Found allocated container at preferredHost
-            log.info("Found_a_matched_container container on the preferred host. Running on" +  expectedContainerId + " " + request.getExpectedContainerID() + " " + preferredHost);
-            runStreamProcessor(request, preferredHost);
-            state.matchedContainerRequests.incrementAndGet();
+      } else {
+        log.info("Did not find any allocated containers on preferred host {} for running container id {}",
+            preferredHost, expectedContainerId);
 
-          } else {
-            log.info("Did not find any allocated containers on preferred host {} for running container id {}",
-                preferredHost, expectedContainerId);
+        boolean expired = requestExpired(request);
+        boolean containerAvailableOnAnyHost = hasAllocatedContainer(ContainerRequestState.ANY_HOST);
 
-            boolean expired = requestExpired(request);
-            boolean containerAvailableOnAnyHost = hasAllocatedContainer(ContainerRequestState.ANY_HOST);
-
-            if(expired && containerAvailableOnAnyHost) {
-              log.info("Request expired. running on ANY_HOST");
-              runStreamProcessor(request, ContainerRequestState.ANY_HOST);
-            }
-            else {
-              log.info("Either the request timestamp {} is greater than container request timeout {}ms or we couldn't "
-                      + "find any free allocated containers in the buffer. Breaking out of loop.",
-                  request.getRequestTimestamp(), CONTAINER_REQUEST_TIMEOUT);
-              break;
-            }
-          }
+        if(expired && containerAvailableOnAnyHost) {
+          log.info("Request expired. running on ANY_HOST");
+          runStreamProcessor(request, ContainerRequestState.ANY_HOST);
         }
+        else {
+          log.info("Either the request timestamp {} is greater than container request timeout {}ms or we couldn't "
+                  + "find any free allocated containers in the buffer. Breaking out of loop.",
+              request.getRequestTimestamp(), CONTAINER_REQUEST_TIMEOUT);
+          break;
+        }
+      }
+    }
   }
 
+  /**
+   * Checks if a request has expired.
+   * @param request
+   * @return
+   */
   private boolean requestExpired(SamzaResourceRequest request) {
     long currTime = System.currentTimeMillis();
     boolean requestExpired =  currTime - request.requestTimestamp > CONTAINER_REQUEST_TIMEOUT;
     if(requestExpired == true) {
-      log.info("Request " + request + " with currTime " + currTime + " has expired");
+      log.info("Request {} with currTime {} has expired", request, currTime);
     }
-
-      return requestExpired;
+    return requestExpired;
   }
 }

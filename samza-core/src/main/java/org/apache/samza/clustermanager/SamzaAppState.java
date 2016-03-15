@@ -110,8 +110,7 @@ public class SamzaAppState {
 
   public AtomicInteger matchedContainerRequests = new AtomicInteger(0);
 
-  public SamzaAppState(JobModelReader jobModelReader
-                      ) {
+  public SamzaAppState(JobModelReader jobModelReader) {
     this.jobModelReader = jobModelReader;
 
   }

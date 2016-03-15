@@ -49,11 +49,14 @@ import java.util.List;
  * TODO:
  * 1.Investigate what it means to kill a StreamProcessor, and add it as an API here.
  * 2.Consider an API for Container Process liveness - ie, to be notified when a StreamProcessor
- * joins or leaves the group
+ * joins or leaves the group. Will evolve more as we implement standalone and mesos.
  */
 
 public abstract class ContainerProcessManager
 {
+  /**
+   * Callback to be invoked in reaction to methods from
+   */
   protected final Callback _callback;
 
   public ContainerProcessManager(Callback callback)

@@ -26,8 +26,8 @@ import java.util.List;
  *  Any offer based cluster management system that must integrate with Samza will merely
  *  implement a {@link ContainerManagerFactory} and a {@link ContainerProcessManager}.
  *
- *  This class is not thread-safe, Hence, invocations should be synchronized by
- *  the callers.
+ *  This class is not thread-safe. For safe access in multi-threaded context, invocations
+ *  should be synchronized by the callers.
  *
  * TODO:
  * 1. Refactor ContainerProcessManager to also handle process liveness, process start
@@ -35,9 +35,8 @@ import java.util.List;
  * 2. Refactor the JobModelReader to be an interface.
  * 3. Make ClusterBasedJobCoordinator implement the JobCoordinator API as in SAMZA-881.
  * 4. Refactor UI state variables.
- * 5. Add another constructor that takes in a JobModelReader and a Config object.
- * 6. Unit tests.
- * 7. Documentation for the newly added configs.
+ * 5. Unit tests.
+ * 6. Document newly added configs.
  */
 public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callback {
   /**
@@ -45,7 +44,9 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    */
   private ContainerProcessManager processManager;
 
-
+  /**
+   * State to track container failures, host-container mappings
+   */
   private SamzaAppState state;
 
   /**
@@ -58,6 +59,9 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    */
   private SamzaTaskManager taskManager;
 
+  /**
+   * A JobModelReader to return and refresh the {@link org.apache.samza.job.model.JobModel} when required.
+   */
   private JobModelReader jobModelReader;
 
   /**
@@ -83,8 +87,15 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
 
   private static final Logger log = LoggerFactory.getLogger(ClusterBasedJobCoordinator.class);
 
+  /**
+   * Configuration for the coordinator System. Samza will bootstrap/refresh the jobmodel from the
+   * coordinator stream system.
+   */
   private final Config coordinatorSystemConfig;
 
+  /**
+   * Internal boolean to check if the job coordinator has already been started.
+   */
   private boolean isStarted;
 
   private JmxServer jmxServer;
@@ -104,7 +115,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    * Starts the JobCoordinator.
    *
    */
-  public void start()
+  public void run()
   {
     if (isStarted)
     {
@@ -115,6 +126,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
 
     try
     {
+      //initialize JobCoordinator state
       registry = new MetricsRegistryMap();
       jobModelReader = JobModelReader.apply(coordinatorSystemConfig, registry);
       Config config = jobModelReader.jobModel().getConfig();
@@ -166,12 +178,14 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     }
     finally {
         //TODO: Prevent stop from being called multiple times or make methods resilient.
-        stop();
+        onShutDown();
     }
   }
 
   /**
-   * Returns an instantiated {@link ContainerManagerFactory} from a {@link ClusterManagerConfig}
+   * Returns an instantiated {@link ContainerManagerFactory} from a {@link ClusterManagerConfig}. The
+   * {@link ContainerManagerFactory} is used to return an implementation of a {@link ContainerProcessManager}
+   *
    * @param clusterManagerConfig, the cluster manager config to parse.
    *
    */
@@ -205,27 +219,31 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
   /**
    * Stops all components of the JobCoordinator.
    */
-  public void stop() {
-      if (metrics != null)
-          metrics.stop();
-      log.info("stopped metrics reporters");
+  private void onShutDown() {
+    if (metrics != null) {
+      metrics.stop();
+    }
+    log.info("stopped metrics reporters");
 
-      if (taskManager != null)
-          taskManager.stop();
-      log.info("stopped task manager");
+    if (taskManager != null) {
+      taskManager.stop();
+    }
+    log.info("stopped task manager");
 
-      if (processManager != null)
-          processManager.stop();
-      log.info("stopped container process manager");
+    if (processManager != null) {
+      processManager.stop();
+    }
+    log.info("stopped container process manager");
 
-      if (jmxServer != null) {
-          jmxServer.stop();
-      }
-      log.info("stopped Jmx Server");
+    if (jmxServer != null) {
+        jmxServer.stop();
+    }
+    log.info("stopped Jmx Server");
   }
 
   /**
-   * Delegate callback handling to the taskmanager
+   * Called by the {@link ContainerProcessManager} when there are resources available.
+   * This delegates handling of the callbacks to the {@link SamzaTaskManager}
    * @param resources a list of available resources.
    */
   @Override
@@ -237,6 +255,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
   }
 
   /**
+   *
    * Delegate callbacks of resource completion to the taskManager
    * @param resourceStatuses
    */
@@ -272,6 +291,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     final String COORDINATOR_SYSTEM_ENV = System.getenv(ShellCommandConfig.ENV_COORDINATOR_SYSTEM_CONFIG());
     try
     {
+      //Read and parse the coordinator system config.
       log.info("Parsing coordinator system config {}", COORDINATOR_SYSTEM_ENV);
       coordinatorSystemConfig = new MapConfig(SamzaObjectMapper.getObjectMapper().readValue(COORDINATOR_SYSTEM_ENV, Config.class));
     }
@@ -284,6 +304,6 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
 
     log.info("Got coordinator system config: {}  ", coordinatorSystemConfig);
     ClusterBasedJobCoordinator jc = new ClusterBasedJobCoordinator(coordinatorSystemConfig);
-    jc.start();
+    jc.run();
   }
 }

@@ -135,6 +135,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
     } catch (SamzaContainerLaunchException e) {
       log.warn(String.format("Got exception while starting resource %s. Requesting a new resource on any host", resource), e);
       containerRequestState.releaseUnstartableContainer(resource);
+      containerProcessManager.releaseResources(resource);
       requestContainer(expectedContainerId, ContainerRequestState.ANY_HOST);
     }
 
@@ -218,17 +219,11 @@ public abstract class AbstractContainerAllocator implements Runnable {
    * @return
    */
   private CommandBuilder getCommandBuilder(int samzaContainerId) {
-    String cmdBuilderClassName;
-    if (taskConfig.getCommandClass().isDefined()) {
-      cmdBuilderClassName = taskConfig.getCommandClass().get();
-    } else {
-      cmdBuilderClassName = ShellCommandBuilder.class.getName();
-    }
+    String cmdBuilderClassName = taskConfig.getCommandClass(ShellCommandBuilder.class.getName());
     CommandBuilder cmdBuilder = (CommandBuilder) Util.getObj(cmdBuilderClassName);
     cmdBuilder.setConfig(config).setId(samzaContainerId).setUrl(state.jobModelReader.server().getUrl());
     return cmdBuilder;
   }
-
   /**
    * Adds allocated container to a synchronized buffer of allocated containers list
    * See allocatedContainers in {@link ContainerRequestState}
