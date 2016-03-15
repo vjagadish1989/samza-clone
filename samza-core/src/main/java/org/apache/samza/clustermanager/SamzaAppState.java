@@ -28,7 +28,18 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * SamzaAppState encapsulates state variables like - completedContainers, runningContainers. This
+ * class is also used to display information in the Samza UI.
+ *
+ * TODO:
+ * 1.Make these variables private, provide thread-safe accessors.
+ */
+
 public class SamzaAppState {
+
+  public enum SamzaAppStatus {UNDEFINED,SUCCEEDED,FAILED}
+
   public final JobModelReader jobModelReader;
 
   /**
@@ -88,17 +99,10 @@ public class SamzaAppState {
    */
   public ConcurrentMap<Integer, SamzaResource> runningContainers = new ConcurrentHashMap<Integer, SamzaResource>(0);
 
-
-
-  /**
-   *  Map of the samzaContainerId to the {@link YarnContainer} on which it is running
-   *  Modified by both the AMRMCallbackThread and the ContainerAllocator thread
-   */
   /**
    * Final status of the application
-   * Modified by both the AMRMCallbackThread and the ContainerAllocator thread
    */
-  public String status = "undefined";
+  public SamzaAppStatus status = SamzaAppStatus.UNDEFINED;
 
   /**
    * State indicating whether the job is healthy or not

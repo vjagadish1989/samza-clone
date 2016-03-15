@@ -23,17 +23,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is the allocator thread that will be used by SamzaTaskManager when host-affinity is enabled for a job. It is similar to {@link ContainerAllocator}, except that it considers container locality for allocation.
+ * This is the allocator thread that will be used by SamzaTaskManager when host-affinity is enabled for a job. It is similar
+ * to {@link ContainerAllocator}, except that it considers container locality for allocation.
  *
- * In case of host-affinity, each container request ({@link SamzaResourceRequest} encapsulates the identifier of the container to be run and a "preferredHost". preferredHost is determined by the locality mappings in the coordinator stream.
- * This thread periodically wakes up and makes the best-effort to assign a container to the preferredHost. If the preferredHost is not returned by the RM before the corresponding container expires, the thread assigns the container to any other host that is allocated next.
+ * In case of host-affinity, each container request ({@link SamzaResourceRequest} encapsulates the identifier of the container
+ * to be run and a "preferredHost". preferredHost is determined by the locality mappings in the coordinator stream.
+ * This thread periodically wakes up and makes the best-effort to assign a container to the preferredHost. If the
+ * preferredHost is not returned by the cluster manager before the corresponding container expires, the thread
+ * assigns the container to any other host that is allocated next.
+ *
  * The container expiry is determined by CONTAINER_REQUEST_TIMEOUT and is configurable on a per-job basis.
  *
  * If there aren't enough containers, it waits by sleeping for ALLOCATOR_SLEEP_TIME milliseconds.
  */
 public class HostAwareContainerAllocator extends AbstractContainerAllocator {
   private static final Logger log = LoggerFactory.getLogger(HostAwareContainerAllocator.class);
-
+  /**
+   * Tracks the expiration of a request for resources.
+   */
   private final int CONTAINER_REQUEST_TIMEOUT;
 
   public HostAwareContainerAllocator(ContainerProcessManager manager ,
@@ -54,13 +61,13 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
     while (hasPendingRequest())
     {
       SamzaResourceRequest request = peekPendingRequest();;
-      log.info("Handling request: " + request.expectedContainerID + " " + request.requestTimestamp + " " + request.preferredHost);
+      log.info("Handling request: " + request.getExpectedContainerID() + " " + request.getRequestTimestampMs() + " " + request.getPreferredHost());
       String preferredHost = request.getPreferredHost();
-      int expectedContainerId = request.expectedContainerID;
+      int expectedContainerId = request.getExpectedContainerID();
 
       if (hasAllocatedContainer(preferredHost)) {
         // Found allocated container at preferredHost
-        log.info("Found_a_matched_container {} on the preferred host. Running on {}", expectedContainerId, preferredHost);
+        log.info("Found a matched-container {} on the preferred host. Running on {}", expectedContainerId, preferredHost);
         runStreamProcessor(request, preferredHost);
         state.matchedContainerRequests.incrementAndGet();
 
@@ -78,7 +85,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
         else {
           log.info("Either the request timestamp {} is greater than container request timeout {}ms or we couldn't "
                   + "find any free allocated containers in the buffer. Breaking out of loop.",
-              request.getRequestTimestamp(), CONTAINER_REQUEST_TIMEOUT);
+              request.getRequestTimestampMs(), CONTAINER_REQUEST_TIMEOUT);
           break;
         }
       }
@@ -92,7 +99,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
    */
   private boolean requestExpired(SamzaResourceRequest request) {
     long currTime = System.currentTimeMillis();
-    boolean requestExpired =  currTime - request.requestTimestamp > CONTAINER_REQUEST_TIMEOUT;
+    boolean requestExpired =  currTime - request.getRequestTimestampMs() > CONTAINER_REQUEST_TIMEOUT;
     if(requestExpired == true) {
       log.info("Request {} with currTime {} has expired", request, currTime);
     }

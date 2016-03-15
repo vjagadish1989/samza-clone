@@ -220,18 +220,6 @@ public class ContainerRequestState {
     return numReleasedContainers;
   }
 
-  /**
-   * Releases a container that was allocated and assigned but could not be started.
-   * e.g. because of a ConnectException while trying to communicate with the NM.
-   * This method assumes the specified container and associated request have already
-   * been removed from their respective queues.
-   *
-   * @param container the {@link SamzaResource} to release.
-   */
-  public void releaseUnstartableContainer(SamzaResource container) {
-    log.info("Releasing unstartable container {}", container.getResourceID());
-    manager.releaseResources(container);
-  }
 
   /**
    * Clears all the state variables

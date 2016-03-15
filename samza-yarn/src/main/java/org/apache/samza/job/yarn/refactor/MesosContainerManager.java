@@ -5,6 +5,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.samza.clustermanager.ContainerProcessManager;
+import org.apache.samza.clustermanager.SamzaAppState;
 import org.apache.samza.clustermanager.SamzaResource;
 import org.apache.samza.clustermanager.SamzaResourceRequest;
 import org.apache.samza.job.CommandBuilder;
@@ -12,7 +13,8 @@ import org.apache.samza.job.CommandBuilder;
 import java.util.*;
 
 /**
- * Created by jvenkatr on 2/5/16.
+ * This is STRICTLY a prototype implementation and is meant to illustrate how powerful the
+ * ContainerProcessManager API is.
  */
 public class MesosContainerManager extends ContainerProcessManager implements Scheduler {
 
@@ -55,7 +57,7 @@ public class MesosContainerManager extends ContainerProcessManager implements Sc
     }
 
     @Override
-    public void stop() {
+    public void stop(SamzaAppState.SamzaAppStatus status) {
 
     }
 

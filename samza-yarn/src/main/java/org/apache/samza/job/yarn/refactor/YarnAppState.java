@@ -4,6 +4,7 @@ import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
+import org.apache.samza.clustermanager.SamzaAppState;
 import org.apache.samza.coordinator.JobModelReader;
 
 import java.net.URL;
@@ -15,11 +16,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * YarnAppState encapsulates Yarn specific state variables that are Yarn specific. This class
  * is useful for information to display in the UI.
  *
- * TODO: make these variables private, provide accessors.
+ * TODO: make these variables private, provide thread-safe accessors.
  */
 public class YarnAppState {
 
-
+   public final SamzaAppState samzaAppState;
 /*  The following state variables are primarily used for reference in the AM web services   */
 
   /**
@@ -77,13 +78,12 @@ public class YarnAppState {
   * Final status of the application
   * Modified by both the AMRMCallbackThread and the ContainerAllocator thread
   */
-  public FinalApplicationStatus status = FinalApplicationStatus.UNDEFINED;
+  public FinalApplicationStatus yarnContainerManagerStatus = FinalApplicationStatus.UNDEFINED;
 
   /**
   * State indicating whether the job is healthy or not
   * Modified by both the AMRMCallbackThread and the ContainerAllocator thread
   */
-  public AtomicBoolean jobHealthy = new AtomicBoolean(true);
 
 
   public YarnAppState(JobModelReader jobModelReader,
@@ -91,7 +91,8 @@ public class YarnAppState {
                     ContainerId amContainerId,
                     String nodeHost,
                     int nodePort,
-                    int nodeHttpPort) {
+                    int nodeHttpPort,
+                    SamzaAppState state) {
     this.jobModelReader = jobModelReader;
     this.taskId = taskId;
     this.amContainerId = amContainerId;
@@ -99,7 +100,7 @@ public class YarnAppState {
     this.nodePort = nodePort;
     this.nodeHttpPort = nodeHttpPort;
     this.appAttemptId = amContainerId.getApplicationAttemptId();
-
+    this.samzaAppState = state;
   }
 
   @Override
@@ -116,8 +117,7 @@ public class YarnAppState {
             ", rpcUrl=" + rpcUrl +
             ", trackingUrl=" + trackingUrl +
             ", runningContainers=" + runningContainers +
-            ", status=" + status +
-            ", jobHealthy=" + jobHealthy +
+            ", status=" + yarnContainerManagerStatus +
             '}';
   }
 }

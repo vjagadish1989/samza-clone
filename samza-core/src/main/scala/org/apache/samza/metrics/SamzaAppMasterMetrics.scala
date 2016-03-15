@@ -61,10 +61,13 @@ class SamzaAppMasterMetrics(
     val mFailedContainers = newGauge("failed-containers", () => state.failedContainers.get())
     val mReleasedContainers = newGauge("released-containers", () => state.releasedContainers.get())
     val mContainers = newGauge("container-count", () => state.containerCount)
+    //TODO: The below metrics must be reported as YarnAppMasterMetrics.
+
     /*val mHost = newGauge("http-host", () => state.nodeHost)
     val mTrackingPort = newGauge("http-port", () => state.trackingUrl.getPort)
     val mRpcPort = newGauge("rpc-port", () => state.rpcUrl.getPort)
     val mAppAttemptId = newGauge("app-attempt-id", () => state.appAttemptId.toString)*/
+
     val mJobHealthy = newGauge("job-healthy", () => if (state.jobHealthy.get()) 1 else 0)
     val mLocalityMatchedRequests = newGauge(
       "locality-matched",

@@ -1,6 +1,5 @@
 package org.apache.samza.clustermanager;
 
-import org.omg.CORBA.OBJ_ADAPTER;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,33 +7,39 @@ import org.slf4j.LoggerFactory;
  * Specification of a Request for resources from a ContainerProcessManager. A
  * resource request currently includes cpu cores and memory in MB. A preferred host
  * can also be specified with a request.
+ *
+ * When used with a ordered data structures (for example, priority queues)
+ * ordering between two SamzaResourceRequests is defined by their timestamp.
+ *
+ * //TODO: Define a SamzaResourceRequestBuilder API as specified in SAMZA-881
  */
 public class SamzaResourceRequest implements Comparable<SamzaResourceRequest>
 {
-  int numCores;
-  int memoryMB;
-  String preferredHost;
-  String requestID;
-  int expectedContainerID;
-  long requestTimestamp;
+  /**
+   * Specifications of a resource request.
+   */
+  private final int numCores;
+  private final int memoryMB;
+  /**
+   * The preferred host on which the resource must be allocated. Can be set to
+   * ContainerRequestState.ANY_HOST if there are no host preferences
+   */
+  private final String preferredHost;
+  /**
+   * A request is identified by an unique identifier.
+   */
+  private final String requestID;
+  /**
+   * The ID of the StreamProcessor which this request is for.
+   */
+  private final int expectedContainerID;
+
+  /**
+   * The timestamp in millis when the request was created.
+   */
+  private final long requestTimestampMs;
 
   private static final Logger log = LoggerFactory.getLogger(SamzaResourceRequest.class);
-
-  public int getExpectedContainerID() {
-      return expectedContainerID;
-  }
-
-  public void setExpectedContainerID(int expectedContainerID) {
-      this.expectedContainerID = expectedContainerID;
-  }
-
-  public long getRequestTimestamp() {
-      return requestTimestamp;
-  }
-
-  public void setRequestTimestamp(long requestTimestamp) {
-      this.requestTimestamp = requestTimestamp;
-  }
 
   public SamzaResourceRequest(int numCores, int memoryMB, String preferredHost, String requestID, int expectedContainerID) {
       this.numCores = numCores;
@@ -42,40 +47,32 @@ public class SamzaResourceRequest implements Comparable<SamzaResourceRequest>
       this.preferredHost = preferredHost;
       this.requestID = requestID;
       this.expectedContainerID = expectedContainerID;
-      this.requestTimestamp = System.currentTimeMillis();
-      log.info("Resource Request created for {} on {} at {}", new Object[] {this.expectedContainerID, this.preferredHost, this.requestTimestamp}  );
+      this.requestTimestampMs = System.currentTimeMillis();
+      log.info("Resource Request created for {} on {} at {}", new Object[] {this.expectedContainerID, this.preferredHost, this.requestTimestampMs}  );
+  }
+
+  public int getExpectedContainerID() {
+    return expectedContainerID;
+  }
+
+  public long getRequestTimestampMs() {
+    return requestTimestampMs;
   }
 
   public String getRequestID() {
       return requestID;
   }
 
-  public void setRequestID(String requestID) {
-      this.requestID = requestID;
-  }
-
   public int getNumCores() {
       return numCores;
-  }
-
-  public void setNumCores(int numCores) {
-      this.numCores = numCores;
   }
 
   public String getPreferredHost() {
       return preferredHost;
   }
 
-  public void setPreferredHost(String preferredHost) {
-      this.preferredHost = preferredHost;
-  }
-
   public int getMemoryMB() {
       return memoryMB;
-  }
-
-  public void setMemoryMB(int memoryMB) {
-      this.memoryMB = memoryMB;
   }
 
   @Override
@@ -86,15 +83,20 @@ public class SamzaResourceRequest implements Comparable<SamzaResourceRequest>
               ", preferredHost='" + preferredHost + '\'' +
               ", requestID='" + requestID + '\'' +
               ", expectedContainerID=" + expectedContainerID +
-              ", requestTimestamp=" + requestTimestamp +
+              ", requestTimestampMs=" + requestTimestampMs +
               '}';
   }
 
+  /**
+   * Requests are ordered by the time at which they were created.
+   * @param o
+   * @return
+   */
   @Override
   public int compareTo(SamzaResourceRequest o) {
-      if(this.requestTimestamp < o.requestTimestamp)
+      if(this.requestTimestampMs < o.requestTimestampMs)
           return -1;
-      if(this.requestTimestamp > o.requestTimestamp)
+      if(this.requestTimestampMs > o.requestTimestampMs)
           return 1;
       return 0;
   }

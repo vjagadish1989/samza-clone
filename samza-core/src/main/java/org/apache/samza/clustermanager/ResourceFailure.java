@@ -20,7 +20,8 @@
 package org.apache.samza.clustermanager;
 
 /**
- * Class that encapsulates information related to a container failure
+ * A ResourceFailure instance encapsulates information related to a resource failure.
+ * It keeps track of the time of the last failure, the number of failures.
  * */
 public class ResourceFailure {
   /**

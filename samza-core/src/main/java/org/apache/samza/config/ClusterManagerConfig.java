@@ -1,7 +1,7 @@
 package org.apache.samza.config;
 
 /**
- * Created by jvenkatr on 3/8/16.
+ * Configs when Samza is used with a ClusterManager like Yarn or Mesos.
  */
 public class ClusterManagerConfig extends MapConfig{
 

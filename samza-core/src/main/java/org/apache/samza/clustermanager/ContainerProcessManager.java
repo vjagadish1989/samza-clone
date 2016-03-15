@@ -101,7 +101,8 @@ public abstract class ContainerProcessManager
   public abstract void launchStreamProcessor (SamzaResource resource, CommandBuilder builder) throws SamzaContainerLaunchException;
 
 
-  public abstract void stop();
+  public abstract void stop(SamzaAppState.SamzaAppStatus status);
+
 
   /***
    *Defines a callback interface for interacting with notifications from a ContainerProcessManager
@@ -119,7 +120,7 @@ public abstract class ContainerProcessManager
     /***
      * This callback is invoked when resources are no longer available to the application. A
      * resource could be marked 'completed' in scenarios like - failure of disk on the host,
-     * pre-emption of the resource to another StreamProcessor, exit or termination of the
+     * pre-emption of the resource to run another StreamProcessor, exit or termination of the
      * StreamProcessor running in the resource.
      *
      * The SamzaResourceStatus contains diagnostics on why the failure occured

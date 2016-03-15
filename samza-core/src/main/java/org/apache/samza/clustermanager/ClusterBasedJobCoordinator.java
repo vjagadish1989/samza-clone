@@ -21,7 +21,8 @@ import java.util.List;
  * manager system. This {@link ClusterBasedJobCoordinator} handles functionality common
  * to both Yarn and Mesos. It takes care of
  *  1. Requesting resources from an underlying {@link ContainerProcessManager}.
- *  2. Ensuring that placement of containers to resources happens as per host affinity.
+ *  2. Ensuring that placement of containers to resources happens (as per whether host affinity
+ *  is configured or not).
  *
  *  Any offer based cluster management system that must integrate with Samza will merely
  *  implement a {@link ContainerManagerFactory} and a {@link ContainerProcessManager}.
@@ -138,7 +139,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
       log.info("Got coordinator system config {} ", coordinatorSystemConfig);
 
       ContainerManagerFactory factory = getContainerProcessManagerFactory(clusterManagerConfig);
-      this.processManager = factory.getContainerProcessManager(jobModelReader, this);
+      this.processManager = factory.getContainerProcessManager(jobModelReader, this, state);
 
       state = new SamzaAppState(jobModelReader);
       metrics = new SamzaAppMasterMetrics(config, state, registry);
@@ -172,7 +173,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
       }
     }
     catch (Throwable e) {
-        log.error("exception throw runtime {} ", e);
+        log.error("Exception thrown in the JobCoordinator loop {} ", e);
         e.printStackTrace();
         throw new SamzaException(e);
     }
@@ -231,7 +232,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     log.info("stopped task manager");
 
     if (processManager != null) {
-      processManager.stop();
+      processManager.stop(state.status);
     }
     log.info("stopped container process manager");
 

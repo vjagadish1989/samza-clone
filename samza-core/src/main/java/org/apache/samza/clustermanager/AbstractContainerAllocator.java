@@ -35,27 +35,47 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
- * This class is responsible for making requests for containers to the AM and also, assigning a container to run on an
- * allocated resource. Sub-classes should override the allocateContainers() method to match containers to hosts according
- * to some strategy.
+ * {@link AbstractContainerAllocator} makes requests for physical resources to the resource manager and also, assigning
+ * a container to run on an allocated resource. Sub-classes should override the allocateContainers() method to match
+ * containers to hosts according to some strategy.
  *
  * See {@link ContainerAllocator} and {@link HostAwareContainerAllocator} for two such strategies
+ *
+ * It is not safe to share the same object among multiple threads without external synchronization.
  */
 public abstract class AbstractContainerAllocator implements Runnable {
   private static final Logger log = LoggerFactory.getLogger(AbstractContainerAllocator.class);
-
+  /**
+   * A ContainerProcessManager for the allocator to request for resources.
+   */
   protected final ContainerProcessManager containerProcessManager;
+  /**
+   * The allocator sleeps for ALLOCATOR_SLEEP_TIME before it polls its queue for the next request
+   */
   protected final int ALLOCATOR_SLEEP_TIME;
+  /**
+   * Each container currently has the same configuration - memory, and numCpuCores.
+   * Hence, those can be configured in the allocator.
+   */
   protected final int containerMemoryMb;
   protected final int containerNumCpuCore;
+  /**
+   * Config and derived config objects
+   */
   private final TaskConfig taskConfig;
-  Config config = null;
+
+  private Config config;
+  /**
+   * State corresponding to num failed containers, running containers etc.
+   */
   SamzaAppState state;
 
-  // containerRequestState indicate the state of all unfulfilled container requests and allocated containers
+  /**
+   * ContainerRequestState indicate the state of all unfulfilled container requests and allocated containers
+   */
   protected final ContainerRequestState containerRequestState;
 
-  // state that controls the lifecycle of the allocator thread
+  /* State that controls the lifecycle of the allocator thread*/
   private AtomicBoolean isRunning = new AtomicBoolean(true);
 
   public AbstractContainerAllocator(ContainerProcessManager containerProcessManager,
@@ -127,18 +147,22 @@ public abstract class AbstractContainerAllocator implements Runnable {
     // Cancel request and run resource
     log.info("Found available containers on {}. Assigning request for container_id {} with "
             + "timestamp {} to resource {}",
-        new Object[]{preferredHost, String.valueOf(expectedContainerId), request.getRequestTimestamp(), resource.getResourceID()});
+        new Object[]{preferredHost, String.valueOf(expectedContainerId), request.getRequestTimestampMs(), resource.getResourceID()});
     try {
-      state.runningContainers.put(request.expectedContainerID, resource);
       //launches a StreamProcessor on the resource
       containerProcessManager.launchStreamProcessor(resource, builder);
+
+      if (state.neededContainers.decrementAndGet() == 0) {
+        state.jobHealthy.set(true);
+      }
+      state.runningContainers.put(request.getExpectedContainerID(), resource);
+
     } catch (SamzaContainerLaunchException e) {
       log.warn(String.format("Got exception while starting resource %s. Requesting a new resource on any host", resource), e);
-      containerRequestState.releaseUnstartableContainer(resource);
+      //containerRequestState.releaseUnstartableContainer(resource);
       containerProcessManager.releaseResources(resource);
       requestContainer(expectedContainerId, ContainerRequestState.ANY_HOST);
     }
-
   }
 
   /**

@@ -12,7 +12,10 @@ package org.apache.samza.clustermanager;
  *   </ul>
  * </p>
  *
+ *
  * The exact semantics of various exit codes and failure modes are evolving.
+ * Currently the following failures are handled -  termination of a process running in the resource,
+ * resource preemption, disk failures on host.
  *
  */
 public class SamzaResourceStatus
@@ -21,9 +24,24 @@ public class SamzaResourceStatus
   String diagnostics;
   int exitCode;
 
+  /**
+   * Indicates that the StreamProcessor on the resource successfully completed.
+   */
   public static final int SUCCESS=0;
+  /**
+   * Indicates the failure of the StreamProcessor running on the resource.
+   */
   public static final int ABORTED=1;
+  /**
+   * Indicates that the resource was preempted (given to another processor) by
+   * the cluster manager
+   */
   public static final int PREEMPTED=2;
+  /**
+   * Indicates a disk failure in the host the resource is on.
+   * Currently these are modelled after Yarn, could evolve as we add integrations with
+   * many cluster managers.
+   */
   public static final int DISK_FAIL=3;
 
   public SamzaResourceStatus(String resourceID, String diagnostics, int exitCode) {

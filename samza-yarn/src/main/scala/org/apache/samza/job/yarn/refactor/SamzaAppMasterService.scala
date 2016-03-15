@@ -41,7 +41,7 @@ class SamzaAppMasterService(config: Config, state: YarnAppState, registry: Reada
     info("Starting webapp at a random rpc and tracking port")
 
     rpcApp = new HttpServer(resourceBasePath = "scalate")
-    //TODO: The state variables for the UI have to be refactored. Save that for a separate RB.
+    //TODO: Since the state has changed into Samza specific and Yarn specific states, this UI has to be refactored too.
     //rpcApp.addServlet("/*", refactor ApplicationMasterRestServlet(config, state, registry))
     rpcApp.start
 
@@ -59,7 +59,7 @@ class SamzaAppMasterService(config: Config, state: YarnAppState, registry: Reada
     coordinatorStreamWriter.start()
     coordinatorStreamWriter.sendMessage(SetConfig.TYPE, SERVER_URL_OPT, state.coordinatorUrl.toString)
     coordinatorStreamWriter.stop()
-    debug("sent server url message with value: %s " format state.coordinatorUrl.toString)
+    debug("Sent server url message with value: %s " format state.coordinatorUrl.toString)
 
     info("Webapp is started at (rpc %s, tracking %s, coordinator %s)" format(state.rpcUrl, state.trackingUrl, state.coordinatorUrl))
   }

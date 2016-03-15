@@ -57,10 +57,6 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
   final Map<SamzaResourceRequest, AMRMClient.ContainerRequest> requestsMap = new HashMap<>();
 
 
-  public YarnContainerManager ( JobModelReader coordinator, Callback callback ) {
-    this(coordinator.jobModel().getConfig(), coordinator, callback);
-  }
-
   /**
    * Creates an YarnContainerManager from config, a jobModelReader and a callback.
    *
@@ -68,7 +64,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    * @param jobModelReader
    * @param callback callback to be invoked based on events from the ContainerProcessManager
    */
-  public YarnContainerManager (Config config, JobModelReader jobModelReader, ContainerProcessManager.Callback callback )
+  public YarnContainerManager (Config config, JobModelReader jobModelReader, ContainerProcessManager.Callback callback, SamzaAppState samzaAppState )
   {
     super(callback);
     hConfig = new YarnConfiguration();
@@ -89,7 +85,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
     int interval = yarnConfig.getAMPollIntervalMs();
     this.amClient = AMRMClientAsync.createAMRMClientAsync(interval, this);
 
-    this.state = new YarnAppState(jobModelReader, -1, containerId, nodeHostString, nodePort, nodeHttpPort);
+    this.state = new YarnAppState(jobModelReader, -1, containerId, nodeHostString, nodePort, nodeHttpPort, samzaAppState);
     log.info("Initialized YarnAppState: {}", state.toString());
 
     this.service = new SamzaAppMasterService(config, this.state, registry);
@@ -208,9 +204,10 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    * Stops the YarnContainerManager and all its sub-components
    */
   @Override
-  public void stop() {
+  public void stop(SamzaAppState.SamzaAppStatus status) {
     log.info("Stopping AM client " );
-    lifecycle.onShutdown();
+
+    lifecycle.onShutdown(status);
     amClient.stop();
     log.info("Stopping the AM service " );
     service.onShutdown();

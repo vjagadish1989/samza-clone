@@ -25,8 +25,6 @@ package org.apache.samza.clustermanager;
  */
 public class SamzaContainerLaunchException extends Exception {
 
-  private static final long serialVersionUID = -3957939806997013992L;
-
   public SamzaContainerLaunchException() {
     super();
   }

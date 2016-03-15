@@ -114,7 +114,9 @@ public class SamzaTaskManager   {
   }
 
     public boolean shouldShutdown() {
-        log.info(" check task manager" + tooManyFailedContainers + "" +state.completedContainers.get() + " " + state.containerCount + " " + allocatorThread.isAlive() );
+      log.info(" TaskManager state: Too many FailedContainers: {} No. Completed containers: {} Num Configured containers: {}" +
+          " AllocatorThread liveness: {} ", new Object[]{tooManyFailedContainers, state.completedContainers.get(), state.containerCount, allocatorThread.isAlive()});
+
         return tooManyFailedContainers || state.completedContainers.get() == state.containerCount || !allocatorThread.isAlive();
     }
 
@@ -163,7 +165,7 @@ public class SamzaTaskManager   {
      * This methods handles the onContainerCompleted callback from the RM. Based on the ContainerExitStatus, it decides
      * whether a container that exited is marked as complete or failure.
      */
-    //TODO: make this more modular as in SAMZA-867
+    //TODO: make this more modular as in SAMZA-867 (Doing it in a separate RB to avoid scope creep)
     public void onContainerCompleted(SamzaResourceStatus containerStatus) {
         String containerIdStr = containerStatus.resourceID;
         int containerId = -1;
@@ -194,7 +196,7 @@ public class SamzaTaskManager   {
 
                 if (state.completedContainers.get() == state.containerCount) {
                     log.info("Setting job status to SUCCEEDED, since all containers have been marked as completed.");
-                    state.status = "succeeded";
+                    state.status = SamzaAppState.SamzaAppStatus.SUCCEEDED;
                 }
                 break;
 
@@ -279,7 +281,7 @@ public class SamzaTaskManager   {
                                 // We have too many failures, and we're within the window
                                 // boundary, so reset shut down the app master.
                                 tooManyFailedContainers = true;
-                                state.status = "failed";
+                                state.status = SamzaAppState.SamzaAppStatus.FAILED;
                             } else {
                                 log.info("Resetting fail count for container ID {} back to 1, since last container failure ({}) for " +
                                         "this container ID was outside the bounds of the retry window.", containerId, containerIdStr);

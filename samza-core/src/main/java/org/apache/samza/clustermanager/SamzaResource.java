@@ -3,6 +3,7 @@ package org.apache.samza.clustermanager;
 /**
  * Specification of a Samza Resource. A resource is identified by a unique resource ID.
  * A resource is currently comprised of CPUs and Memory resources on a host.
+ *
  */
 public class SamzaResource {
   int numCores;

@@ -23,19 +23,20 @@ import org.apache.hadoop.yarn.api.records.FinalApplicationStatus
 import org.apache.hadoop.yarn.client.api.AMRMClient.ContainerRequest
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync
 import org.apache.samza.SamzaException
+import org.apache.samza.clustermanager.SamzaAppState.SamzaAppStatus
 import org.apache.samza.job.yarn.YarnAppMasterListener
 import org.apache.samza.util.Logging
 
 /**
- * Responsible for managing the lifecycle of the application master. Mostly,
+ * Responsible for managing the lifecycle of the Yarn application master. Mostly,
  * this means registering and unregistering with the RM, and shutting down
  * when the RM tells us to Reboot.
  */
-class SamzaYarnAppMasterLifecycle(containerMem: Int, containerCpu: Int, state: YarnAppState, amClient: AMRMClientAsync[ContainerRequest]) extends YarnAppMasterListener with Logging {
+class SamzaYarnAppMasterLifecycle(containerMem: Int, containerCpu: Int, state: YarnAppState, amClient: AMRMClientAsync[ContainerRequest]) extends Logging {
   var validResourceRequest = true
   var shutdownMessage: String = null
   var webApp: SamzaAppMasterService = null
-  override def onInit() {
+  def onInit() {
     val host = state.nodeHost
     val response = amClient.registerApplicationMaster(host, state.rpcUrl.getPort, "%s:%d" format (host, state.trackingUrl.getPort))
 
@@ -43,25 +44,35 @@ class SamzaYarnAppMasterLifecycle(containerMem: Int, containerCpu: Int, state: Y
     val maxCapability = response.getMaximumResourceCapability
     val maxMem = maxCapability.getMemory
     val maxCpu = maxCapability.getVirtualCores
-        info("Got AM register response. The YARN RM supports container requests with max-mem: %s, max-cpu: %s" format (maxMem, maxCpu))
+    info("Got AM register response. The YARN RM supports container requests with max-mem: %s, max-cpu: %s" format (maxMem, maxCpu))
 
     if (containerMem > maxMem || containerCpu > maxCpu) {
       shutdownMessage = "The YARN cluster is unable to run your job due to unsatisfiable resource requirements. You asked for mem: %s, and cpu: %s." format (containerMem, containerCpu)
       error(shutdownMessage)
       validResourceRequest = false
-      state.status = FinalApplicationStatus.FAILED
-      state.jobHealthy.set(false)
+      state.yarnContainerManagerStatus = FinalApplicationStatus.FAILED
+      state.samzaAppState.jobHealthy.set(false)
     }
   }
 
-  override def onReboot() {
+  def onReboot() {
     throw new SamzaException("Received a reboot signal from the RM, so throwing an exception to reboot the AM.")
   }
 
-  override def onShutdown() {
-    info("Shutting down.")
-    amClient.unregisterApplicationMaster(state.status, shutdownMessage, null)
+  def onShutdown(samzaAppStatus: SamzaAppStatus) {
+    info("Shutting down SamzaAppStatus: " + samzaAppStatus + " YarnContainerManagerStatus: " + state.yarnContainerManagerStatus )
+    //The value of state.status is set to either SUCCEEDED or FAILED for errors we catch and handle - like container failures
+    //All other AM failures (errors in callbacks/connection failures after retries/token expirations) should not unregister the AM,
+    //allowing the RM to restart it (potentially on a different host)
+    if(samzaAppStatus != SamzaAppStatus.UNDEFINED && state.yarnContainerManagerStatus != FinalApplicationStatus.UNDEFINED) {
+      info("Unregistering AM from the RM.")
+      amClient.unregisterApplicationMaster(state.yarnContainerManagerStatus, shutdownMessage, null)
+      info("Unregister complete.")
+    }
+    else {
+      info("Not unregistering AM from the RM. This will enable RM retries")
+    }
   }
 
-  override def shouldShutdown = !validResourceRequest
+  def shouldShutdown = !validResourceRequest
 }
