@@ -23,7 +23,7 @@ import java.util.Map;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
-import org.apache.samza.coordinator.JobModelReader;
+import org.apache.samza.coordinator.JobCoordinator;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 
 import java.net.URL;
@@ -45,7 +45,7 @@ public class SamzaAppState {
    * lifecycle. It helps querying JobModel related info in {@link org.apache.samza.webapp.ApplicationMasterRestServlet}
    * and locality information when host-affinity is enabled in {@link org.apache.samza.job.yarn.SamzaTaskManager}
    */
-  public final  jobModelReader;
+  public final JobCoordinator jobCoordinator;
 
   /*  The following state variables are primarily used for reference in the AM web services   */
   /**
@@ -93,7 +93,7 @@ public class SamzaAppState {
   public String jmxTunnelingUrl = "";
   /**
    * Job Coordinator URL
-   * Usage in {@link org.apache.samza.job.yarn.SamzaAppMasterService} &amp; YarnContainerRunner
+   * Usage in {@link org.apache.samza.job.yarn.SamzaAppMasterService} &amp; ContainerUtil
    */
   public URL coordinatorUrl = null;
   /**
@@ -168,13 +168,13 @@ public class SamzaAppState {
 
   public AtomicInteger matchedContainerRequests = new AtomicInteger(0);
 
-  public SamzaAppState(JobModelReader jobModelReader,
+  public SamzaAppState(JobCoordinator jobCoordinator,
                        int taskId,
                        ContainerId amContainerId,
                        String nodeHost,
                        int nodePort,
                        int nodeHttpPort) {
-    this.jobModelReader = jobModelReader;
+    this.jobCoordinator = jobCoordinator;
     this.taskId = taskId;
     this.amContainerId = amContainerId;
     this.nodeHost = nodeHost;
