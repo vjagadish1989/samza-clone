@@ -28,7 +28,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import java.net.URL
 import org.apache.samza.util.{Util, Logging}
-import org.eclipse.jetty.util.thread.QueuedThreadPool
 
 
 /**
@@ -66,9 +65,6 @@ class HttpServer(
   var running = false
   var servlets = Map[String, Servlet]()
   val server = new Server(port)
-  val qtp = new QueuedThreadPool();
-  qtp.setDaemon(true);
-  server.setThreadPool(qtp)
   val context = new ServletContextHandler(ServletContextHandler.SESSIONS)
 
   defaultHolder.setName("default")
@@ -112,7 +108,6 @@ class HttpServer(
     }
 
     debug("Starting HttpServer.")
-
     server.start()
     running = true
     info("Started HttpServer on: %s" format getUrl)

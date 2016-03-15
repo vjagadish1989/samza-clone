@@ -33,7 +33,7 @@ public class Checkpoint {
   private final Map<SystemStreamPartition, String> offsets;
 
   /**
-   * Constructs a refactor checkpoint based off a map of Samza stream offsets.
+   * Constructs a new checkpoint based off a map of Samza stream offsets.
    * @param offsets Map of Samza streams to their current offset.
    */
   public Checkpoint(Map<SystemStreamPartition, String> offsets) {

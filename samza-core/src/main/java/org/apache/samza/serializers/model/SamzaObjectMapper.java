@@ -68,7 +68,7 @@ public class SamzaObjectMapper {
   private static final ObjectMapper OBJECT_MAPPER = getObjectMapper();
 
   /**
-   * @return Returns a refactor ObjectMapper that's been configured to (de)serialize
+   * @return Returns a new ObjectMapper that's been configured to (de)serialize
    *         Samza's job data model, and simple data types such as TaskName,
    *         Partition, Config, and SystemStreamPartition.
    */

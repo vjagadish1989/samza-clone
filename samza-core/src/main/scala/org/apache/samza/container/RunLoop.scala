@@ -173,7 +173,7 @@ class RunLoop(
   }
 
   /**
-   * A refactor TaskCoordinator object is passed to a task on every call to StreamTask.process
+   * A new TaskCoordinator object is passed to a task on every call to StreamTask.process
    * and WindowableTask.window. This method checks whether the task requested that we
    * do something that affects the run loop (such as commit or shut down), and updates
    * run loop state accordingly.

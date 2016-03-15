@@ -20,7 +20,7 @@
 package org.apache.samza.metrics;
 
 /**
- * A MetricsRegistry allows its users to create refactor {@link org.apache.samza.metrics.Metric}s and
+ * A MetricsRegistry allows its users to create new {@link org.apache.samza.metrics.Metric}s and
  * have those metrics wired to specific metrics systems, such as JMX, provided by {@link org.apache.samza.metrics.MetricsReporter}s.
  * Those implementing Samza jobs use the MetricsRegistry to register metrics, which then handle
  * the details of getting those metrics to each defined MetricsReporter.
@@ -30,7 +30,7 @@ package org.apache.samza.metrics;
  */
 public interface MetricsRegistry {
   /**
-   * Create and register a refactor {@link org.apache.samza.metrics.Counter}
+   * Create and register a new {@link org.apache.samza.metrics.Counter}
    * @param group Group for this Counter
    * @param name Name of to-be-created Counter
    * @return New Counter instance
@@ -46,7 +46,7 @@ public interface MetricsRegistry {
   Counter newCounter(String group, Counter counter);
 
   /**
-   * Create and register a refactor {@link org.apache.samza.metrics.Gauge}
+   * Create and register a new {@link org.apache.samza.metrics.Gauge}
    * @param group Group for this Gauge
    * @param name Name of to-be-created Gauge
    * @param value Initial value for the Gauge
@@ -65,7 +65,7 @@ public interface MetricsRegistry {
   <T> Gauge<T> newGauge(String group, Gauge<T> value);
 
   /**
-   * Create and Register a refactor {@link org.apache.samza.metrics.Timer}
+   * Create and Register a new {@link org.apache.samza.metrics.Timer}
    * @param group Group for this Timer
    * @param name Name of to-be-created Timer
    * @return New Timer instance

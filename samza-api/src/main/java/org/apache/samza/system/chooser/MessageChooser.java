@@ -104,7 +104,7 @@ public interface MessageChooser {
   void register(SystemStreamPartition systemStreamPartition, String offset);
 
   /**
-   * Notify the chooser that a refactor envelope is available for a processing. A
+   * Notify the chooser that a new envelope is available for a processing. A
    * MessageChooser will receive, at most, one outstanding envelope per
    * system/stream/partition combination. For example, if update is called for
    * partition 7 of kafka.mystream, then update will not be called with an
@@ -119,7 +119,7 @@ public interface MessageChooser {
 
   /**
    * The choose method is invoked when the SamzaContainer is ready to process a
-   * refactor message. The chooser may elect to return any envelope that it's been
+   * new message. The chooser may elect to return any envelope that it's been
    * given via the update method, which hasn't yet been returned. Choose will
    * only be called after the chooser has been started.
    * 

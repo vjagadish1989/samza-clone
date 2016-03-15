@@ -43,6 +43,7 @@ object JobConfig {
   val JOB_REPLICATION_FACTOR = "job.coordinator.replication.factor"
   val JOB_SEGMENT_BYTES = "job.coordinator.segment.bytes"
   val SSP_GROUPER_FACTORY = "job.systemstreampartition.grouper.factory"
+  // number of partitions in the checkpoint stream should be 1. But sometimes,
   // if a stream was created(automatically) with the wrong number of partitions(default number of partitions
   // for new streams), there is no easy fix for the user (topic deletion or reducing of number of partitions
   // is not yet supported, and auto-creation of the topics cannot be always easily tuned off).
@@ -109,5 +110,4 @@ class JobConfig(config: Config) extends ScalaMapConfig(config) with Logging {
         case _ => "26214400"
       }
   }
-
 }

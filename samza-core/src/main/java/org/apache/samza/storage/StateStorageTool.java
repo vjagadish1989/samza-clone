@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * Commandline tool to recover the state storage to a specified directory
  */
 public class StateStorageTool extends CommandLine {
-  private ArgumentAcceptingOptionSpec<String> newPathArgu = parser().accepts("path", "path of the refactor state storage").withRequiredArg().ofType(String.class).describedAs("path");
+  private ArgumentAcceptingOptionSpec<String> newPathArgu = parser().accepts("path", "path of the new state storage").withRequiredArg().ofType(String.class).describedAs("path");
   private String newPath = "";
   private Logger log = LoggerFactory.getLogger(StateStorageTool.class);
 
@@ -40,7 +40,7 @@ public class StateStorageTool extends CommandLine {
     MapConfig config = super.loadConfig(options);
     if (options.has(newPathArgu)) {
       newPath = options.valueOf(newPathArgu);
-      log.info("refactor state storage is " + newPath);
+      log.info("new state storage is " + newPath);
     }
     return config;
   }

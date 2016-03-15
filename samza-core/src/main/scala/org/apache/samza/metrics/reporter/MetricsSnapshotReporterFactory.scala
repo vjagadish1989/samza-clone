@@ -37,7 +37,7 @@ import org.apache.samza.system.SystemFactory
 
 class MetricsSnapshotReporterFactory extends MetricsReporterFactory with Logging {
   def getMetricsReporter(name: String, containerName: String, config: Config): MetricsReporter = {
-    info("Creating refactor metrics snapshot reporter.")
+    info("Creating new metrics snapshot reporter.")
 
     val jobName = config
       .getName

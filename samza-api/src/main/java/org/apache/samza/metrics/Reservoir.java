@@ -31,7 +31,7 @@ public interface Reservoir {
   int size();
 
   /**
-   * Update the reservoir with the refactor value
+   * Update the reservoir with the new value
    *
    * @param value a value to update
    */

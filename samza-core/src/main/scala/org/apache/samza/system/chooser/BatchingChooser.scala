@@ -40,14 +40,14 @@ import org.apache.samza.util.Logging
  * As future envelopes arrive via BatchingChooser.update, BatchingChooser
  * looks at the SSP for each envelope. If the SSP is the same as the SSP for
  * the last envelope that was returned by the wrapped MessageChooser's choose
- * method, BatchingChooser caches the refactor envelope rather than forwarding it to
+ * method, BatchingChooser caches the new envelope rather than forwarding it to
  * the wrapped chooser. The next time choose is called, BatchingChooser will
  * return the cached envelope, if it is non-null, instead of calling choose on
  * the wrapped MessageChooser.
  *
  * BatchingChooser keeps doing this until the batch size limit has been reached,
  * or BatchingChooser.choose is called, and no envelope is available for the
- * batched SSP. In either of these cases, the batch is reset, and a refactor SSP is
+ * batched SSP. In either of these cases, the batch is reset, and a new SSP is
  * chosen.
  *
  * This class depends on the contract defined in MessageChooser. Specifically,
@@ -82,7 +82,7 @@ class BatchingChooser(
    * SSP is currently being batched, then this method falls back to calling
    * MessageChooser.choose on the wrapped MessageChooser. If the wrapped
    * MessageChooser returns a non-null envelope, then the SSP for this envelope
-   * will become the refactor batched SSP, and BatchingChooser will choose envelopes
+   * will become the new batched SSP, and BatchingChooser will choose envelopes
    * for this SSP as long as they're available.
    */
   def choose = {

@@ -37,7 +37,7 @@ class MetricsRegistryMap(val name: String) extends ReadableMetricsRegistry with 
   def this() = this("unknown")
 
   def newCounter(group: String, counter: Counter) = {
-    debug("Add refactor counter %s %s %s." format (group, counter.getName, counter))
+    debug("Add new counter %s %s %s." format (group, counter.getName, counter))
     putAndGetGroup(group).putIfAbsent(counter.getName, counter)
     val realCounter = metrics.get(group).get(counter.getName).asInstanceOf[Counter]
     listeners.foreach(_.onCounter(group, realCounter))
@@ -45,12 +45,12 @@ class MetricsRegistryMap(val name: String) extends ReadableMetricsRegistry with 
   }
 
   def newCounter(group: String, name: String) = {
-    debug("Creating refactor counter %s %s." format (group, name))
+    debug("Creating new counter %s %s." format (group, name))
     newCounter(group, new Counter(name))
   }
 
   def newGauge[T](group: String, gauge: Gauge[T]) = {
-    debug("Adding refactor gauge %s %s %s." format (group, gauge.getName, gauge))
+    debug("Adding new gauge %s %s %s." format (group, gauge.getName, gauge))
     putAndGetGroup(group).putIfAbsent(gauge.getName, gauge)
     val realGauge = metrics.get(group).get(gauge.getName).asInstanceOf[Gauge[T]]
     listeners.foreach(_.onGauge(group, realGauge))
@@ -58,12 +58,12 @@ class MetricsRegistryMap(val name: String) extends ReadableMetricsRegistry with 
   }
 
   def newGauge[T](group: String, name: String, value: T) = {
-    debug("Creating refactor gauge %s %s %s." format (group, name, value))
+    debug("Creating new gauge %s %s %s." format (group, name, value))
     newGauge(group, new Gauge[T](name, value))
   }
 
   def newTimer(group: String, timer: Timer) = {
-    debug("Add refactor timer %s %s %s." format (group, timer.getName, timer))
+    debug("Add new timer %s %s %s." format (group, timer.getName, timer))
     putAndGetGroup(group).putIfAbsent(timer.getName, timer)
     val realTimer = metrics.get(group).get(timer.getName).asInstanceOf[Timer]
     listeners.foreach(_.onTimer(group, realTimer))
@@ -71,7 +71,7 @@ class MetricsRegistryMap(val name: String) extends ReadableMetricsRegistry with 
   }
 
   def newTimer(group: String, name: String) = {
-    debug("Creating refactor timer %s %s." format (group, name))
+    debug("Creating new timer %s %s." format (group, name))
     newTimer(group, new Timer(name))
   }
 

@@ -85,7 +85,7 @@ public class LocalityManager extends AbstractCoordinatorStreamManager {
 
   /**
    * Method to allow read container locality information from coordinator stream. This method is used
-   * in {@link org.apache.samza.coordinator.JobModelReader}.
+   * in {@link org.apache.samza.coordinator.JobCoordinator}.
    *
    * @return the map of containerId: (hostname, jmxAddress, jmxTunnelAddress)
    */
@@ -106,7 +106,7 @@ public class LocalityManager extends AbstractCoordinatorStreamManager {
     containerToHostMapping = Collections.unmodifiableMap(allMappings);
 
     for (Map.Entry<Integer, Map<String, String>> entry : containerToHostMapping.entrySet()) {
-      log.info(String.format("Locality for container %s: %s", entry.getKey(), entry.getValue()));
+      log.debug(String.format("Locality for container %s: %s", entry.getKey(), entry.getValue()));
     }
 
     return allMappings;

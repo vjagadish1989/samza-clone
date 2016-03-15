@@ -33,7 +33,7 @@ public interface SystemProducer {
 
   /**
    * Stop the SystemProducer. After this method finished, the system should have completed all necessary work, sent
-   * any remaining messages and will not receive any refactor calls to the send method.
+   * any remaining messages and will not receive any new calls to the send method.
    */
   void stop();
 
