@@ -70,7 +70,7 @@ class TestBatchingChooser(getChooser: (MessageChooser, Int) => MessageChooser) {
     assertEquals(envelope2, chooser.choose)
     assertEquals(1, mock.getEnvelopes.size)
     assertEquals(envelope1, mock.getEnvelopes.head)
-    // Now envelope 2's SSP (kafka.stream1, partition 1) is preferred, but no refactor envelopes for this partition have been loaded.
+    // Now envelope 2's SSP (kafka.stream1, partition 1) is preferred, but no new envelopes for this partition have been loaded.
     // Let's trigger a reset back to envelope2's SSP (kafka.stream, partition 0).
     assertEquals(envelope1, chooser.choose)
     assertEquals(0, mock.getEnvelopes.size)

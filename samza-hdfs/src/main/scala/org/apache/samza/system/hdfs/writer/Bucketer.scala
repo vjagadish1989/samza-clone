@@ -42,7 +42,7 @@ object Bucketer {
 
 /**
  * Utility for plugging in various methods of bucketing. Used by HdfsWriters
- * when a file is completed and a refactor file is created. Includes path and filename.
+ * when a file is completed and a new file is created. Includes path and filename.
  */
 trait Bucketer {
 
@@ -53,7 +53,7 @@ trait Bucketer {
   def shouldChangeBucket: Boolean
 
   /**
-   * Given the current FileSystem, generate a refactor HDFS write path and file name.
+   * Given the current FileSystem, generate a new HDFS write path and file name.
    */
   def getNextWritePath(dfs: FileSystem): Path
 

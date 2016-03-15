@@ -156,7 +156,7 @@ class KafkaCheckpointManager(
       info("No TaskName to checkpoint mapping provided.  Reading for first time.")
       taskNamesToOffsets = readCheckpointsFromLog()
     } else {
-      info("Already existing checkpoint mapping.  Merging refactor offsets")
+      info("Already existing checkpoint mapping.  Merging new offsets")
       taskNamesToOffsets ++= readCheckpointsFromLog()
     }
 

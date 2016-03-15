@@ -46,7 +46,7 @@ class JobNameDateTimeBucketer(systemName: String, config: HdfsConfig) extends Bu
   var currentDateTime = ""
 
   /**
-   * Test each write to see if we need to cut a refactor output file based on
+   * Test each write to see if we need to cut a new output file based on
    * time bucketing, regardless of hitting configured file size limits etc.
    */
   override def shouldChangeBucket: Boolean = {
