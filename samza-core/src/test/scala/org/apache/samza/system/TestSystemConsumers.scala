@@ -61,7 +61,7 @@ class TestSystemConsumers {
     // We aren't polling because we're getting non-null envelopes.
     assertEquals(2, consumer.polls)
 
-    // Advance the clock to trigger a refactor poll even though there are still
+    // Advance the clock to trigger a new poll even though there are still
     // messages.
     now = SystemConsumers.DEFAULT_POLL_INTERVAL_MS
 

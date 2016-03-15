@@ -49,7 +49,7 @@ class TestJobCoordinator {
    * Builds a coordinator from config, and then compares it with what was
    * expected. We simulate having a checkpoint manager that has 2 task
    * changelog entries, and our model adds a third task. Expectation is that
-   * the JobCoordinator will assign the refactor task with a refactor changelog
+   * the JobCoordinator will assign the new task with a new changelog
    * partition
    */
   @Test
@@ -99,12 +99,12 @@ class TestJobCoordinator {
     // We want the mocksystemconsumer to use the same instance across runs
     MockCoordinatorStreamSystemFactory.enableMockConsumerCache()
 
-    val coordinator = JobModelReader(new MapConfig(config ++ otherConfigs))
+    val coordinator = JobCoordinator(new MapConfig(config ++ otherConfigs))
     val expectedJobModel = new JobModel(new MapConfig(config), containers)
 
     // Verify that the atomicReference is initialized
-    assertNotNull(JobModelReader.jobModelRef.get())
-    assertEquals(expectedJobModel, JobModelReader.jobModelRef.get())
+    assertNotNull(JobCoordinator.jobModelRef.get())
+    assertEquals(expectedJobModel, JobCoordinator.jobModelRef.get())
 
     coordinator.start
     assertEquals(new MapConfig(config), coordinator.jobModel.getConfig)
@@ -161,7 +161,7 @@ class TestJobCoordinator {
     MockCoordinatorStreamSystemFactory.enableMockConsumerCache()
 
     // start the job coordinator and verify if it has all the checkpoints through http port
-    val coordinator = JobModelReader(new MapConfig(config ++ otherConfigs))
+    val coordinator = JobCoordinator(new MapConfig(config ++ otherConfigs))
     coordinator.start
     val url = coordinator.server.getUrl.toString
 
@@ -209,7 +209,7 @@ class MockSystemAdmin extends SystemAdmin {
     val partitionMetadata = Map(
       new Partition(0) -> new SystemStreamPartitionMetadata(null, null, null),
       new Partition(1) -> new SystemStreamPartitionMetadata(null, null, null),
-      // Create a refactor Partition(2), which wasn't in the prior changelog mapping.
+      // Create a new Partition(2), which wasn't in the prior changelog mapping.
       new Partition(2) -> new SystemStreamPartitionMetadata(null, null, null))
     Map(streamNames.toList.head -> new SystemStreamMetadata("foo", partitionMetadata))
   }
