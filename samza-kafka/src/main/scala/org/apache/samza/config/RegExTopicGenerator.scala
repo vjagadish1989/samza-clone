@@ -69,7 +69,7 @@ class RegExTopicGenerator extends ConfigRewriter with Logging {
       .toSet
 
     for (m <- matchingStreams) {
-      info("Generating refactor configs for matching stream %s." format m)
+      info("Generating new configs for matching stream %s." format m)
 
       if (existingInputStreams.contains(m)) {
         throw new SamzaException("Regex '%s' matches existing, statically defined input %s." format (regex, m))
@@ -82,9 +82,9 @@ class RegExTopicGenerator extends ConfigRewriter with Logging {
         .getRegexResolvedInheritedConfig(rewriterName)
         .foreach(kv => keysAndValsToAdd.put("systems." + m.getSystem + ".streams." + m.getStream + "." + kv._1, kv._2))
     }
-    // Build refactor inputs
+    // Build new inputs
 
-    info("Generated config values for %d refactor topics" format newInputStreams.size)
+    info("Generated config values for %d new topics" format newInputStreams.size)
 
     val inputStreams = TaskConfig.INPUT_STREAMS -> (existingInputStreams ++ newInputStreams)
       .map(Util.getNameFromSystemStream)

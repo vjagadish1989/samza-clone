@@ -179,7 +179,7 @@ class KafkaProducerConfig(val systemName: String,
                           val clientId: String = "",
                           properties: java.util.Map[String, Object] = new util.HashMap[String, Object]()) extends Logging {
 
-  // Copied from refactor Kafka API - Workaround until KAFKA-1794 is resolved
+  // Copied from new Kafka API - Workaround until KAFKA-1794 is resolved
   val RECONNECT_BACKOFF_MS_DEFAULT = 10L
 
   //Overrides specific to samza-kafka (these are considered as defaults in Samza & can be overridden by user
@@ -203,7 +203,7 @@ class KafkaProducerConfig(val systemName: String,
 
     if(producerProperties.containsKey(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION)
         && producerProperties.get(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION).asInstanceOf[String].toInt > MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION_DEFAULT) {
-      warn("Setting '%s' to a value other than %d does not guarantee message ordering because refactor messages will be sent without waiting for previous ones to be acknowledged."
+      warn("Setting '%s' to a value other than %d does not guarantee message ordering because new messages will be sent without waiting for previous ones to be acknowledged." 
           format (ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION_DEFAULT))
     } else {
       producerProperties.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION_DEFAULT)
@@ -227,7 +227,7 @@ class KafkaProducerConfig(val systemName: String,
   val bootsrapServers = {
     if(properties.containsKey("metadata.broker.list"))
       warn("Kafka producer configuration contains 'metadata.broker.list'. This configuration is deprecated . Samza has been upgraded " +
-             "to use Kafka's refactor producer API. Please update your configurations based on the documentation at http://kafka.apache.org/documentation.html#newproducerconfigs")
+             "to use Kafka's new producer API. Please update your configurations based on the documentation at http://kafka.apache.org/documentation.html#newproducerconfigs")
     Option(properties.get("bootstrap.servers"))
             .getOrElse(throw new SamzaException("No bootstrap servers defined in config for %s." format systemName))
             .asInstanceOf[String]

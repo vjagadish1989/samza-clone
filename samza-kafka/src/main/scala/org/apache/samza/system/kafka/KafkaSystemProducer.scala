@@ -69,9 +69,9 @@ class KafkaSystemProducer(systemName: String,
   def send(source: String, envelope: OutgoingMessageEnvelope) {
     trace("Enqueueing message: %s, %s." format (source, envelope))
     if(producer == null) {
-      info("Creating a refactor producer for system %s." format systemName)
+      info("Creating a new producer for system %s." format systemName)
       producer = getProducer()
-      debug("Created a refactor producer for system %s." format systemName)
+      debug("Created a new producer for system %s." format systemName)
     }
     // Java-based Kafka producer API requires an "Integer" type partitionKey and does not allow custom overriding of Partitioners
     // Any kind of custom partitioning has to be done on the client-side

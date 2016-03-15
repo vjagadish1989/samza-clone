@@ -232,7 +232,7 @@ class RocksDbKeyValueStore(
     // our iterator is slightly different from standard java iterator next will 
     // always point to the current element, when next is called, we return the 
     // current element we are pointing to and advance the iterator to the next 
-    // location (The refactor location may or may not be valid - this will surface
+    // location (The new location may or may not be valid - this will surface
     // when the next next() call is made, the isValid will fail)
     def next() = {
       if (!hasNext()) {

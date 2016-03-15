@@ -32,7 +32,7 @@ import org.apache.samza.config.Config;
 import org.apache.samza.config.Log4jSystemConfig;
 import org.apache.samza.config.SerializerConfig;
 import org.apache.samza.config.ShellCommandConfig;
-import org.apache.samza.coordinator.JobModelReader;
+import org.apache.samza.coordinator.JobCoordinator;
 import org.apache.samza.job.model.JobModel;
 import org.apache.samza.logging.log4j.serializers.LoggingEventJsonSerdeFactory;
 import org.apache.samza.metrics.MetricsRegistryMap;
@@ -103,7 +103,7 @@ public class StreamAppender extends AppenderSkeleton {
       try {
         recursiveCall.set(true);
         if (!systemInitialized) {
-          if (JobModelReader.currentJobCoordinator() != null) {
+          if (JobCoordinator.currentJobCoordinator() != null) {
             // JobCoordinator has been instantiated
             setupSystem();
             systemInitialized = true;
@@ -173,7 +173,7 @@ public class StreamAppender extends AppenderSkeleton {
 
     try {
       if (isApplicationMaster) {
-        config = JobModelReader.currentJobCoordinator().jobModel().getConfig();
+        config = JobCoordinator.currentJobCoordinator().jobModel().getConfig();
       } else {
         String url = System.getenv(ShellCommandConfig.ENV_COORDINATOR_URL());
         config = SamzaObjectMapper.getObjectMapper()

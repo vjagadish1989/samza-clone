@@ -104,7 +104,7 @@ object TestKeyValuePerformance extends Logging {
     for((storeName, storageEngine) <- storageEngineMappings) {
       val testSetCount = config.getInt("set.count", 1)
       (1 to testSetCount).foreach(testSet => {
-        //Create a refactor DB instance for each test set
+        //Create a new DB instance for each test set
         val output = new File("/tmp/" + UUID.randomUUID())
         val byteSerde = new ByteSerde
         info("Using output directory %s for %s using %s." format (output, storeName, storageEngine.getClass.getCanonicalName))

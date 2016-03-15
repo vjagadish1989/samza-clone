@@ -224,7 +224,7 @@ class TestKafkaSystemAdmin {
     // Empty Kafka topics should have a next offset of 0.
     assertEquals("0", sspMetadata.get(new Partition(0)).getUpcomingOffset)
 
-    // Add a refactor message to one of the partitions, and verify that it works as
+    // Add a new message to one of the partitions, and verify that it works as 
     // expected.
     producer.send(new ProducerRecord(TOPIC, 48, "key1".getBytes, "val1".getBytes)).get()
     metadata = systemAdmin.getSystemStreamMetadata(Set(TOPIC))

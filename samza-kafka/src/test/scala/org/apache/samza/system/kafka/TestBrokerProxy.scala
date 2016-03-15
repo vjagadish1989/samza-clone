@@ -280,7 +280,7 @@ class TestBrokerProxy extends Logging {
 
     when(mockSimpleConsumer.defaultFetch(any())).thenAnswer(answer)
 
-    // So now we have a fetch response that will fail.  Prime the mockGetOffset to send us to a refactor offset
+    // So now we have a fetch response that will fail.  Prime the mockGetOffset to send us to a new offset
 
     val bp = new BrokerProxy("host", 423, "system", "clientID", doNothingMetrics, mockMessageSink, Int.MaxValue, 1024000, new StreamFetchSizes(256 * 1024), 524288, 1000, mockOffsetGetter) {
 

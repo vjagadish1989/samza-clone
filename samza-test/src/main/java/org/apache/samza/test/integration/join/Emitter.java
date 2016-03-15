@@ -65,9 +65,9 @@ public class Emitter implements StreamTask, InitableTask, WindowableTask {
       if (epoch == null || newEpoch == epoch)
         return;
       if (newEpoch < epoch)
-        throw new IllegalArgumentException("Got refactor epoch " + newEpoch + " which is less than current epoch " + epoch);
+        throw new IllegalArgumentException("Got new epoch " + newEpoch + " which is less than current epoch " + epoch);
       
-      // it's a refactor era, reset current epoch and count
+      // it's a new era, reset current epoch and count
       logger.info("Epoch: " + newEpoch);
       this.state.put(EPOCH, Integer.toString(newEpoch));
       this.state.put(COUNT, "0");

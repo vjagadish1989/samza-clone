@@ -83,14 +83,14 @@ class BrokerProxy(
 
   def createSimpleConsumer() = {
     val hostString = "%s:%d" format (host, port)
-    info("Creating refactor SimpleConsumer for host %s for system %s" format (hostString, system))
+    info("Creating new SimpleConsumer for host %s for system %s" format (hostString, system))
 
     val sc = new DefaultFetchSimpleConsumer(host, port, timeout, bufferSize, clientID, fetchSize, consumerMinSize, consumerMaxWait)
     sc
   }
 
   def addTopicPartition(tp: TopicAndPartition, nextOffset: Option[String]) = {
-    debug("Adding refactor topic and partition %s to queue for %s" format (tp, host))
+    debug("Adding new topic and partition %s to queue for %s" format (tp, host))
 
     if (nextOffsets.containsKey(tp)) {
       toss("Already consuming TopicPartition %s" format tp)
@@ -106,7 +106,7 @@ class BrokerProxy(
       offsetGetter.getResetOffset(simpleConsumer, tp)
     }
 
-    debug("Got offset %s for refactor topic and partition %s." format (offset, tp))
+    debug("Got offset %s for new topic and partition %s." format (offset, tp))
 
     nextOffsets += tp -> offset
 
@@ -199,7 +199,7 @@ class BrokerProxy(
 
   /**
    * Releases ownership for a single TopicAndPartition. The 
-   * KafkaSystemConsumer will try and find a refactor broker for the
+   * KafkaSystemConsumer will try and find a new broker for the 
    * TopicAndPartition.
    */
   def abdicate(tp: TopicAndPartition) = removeTopicPartition(tp) match {
@@ -210,7 +210,7 @@ class BrokerProxy(
 
   /**
    * Releases all TopicAndPartition ownership for this BrokerProxy thread. The 
-   * KafkaSystemConsumer will try and find a refactor broker for the
+   * KafkaSystemConsumer will try and find a new broker for the 
    * TopicAndPartition.
    */
   def abdicateAll {
@@ -221,7 +221,7 @@ class BrokerProxy(
     // FetchResponse should really return Option and a list of the errors so we don't have to find them ourselves
     case class Error(tp: TopicAndPartition, code: Short, exception: Throwable)
 
-    // Now subdivide the errors into three types: non-recoverable, not leader (== abdicate) and offset out of range (== get refactor offset)
+    // Now subdivide the errors into three types: non-recoverable, not leader (== abdicate) and offset out of range (== get new offset)
 
     // Convert FetchResponse into easier-to-work-with Errors
     val errors = for (
@@ -233,7 +233,7 @@ class BrokerProxy(
     val (notLeaderOrUnknownTopic, otherErrors) = errors.partition { case (e) => e.code == ErrorMapping.NotLeaderForPartitionCode || e.code == ErrorMapping.UnknownTopicOrPartitionCode }
     val (offsetOutOfRangeErrors, remainingErrors) = otherErrors.partition(_.code == ErrorMapping.OffsetOutOfRangeCode)
 
-    // Can recover from two types of errors: not leader (go find the refactor leader) and offset out of range (go get the refactor offset)
+    // Can recover from two types of errors: not leader (go find the new leader) and offset out of range (go get the new offset)
     // However, we want to bail as quickly as possible if there are non recoverable errors so that the state of the other
     // topic-partitions remains the same.  That way, when we've rebuilt the simple consumer, we can come around and
     // handle the recoverable errors.
@@ -248,7 +248,7 @@ class BrokerProxy(
 
       try {
         val newOffset = offsetGetter.getResetOffset(simpleConsumer, e.tp)
-        // Put the refactor offset into the map (if the tp still exists).  Will catch it on the next go-around
+        // Put the new offset into the map (if the tp still exists).  Will catch it on the next go-around
         nextOffsets.replace(e.tp, newOffset)
       } catch {
         // UnknownTopic or NotLeader are routine events and handled via abdication.  All others, bail.
