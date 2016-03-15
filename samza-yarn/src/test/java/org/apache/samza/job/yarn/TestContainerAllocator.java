@@ -33,7 +33,7 @@ import org.apache.samza.config.Config;
 import org.apache.samza.config.MapConfig;
 import org.apache.samza.config.YarnConfig;
 import org.apache.samza.container.TaskName;
-import org.apache.samza.coordinator.JobModelReader;
+import org.apache.samza.coordinator.JobCoordinator;
 import org.apache.samza.coordinator.server.HttpServer;
 import org.apache.samza.job.model.ContainerModel;
 import org.apache.samza.job.model.JobModel;
@@ -83,14 +83,14 @@ public class TestContainerAllocator {
 
   private SamzaAppState state = new SamzaAppState(getCoordinator(1), -1, ConverterUtils.toContainerId("container_1350670447861_0003_01_000001"), "", 1, 2);
 
-  private JobModelReader getCoordinator(int containerCount) {
+  private JobCoordinator getCoordinator(int containerCount) {
     Map<Integer, ContainerModel> containers = new java.util.HashMap<>();
     for (int i = 0; i < containerCount; i++) {
       ContainerModel container = new ContainerModel(i, new HashMap<TaskName, TaskModel>());
       containers.put(i, container);
     }
     JobModel jobModel = new JobModel(config, containers);
-    return new JobModelReader(jobModel, server);
+    return new JobCoordinator(jobModel, server);
   }
 
   @Before
