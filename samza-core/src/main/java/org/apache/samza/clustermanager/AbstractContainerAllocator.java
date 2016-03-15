@@ -19,6 +19,7 @@
 package org.apache.samza.clustermanager;
 
 import org.apache.samza.SamzaException;
+import org.apache.samza.config.ClusterManagerConfig;
 import org.apache.samza.config.Config;
 import org.apache.samza.config.JobConfig;
 import org.apache.samza.config.TaskConfig;
@@ -81,12 +82,12 @@ public abstract class AbstractContainerAllocator implements Runnable {
   public AbstractContainerAllocator(ContainerProcessManager containerProcessManager,
                                     ContainerRequestState containerRequestState,
                                     Config config, SamzaAppState state) {
-    JobConfig jobConfig = new JobConfig(config);
+    ClusterManagerConfig clusterManagerConfig = new ClusterManagerConfig(config);
     this.containerProcessManager = containerProcessManager;
-    this.ALLOCATOR_SLEEP_TIME = jobConfig.getAllocatorSleepTime();
+    this.ALLOCATOR_SLEEP_TIME = clusterManagerConfig.getAllocatorSleepTime();
     this.containerRequestState = containerRequestState;
-    this.containerMemoryMb = jobConfig.getContainerMemoryMb();
-    this.containerNumCpuCore = jobConfig.getNumCores();
+    this.containerMemoryMb = clusterManagerConfig.getContainerMemoryMb();
+    this.containerNumCpuCore = clusterManagerConfig.getNumCores();
     this.taskConfig = new TaskConfig(config);
     this.state = state;
     this.config = config;

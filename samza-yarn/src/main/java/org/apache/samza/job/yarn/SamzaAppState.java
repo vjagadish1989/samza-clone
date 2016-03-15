@@ -45,7 +45,7 @@ public class SamzaAppState {
    * lifecycle. It helps querying JobModel related info in {@link org.apache.samza.webapp.ApplicationMasterRestServlet}
    * and locality information when host-affinity is enabled in {@link org.apache.samza.job.yarn.SamzaTaskManager}
    */
-  public final JobModelReader jobModelReader;
+  public final  jobModelReader;
 
   /*  The following state variables are primarily used for reference in the AM web services   */
   /**
