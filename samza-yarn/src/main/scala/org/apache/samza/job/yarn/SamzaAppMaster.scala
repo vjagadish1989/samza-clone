@@ -36,7 +36,7 @@ import org.apache.samza.metrics.MetricsRegistryMap
 import org.apache.samza.util.hadoop.HttpFileSystem
 import org.apache.samza.util.Logging
 import org.apache.samza.serializers.model.SamzaObjectMapper
-import org.apache.samza.coordinator.JobModelReader
+import org.apache.samza.coordinator.JobCoordinator
 import org.apache.samza.SamzaException
 
 /**
@@ -71,7 +71,7 @@ object SamzaAppMaster extends Logging with AMRMClientAsync.CallbackHandler {
     val coordinatorSystemConfig = new MapConfig(SamzaObjectMapper.getObjectMapper.readValue(System.getenv(ShellCommandConfig.ENV_COORDINATOR_SYSTEM_CONFIG), classOf[Config]))
     info("got coordinator system config: %s" format coordinatorSystemConfig)
     val registry = new MetricsRegistryMap
-    val jobCoordinator = JobModelReader(coordinatorSystemConfig, registry)
+    val jobCoordinator = JobCoordinator(coordinatorSystemConfig, registry)
     val config = jobCoordinator.jobModel.getConfig
     val yarnConfig = new YarnConfig(config)
     info("got config: %s" format coordinatorSystemConfig)
@@ -116,7 +116,7 @@ object SamzaAppMaster extends Logging with AMRMClientAsync.CallbackHandler {
       amClient.start
       listeners.foreach(_.onInit)
       var isShutdown: Boolean = false
-      // have the loop to prevent the process from exiting until the job is to shutdown or error occurs on containerProcessManager
+      // have the loop to prevent the process from exiting until the job is to shutdown or error occurs on amClient
       while (!isShutdown && !listeners.map(_.shouldShutdown).reduceLeft(_ || _) && storedException == null) {
         try {
           Thread.sleep(interval)
@@ -134,7 +134,7 @@ object SamzaAppMaster extends Logging with AMRMClientAsync.CallbackHandler {
       } catch {
         case e: Exception => warn("Listener %s failed to shutdown." format listener, e)
       })
-      // containerProcessManager has to be stopped
+      // amClient has to be stopped
       amClient.stop
     }
   }
@@ -153,7 +153,7 @@ object SamzaAppMaster extends Logging with AMRMClientAsync.CallbackHandler {
   override def getProgress: Float = 0.0F
 
   override def onError(e: Throwable): Unit = {
-    error("Error occured in containerProcessManager's callback", e)
+    error("Error occured in amClient's callback", e)
     storedException = e
   }
 
