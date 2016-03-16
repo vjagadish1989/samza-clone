@@ -28,7 +28,7 @@ import org.apache.samza.config.YarnConfig;
  * This is the default allocator thread that will be used by SamzaTaskManager.
  *
  * When host-affinity is not enabled, this thread periodically wakes up to assign a container to an allocated resource.
- * If there aren't enough containers, it waits by sleeping for {@code allocatorSleepIntervalMs} milliseconds.
+ * If there aren't enough containers, it waits by sleeping for {@code ALLOCATOR_SLEEP_TIME} milliseconds.
  */
 public class ContainerAllocator extends AbstractContainerAllocator {
   public ContainerAllocator(AMRMClientAsync<AMRMClient.ContainerRequest> amClient,
