@@ -97,8 +97,6 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
     hConfig = new YarnConfiguration();
     hConfig.set("fs.http.impl", HttpFileSystem.class.getName());
 
-    //Unused for now, we'll use it configure the AppMasterService when instantiated.
-    ClientHelper clientHelper = new ClientHelper(hConfig);
     MetricsRegistryMap registry = new MetricsRegistryMap();
 
     // parse configs from the Yarn environment
