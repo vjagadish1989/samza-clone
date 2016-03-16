@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  *
  * The container expiry is determined by CONTAINER_REQUEST_TIMEOUT and is configurable on a per-job basis.
  *
- * If there aren't enough containers, it waits by sleeping for ALLOCATOR_SLEEP_TIME milliseconds.
+ * If there aren't enough containers, it waits by sleeping for allocatorSleepIntervalMs milliseconds.
  */
 public class HostAwareContainerAllocator extends AbstractContainerAllocator {
   private static final Logger log = LoggerFactory.getLogger(HostAwareContainerAllocator.class);

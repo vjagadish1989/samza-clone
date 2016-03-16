@@ -21,7 +21,6 @@ package org.apache.samza.clustermanager;
 import org.apache.samza.SamzaException;
 import org.apache.samza.config.ClusterManagerConfig;
 import org.apache.samza.config.Config;
-import org.apache.samza.config.JobConfig;
 import org.apache.samza.config.TaskConfig;
 import org.apache.samza.job.CommandBuilder;
 import org.apache.samza.job.ShellCommandBuilder;
@@ -36,8 +35,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
- * {@link AbstractContainerAllocator} makes requests for physical resources to the resource manager and also, assigning
- * a container to run on an allocated resource. Sub-classes should override the allocateContainers() method to match
+ * {@link AbstractContainerAllocator} makes requests for physical resources to the resource manager and also runs
+ * a container process on an allocated physical resource. Sub-classes should override the allocateContainers() method to match
  * containers to hosts according to some strategy.
  *
  * See {@link ContainerAllocator} and {@link HostAwareContainerAllocator} for two such strategies
@@ -51,12 +50,12 @@ public abstract class AbstractContainerAllocator implements Runnable {
    */
   protected final ContainerProcessManager containerProcessManager;
   /**
-   * The allocator sleeps for ALLOCATOR_SLEEP_TIME before it polls its queue for the next request
+   * The allocator sleeps for allocatorSleepIntervalMs before it polls its queue for the next request
    */
-  protected final int ALLOCATOR_SLEEP_TIME;
+  protected final int allocatorSleepIntervalMs;
   /**
    * Each container currently has the same configuration - memory, and numCpuCores.
-   * Hence, those can be configured in the allocator.
+   *
    */
   protected final int containerMemoryMb;
   protected final int containerNumCpuCore;
@@ -72,7 +71,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
   SamzaAppState state;
 
   /**
-   * ContainerRequestState indicate the state of all unfulfilled container requests and allocated containers
+   * ContainerRequestState indicates the state of all unfulfilled container requests and allocated containers
    */
   protected final ContainerRequestState containerRequestState;
 
@@ -84,7 +83,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
                                     Config config, SamzaAppState state) {
     ClusterManagerConfig clusterManagerConfig = new ClusterManagerConfig(config);
     this.containerProcessManager = containerProcessManager;
-    this.ALLOCATOR_SLEEP_TIME = clusterManagerConfig.getAllocatorSleepTime();
+    this.allocatorSleepIntervalMs = clusterManagerConfig.getAllocatorSleepTime();
     this.containerRequestState = containerRequestState;
     this.containerMemoryMb = clusterManagerConfig.getContainerMemoryMb();
     this.containerNumCpuCore = clusterManagerConfig.getNumCores();
@@ -95,7 +94,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
 
   /**
    * Continuously assigns requested containers to the allocated containers provided by the cluster manager.
-   * The loop frequency is governed by thread sleeps for ALLOCATOR_SLEEP_TIME ms.
+   * The loop frequency is governed by thread sleeps for allocatorSleepIntervalMs ms.
    *
    * Terminates when the isRunning flag is cleared.
    */
@@ -106,10 +105,10 @@ public abstract class AbstractContainerAllocator implements Runnable {
         assignContainerRequests();
         // Release extra containers and update the entire system's state
         containerRequestState.releaseExtraContainers();
-        Thread.sleep(ALLOCATOR_SLEEP_TIME);
+        Thread.sleep(allocatorSleepIntervalMs);
       }
       catch (InterruptedException e) {
-        //TODO: better interrupt handling.
+        //TODO: Maybe rethrow interrupts, and set interrupted flag of current thread.
         log.info("Got InterruptedException in AllocatorThread.", e);
       }
       catch (Exception e) {
@@ -160,7 +159,6 @@ public abstract class AbstractContainerAllocator implements Runnable {
 
     } catch (SamzaContainerLaunchException e) {
       log.warn(String.format("Got exception while starting resource %s. Requesting a new resource on any host", resource), e);
-      //containerRequestState.releaseUnstartableContainer(resource);
       containerProcessManager.releaseResources(resource);
       requestContainer(expectedContainerId, ContainerRequestState.ANY_HOST);
     }
@@ -198,7 +196,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
    * @return  the pending request or {@code null} if there is no pending request.
    */
   protected SamzaResourceRequest peekPendingRequest() {
-    return containerRequestState.getRequestsQueue().peek();
+    return containerRequestState.peekPendingRequest();
   }
 
   /**
@@ -230,18 +228,13 @@ public abstract class AbstractContainerAllocator implements Runnable {
    * @return      the first {@link SamzaResource} allocated for the specified host or {@code null} if there isn't one.
    */
   protected SamzaResource peekAllocatedContainer(String host) {
-    List<SamzaResource> allocatedContainers = containerRequestState.getContainersOnAHost(host);
-    if (allocatedContainers == null || allocatedContainers.isEmpty()) {
-      return null;
-    }
-
-    return allocatedContainers.get(0);
+    return containerRequestState.peekContainer(host);
   }
 
   /**
    * Returns a command builder with the build environment configured with the containerId.
    * @param samzaContainerId to configure the builder with.
-   * @return
+   * @return the constructed builder object
    */
   private CommandBuilder getCommandBuilder(int samzaContainerId) {
     String cmdBuilderClassName = taskConfig.getCommandClass(ShellCommandBuilder.class.getName());

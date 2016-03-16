@@ -54,9 +54,7 @@ import java.util.List;
 
 public abstract class ContainerProcessManager
 {
-  /**
-   * Callback to be invoked in reaction to methods from
-   */
+
   protected final Callback _callback;
 
   public ContainerProcessManager(Callback callback)
@@ -68,7 +66,7 @@ public abstract class ContainerProcessManager
 
   /***
    * Request resources for running container processes
-   * @param resourceRequest
+   * @param resourceRequest the resourceRequest being made
    */
   public abstract void requestResources (SamzaResourceRequest resourceRequest);
 
@@ -85,13 +83,13 @@ public abstract class ContainerProcessManager
 
   /***
    * If the app cannot use the resource or wants to give up the resource, it can release them.
-   * @param resources
+   * @param resource the resource to be released
    */
-  public abstract void releaseResources (SamzaResource resources);
+  public abstract void releaseResources (SamzaResource resource);
 
   /***
    * Requests the launch of a StreamProcessor with the specified context on the resource.
-   * @param resource
+   * @param resource the specified resource
    * @param builder A builder implementation that encapsulates the context for the
    *                StreamProcessor. A builder encapsulates the ID for the processor, the
    *                build environment, the command to execute etc.
@@ -115,7 +113,7 @@ public abstract class ContainerProcessManager
      * to handle callbacks for resources that it did not request.
      * @param resources that are offered to the application
      */
-    public void onResourcesAvailable (List<SamzaResource> resources);
+    void onResourcesAvailable (List<SamzaResource> resources);
 
     /***
      * This callback is invoked when resources are no longer available to the application. A
@@ -126,15 +124,15 @@ public abstract class ContainerProcessManager
      * The SamzaResourceStatus contains diagnostics on why the failure occured
      * @param resources statuses for the resources that were completed.
      */
-    public void onResourcesCompleted (List<SamzaResourceStatus> resources);
+    void onResourcesCompleted (List<SamzaResourceStatus> resources);
 
     /***
      * This callback is invoked when there is an error in the ContainerProcessManager. This is
      * guaranteed to be invoked when there is an uncaught exception in any other
      * ContainerProcessManager callbacks.
-     * @param e
+     * @param e  the underlying Throwable was thrown.
      */
-    public void onError (Throwable e);
+    void onError (Throwable e);
   }
 }
 

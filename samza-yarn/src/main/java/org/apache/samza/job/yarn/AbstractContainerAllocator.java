@@ -72,7 +72,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
 
   /**
    * Continuously assigns requested containers to the allocated containers provided by the cluster manager.
-   * The loop frequency is governed by thread sleeps for ALLOCATOR_SLEEP_TIME ms.
+   * The loop frequency is governed by thread sleeps for allocatorSleepIntervalMs ms.
    *
    * Terminates when the isRunning flag is cleared.
    */

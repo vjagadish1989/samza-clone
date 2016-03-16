@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * This thread periodically wakes up and makes the best-effort to assign a container to the preferredHost. If the preferredHost is not returned by the RM before the corresponding container expires, the thread assigns the container to any other host that is allocated next.
  * The container expiry is determined by CONTAINER_REQUEST_TIMEOUT and is configurable on a per-job basis.
  *
- * If there aren't enough containers, it waits by sleeping for ALLOCATOR_SLEEP_TIME milliseconds.
+ * If there aren't enough containers, it waits by sleeping for allocatorSleepIntervalMs milliseconds.
  */
 public class HostAwareContainerAllocator extends AbstractContainerAllocator {
   private static final Logger log = LoggerFactory.getLogger(HostAwareContainerAllocator.class);

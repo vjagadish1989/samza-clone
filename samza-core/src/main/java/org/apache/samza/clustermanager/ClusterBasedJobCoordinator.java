@@ -55,6 +55,9 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    */
   private SamzaAppMasterMetrics metrics;
 
+  //even though some of these can be converted to local variables, it will not be the case
+  //as we add more methods to the JobCoordinator and completely implement SAMZA-881.
+
   /**
    * Handles callback for allocated containers, failed containers.
    */
@@ -178,7 +181,6 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
         throw new SamzaException(e);
     }
     finally {
-        //TODO: Prevent stop from being called multiple times or make methods resilient.
         onShutDown();
     }
   }
@@ -258,7 +260,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
   /**
    *
    * Delegate callbacks of resource completion to the taskManager
-   * @param resourceStatuses
+   * @param resourceStatuses the statuses for the resources that have completed
    */
   @Override
   public void onResourcesCompleted(List<SamzaResourceStatus> resourceStatuses)
@@ -271,7 +273,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
 
   /**
    * An error in the callback terminates the JobCoordinator
-   * @param e
+   * @param e the underlying exception/error
    */
   @Override
   public void onError(Throwable e)
@@ -283,12 +285,10 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
   /**
    * The entry point for the {@link ClusterBasedJobCoordinator}
    *
-   * @param args
-   * @throws IOException
    */
   public static void main(String args[])
   {
-    Config coordinatorSystemConfig = null;
+    Config coordinatorSystemConfig;
     final String COORDINATOR_SYSTEM_ENV = System.getenv(ShellCommandConfig.ENV_COORDINATOR_SYSTEM_CONFIG());
     try
     {

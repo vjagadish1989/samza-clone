@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  * This is the default allocator thread that will be used by SamzaTaskManager.
  *
  * When host-affinity is not enabled, this thread periodically wakes up to assign a container to an allocated resource.
- * If there aren't enough containers, it waits by sleeping for {@code ALLOCATOR_SLEEP_TIME} milliseconds.
+ * If there aren't enough containers, it waits by sleeping for {@code allocatorSleepIntervalMs} milliseconds.
  */
 public class ContainerAllocator extends AbstractContainerAllocator {
   private static final Logger log = LoggerFactory.getLogger(ContainerAllocator.class);
@@ -37,8 +37,8 @@ public class ContainerAllocator extends AbstractContainerAllocator {
   }
 
   /**
-   * During the run() method, the thread sleeps for ALLOCATOR_SLEEP_TIME ms. It tries to allocate any unsatisfied
-   * request that is still in the request queue (See requests in {@link ContainerRequestState})
+   * During the run() method, the thread sleeps for allocatorSleepIntervalMs ms. It then invokes assignContainerRequests,
+   * and tries to allocate any unsatisfied request that is still in the request queue {@link ContainerRequestState})
    * with allocated containers, if any.
    *
    * Since host-affinity is not enabled, all allocated container resources are buffered in the list keyed by "ANY_HOST".

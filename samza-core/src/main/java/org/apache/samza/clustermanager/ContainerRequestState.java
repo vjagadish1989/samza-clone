@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -209,7 +208,7 @@ public class ContainerRequestState {
    */
   private int releaseContainersForHost(String host) {
     int numReleasedContainers = 0;
-    List<SamzaResource> containers = getContainersOnAHost(host);
+    List<SamzaResource> containers = allocatedContainers.get(host);
     if (containers != null) {
       for (SamzaResource container : containers) {
         log.info("Releasing extra container {} allocated on {}", container.getResourceID(), host);
@@ -254,7 +253,7 @@ public class ContainerRequestState {
 
   public synchronized SamzaResource peekContainer(String host)
   {
-    List<SamzaResource> containersOnTheHost = this.allocatedContainers.get(host);;
+    List<SamzaResource> containersOnTheHost = this.allocatedContainers.get(host);
 
     if (containersOnTheHost == null || containersOnTheHost.isEmpty()) {
       return null;
@@ -280,23 +279,19 @@ public class ContainerRequestState {
 
 
   /**
-   * Returns the list of containers allocated on a given host
-   * If no containers were ever allocated on the given host, it returns null.
+   * Returns the list of containers allocated on a given host. If no containers were ever allocated on
+   * the given host, it returns null. This method makes a defensive shallow copy. A shallow copy is
+   * sufficient because Container class does not SamzaResource does not expose setters.
+   *
    * @param host hostname
    * @return list of containers allocated on the given host, or null
    */
   public synchronized List<SamzaResource> getContainersOnAHost(String host) {
-    //make a defensive shallow copy.
-    //A shallow copy is sufficient for 2 reasons - 1.Container class exposes only getters. 2.This method is used solely by tests
     List<SamzaResource> containerList =  allocatedContainers.get(host);
     if(containerList == null)
       return null;
 
     return new ArrayList<SamzaResource>(containerList);
-  }
-
-  public PriorityBlockingQueue<SamzaResourceRequest> getRequestsQueue() {
-    return requestsQueue;
   }
 
 }
