@@ -159,7 +159,7 @@ class FileReaderSystemConsumer(
   }
 
   /**
-   * Constructs a refactor bounded BlockingQueue of IncomingMessageEnvelopes. The bound is determined
+   * Constructs a new bounded BlockingQueue of IncomingMessageEnvelopes. The bound is determined
    * by the <code>BOUNDED_QUEUE_THRESHOLD</code> constant.
    *
    * @return A bounded queue used for queueing IncomingMessageEnvelopes to be sent to their
