@@ -23,9 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is the default allocator thread that will be used by SamzaTaskManager.
+ * This is the default allocator that will be used by SamzaTaskManager.
  *
- * When host-affinity is not enabled, this thread periodically wakes up to assign a container to an allocated resource.
+ * When host-affinity is not enabled, this periodically wakes up to assign a container to *ANY* allocated resource.
  * If there aren't enough containers, it waits by sleeping for {@code allocatorSleepIntervalMs} milliseconds.
  */
 public class ContainerAllocator extends AbstractContainerAllocator {

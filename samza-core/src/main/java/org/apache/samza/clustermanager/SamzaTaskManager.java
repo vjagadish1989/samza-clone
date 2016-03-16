@@ -31,7 +31,7 @@ import java.util.Map;
  * SamzaTaskManager is responsible for requesting containers, handling failures, and notifying the application master that the
  * job is done.
  *
- * The following main threads are involved in the execution of the Samza :
+ * The following main threads are involved in the execution of the SamzaTaskManager :
  *  - The main thread (defined in SamzaAppMaster) that sends requests to the cluster manager.
  *  - The callback handler thread that receives the responses from cluster manager and handles:
  *      - Populating a buffer when a container is allocated by the cluster manager

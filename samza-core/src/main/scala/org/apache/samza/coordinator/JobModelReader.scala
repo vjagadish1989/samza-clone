@@ -48,13 +48,13 @@ import org.apache.samza.config.SystemConfig.Config2System
 import org.apache.samza.coordinator.stream.CoordinatorStreamSystemFactory
 
 /**
- * Helper companion object that is responsible for wiring up a JobCoordinator
+ * Helper companion object that is responsible for wiring up a JobModelReader
  * given a Config object.
  */
 object JobModelReader extends Logging {
 
   /**
-   * a volatile value to store the current instantiated <code>JobCoordinator</code>
+   * a volatile value to store the current instantiated <code>JobModelReader</code>
    */
   @volatile var currentJobCoordinator: JobModelReader = null
   val jobModelRef: AtomicReference[JobModel] = new AtomicReference[JobModel]()
@@ -102,7 +102,8 @@ object JobModelReader extends Logging {
   def apply(coordinatorSystemConfig: Config): JobModelReader = apply(coordinatorSystemConfig, new MetricsRegistryMap())
 
   /**
-   * Build a JobCoordinator using a Samza job's configuration.
+   * Build a JobModelReader using a Samza job's configuration.
+   * //TODO:rename this method.
    */
   def getJobCoordinator(config: Config,
                         changelogManager: ChangelogPartitionManager,
@@ -299,9 +300,8 @@ class JobModelReader(
   debug("Got job model: %s." format jobModel)
 
   def start {
-    info("start invokedd.");
+    info("Starting HTTP server.")
     if (server != null) {
-      debug("Starting HTTP server.")
       server.start
       info("Startd HTTP server: %s" format server.getUrl)
     }

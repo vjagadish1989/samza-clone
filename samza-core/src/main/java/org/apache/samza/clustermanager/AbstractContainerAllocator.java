@@ -55,7 +55,6 @@ public abstract class AbstractContainerAllocator implements Runnable {
   protected final int allocatorSleepIntervalMs;
   /**
    * Each container currently has the same configuration - memory, and numCpuCores.
-   *
    */
   protected final int containerMemoryMb;
   protected final int containerNumCpuCore;
@@ -184,6 +183,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
   }
 
   /**
+   * Checks if this allocator has a pending request.
    * @return {@code true} if there is a pending request, {@code false} otherwise.
    */
   protected boolean hasPendingRequest() {

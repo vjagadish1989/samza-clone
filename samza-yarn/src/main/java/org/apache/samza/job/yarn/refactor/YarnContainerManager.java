@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.apache.samza.job.yarn.refactor;
 
 import org.apache.hadoop.yarn.api.ApplicationConstants;
@@ -42,10 +61,21 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    */
   private final YarnContainerRunner yarnContainerRunner;
 
+  /**
+   * Configuration and state specific to Yarn.
+   */
   private final YarnConfiguration hConfig;
   private final YarnAppState state;
 
+  /**
+   * SamzaYarnAppMasterLifecycle is responsible for registering, unregistering the AM client.
+   */
   private final SamzaYarnAppMasterLifecycle lifecycle;
+
+  /**
+   * SamzaAppMasterService is responsible for hosting an AM web UI. This picks up data from both
+   * SamzaAppState and YarnAppState.
+   */
   private final SamzaAppMasterService service;
 
   private static final Logger log = LoggerFactory.getLogger(YarnContainerManager.class);
@@ -60,9 +90,6 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
   /**
    * Creates an YarnContainerManager from config, a jobModelReader and a callback.
    *
-   * @param config
-   * @param jobModelReader
-   * @param callback callback to be invoked based on events from the ContainerProcessManager
    */
   public YarnContainerManager (Config config, JobModelReader jobModelReader, ContainerProcessManager.Callback callback, SamzaAppState samzaAppState )
   {
@@ -70,6 +97,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
     hConfig = new YarnConfiguration();
     hConfig.set("fs.http.impl", HttpFileSystem.class.getName());
 
+    //Unused for now, we'll use it configure the AppMasterService when instantiated.
     ClientHelper clientHelper = new ClientHelper(hConfig);
     MetricsRegistryMap registry = new MetricsRegistryMap();
 
@@ -79,18 +107,21 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
     String nodeHostString = System.getenv(ApplicationConstants.Environment.NM_HOST.toString());
     String nodePortString = System.getenv(ApplicationConstants.Environment.NM_PORT.toString());
     String nodeHttpPortString = System.getenv(ApplicationConstants.Environment.NM_HTTP_PORT.toString());
+
     int nodePort = Integer.parseInt(nodePortString);
     int nodeHttpPort = Integer.parseInt(nodeHttpPortString);
     YarnConfig yarnConfig = new YarnConfig(config);
     int interval = yarnConfig.getAMPollIntervalMs();
+
+    //Instantiate the AM Client.
     this.amClient = AMRMClientAsync.createAMRMClientAsync(interval, this);
 
     this.state = new YarnAppState(jobModelReader, -1, containerId, nodeHostString, nodePort, nodeHttpPort, samzaAppState);
-    log.info("Initialized YarnAppState: {}", state.toString());
 
+    log.info("Initialized YarnAppState: {}", state.toString());
     this.service = new SamzaAppMasterService(config, this.state, registry);
 
-    log.info("containerID str {}, nodehost  {} , nodeport  {} , nodehtpport {}", new Object [] {containerIdStr, nodeHostString, nodePort, nodeHttpPort});
+    log.info("ContainerID str {}, Nodehost  {} , Nodeport  {} , NodeHttpport {}", new Object [] {containerIdStr, nodeHostString, nodePort, nodeHttpPort});
     this.lifecycle = new SamzaYarnAppMasterLifecycle(yarnConfig.getContainerMaxMemoryMb(), yarnConfig.getContainerMaxCpuCores(), state, amClient );
 
     yarnContainerRunner = new YarnContainerRunner(config, hConfig);
@@ -112,7 +143,6 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
 
   /**
    * Request resources for running container processes.
-   * @param resourceRequest
    */
   @Override
   public void requestResources(SamzaResourceRequest resourceRequest)
@@ -126,7 +156,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
     Resource capability = Resource.newInstance(memoryMb, cpuCores);
     Priority priority =  Priority.newInstance(DEFAULT_PRIORITY);
 
-    AMRMClient.ContainerRequest issuedRequest=null;
+    AMRMClient.ContainerRequest issuedRequest;
 
     if (preferredHost.equals("ANY_HOST"))
     {
@@ -151,14 +181,14 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    * Requests the YarnContainerManager to release a resource. If the app cannot use the resource or wants to give up
    * the resource, it can release them.
    *
-   * @param resource
+   * @param resource to be released
    */
 
   @Override
   public void releaseResources(SamzaResource resource)
   {
 
-    log.info("Release resource called {} ", resource);
+    log.info("Release resource invoked {} ", resource);
     Container container = allocatedResources.get(resource);
     state.runningContainers.remove(container);
     amClient.releaseAssignedContainer(container.getId());
@@ -178,7 +208,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
   public void launchStreamProcessor(SamzaResource resource, CommandBuilder builder) throws SamzaContainerLaunchException {
       String containerIDStr = builder.buildEnvironment().get(ShellCommandConfig.ENV_CONTAINER_ID());
       int containerID = Integer.parseInt(containerIDStr);
-      log.info("received launch request for {} on hostname {}", containerID , resource.getHost());
+      log.info("Rreceived launch request for {} on hostname {}", containerID , resource.getHost());
       Container container = allocatedResources.get(resource);
       state.runningContainers.add(container);
       yarnContainerRunner.runContainer(containerID, container, builder);
@@ -194,7 +224,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    */
   @Override
   public void cancelResourceRequest(SamzaResourceRequest request) {
-    log.info("cacelling request {} ", request);
+    log.info("Cancelling request {} ", request);
     AMRMClient.ContainerRequest containerRequest = requestsMap.get(request);
     amClient.removeContainerRequest(containerRequest);
   }
@@ -217,7 +247,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    * Callback invoked from Yarn when containers complete. This translates the yarn callbacks into Samza specific
    * ones.
    *
-   * @param statuses
+   * @param statuses the YarnContainerStatus callbacks from Yarn.
    */
   @Override
   public void onContainersCompleted(List<ContainerStatus> statuses) {
@@ -235,7 +265,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
   /**
    * Callback invoked from Yarn when containers are allocated. This translates the yarn callbacks into Samza
    * specific ones.
-   * @param containers
+   * @param containers the list of {@link Container} returned by Yarn.
    */
   @Override
   public void onContainersAllocated(List<Container> containers) {
@@ -256,22 +286,23 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
 
   @Override
   public void onShutdownRequest() {
-
+    //not implemented currently.
   }
 
   @Override
   public void onNodesUpdated(List<NodeReport> updatedNodes) {
-
+    //not implemented currently.
   }
 
   @Override
   public float getProgress() {
-      return 0;
+    //not implemented currently.
+    return 0;
   }
 
   /**
    * Callback invoked when there is an error in the Yarn client. This delegates the
-   * callback handling to the ContainerProcessManager callback instance.
+   * callback handling to the {@link org.apache.samza.clustermanager.ContainerProcessManager.Callback} instance.
    *
    * @param e
    */

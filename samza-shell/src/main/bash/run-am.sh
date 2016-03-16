@@ -24,7 +24,4 @@
 
 #exec $(dirname $0)/run-class.sh org.apache.samza.job.yarn.SamzaAppMaster "$@"
 
-#exec $(dirname $0)/run-class.sh org.apache.samza.coordinator.YarnJobCoordinator "$@"
-
-
 exec $(dirname $0)/run-class.sh org.apache.samza.clustermanager.ClusterBasedJobCoordinator "$@"

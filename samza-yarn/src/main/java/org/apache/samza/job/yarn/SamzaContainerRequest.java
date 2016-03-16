@@ -22,15 +22,12 @@ package org.apache.samza.job.yarn;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.client.api.AMRMClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * SamzaContainerRequest encapsulate the ContainerRequest and the meta-information of the request.
  */
 public class SamzaContainerRequest implements Comparable<SamzaContainerRequest> {
   private static final String ANY_HOST = ContainerRequestState.ANY_HOST;
-  private static final Logger log = LoggerFactory.getLogger(SamzaContainerRequest.class);
 
   private Priority priority;
   private Resource capability;
@@ -64,8 +61,6 @@ public class SamzaContainerRequest implements Comparable<SamzaContainerRequest> 
     }
 
     this.requestTimestamp = System.currentTimeMillis();
-    log.info("Resource Request created for " + this.expectedContainerId + " on " + this.preferredHost + " " + this.requestTimestamp );
-
   }
 
   // Convenience class for unit testing

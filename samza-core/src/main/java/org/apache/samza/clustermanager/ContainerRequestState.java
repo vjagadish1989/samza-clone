@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * by the RM.
  *
  * This class is thread-safe, and can safely support concurrent accesses without any form of external synchronization.
+ *
  */
 public class ContainerRequestState {
   private static final Logger log = LoggerFactory.getLogger(ContainerRequestState.class);
@@ -41,6 +42,7 @@ public class ContainerRequestState {
   /**
    * Maintain a map of hostname to a list of containers allocated on this host
    */
+  //A CHM is probably not needed here. We anyways need to synchronize to guarantee atomic execution of methods.
   private final ConcurrentHashMap<String, List<SamzaResource>> allocatedContainers = new ConcurrentHashMap<String, List<SamzaResource>>();
   /**
    * Represents the queue of container requests made by the {@link org.apache.samza.clustermanager.SamzaTaskManager}
@@ -117,7 +119,7 @@ public class ContainerRequestState {
         int requestCountOnThisHost = requestCount.get();
         List<SamzaResource> allocatedContainersOnThisHost = allocatedContainers.get(hostName);
         if (requestCountOnThisHost > 0) {
-          //there are pending
+          //there are pending requests for containers on this host.
           if (allocatedContainersOnThisHost == null || allocatedContainersOnThisHost.size() < requestCountOnThisHost) {
             log.info("Got matched container {} in the buffer for preferredHost: {}", resource.getResourceID(), hostName);
             addToAllocatedContainerList(hostName, resource);
@@ -281,7 +283,7 @@ public class ContainerRequestState {
   /**
    * Returns the list of containers allocated on a given host. If no containers were ever allocated on
    * the given host, it returns null. This method makes a defensive shallow copy. A shallow copy is
-   * sufficient because Container class does not SamzaResource does not expose setters.
+   * sufficient because the SamzaResource class does not expose setters.
    *
    * @param host hostname
    * @return list of containers allocated on the given host, or null

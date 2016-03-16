@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * SamzaAppState encapsulates state variables like - completedContainers, runningContainers. This
+ * SamzaAppState encapsulates state like - completedContainers, runningContainers. This
  * class is also used to display information in the Samza UI.
  *
  * TODO:

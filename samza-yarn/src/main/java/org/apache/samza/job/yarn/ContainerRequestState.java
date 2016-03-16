@@ -77,8 +77,7 @@ public class ContainerRequestState {
    */
   public synchronized void updateRequestState(SamzaContainerRequest request) {
 
-    log.info("REQRequesting resources on  " + request.getPreferredHost() + " for zcontainer" + request.getExpectedContainerId());
-    log.info(request.getIssuedRequest().toString());
+    log.info("Requesting a container for {} at {}", request.getExpectedContainerId(), request.getPreferredHost());
     amClient.addContainerRequest(request.getIssuedRequest());
 
     requestsQueue.add(request);
@@ -111,8 +110,9 @@ public class ContainerRequestState {
       AtomicInteger requestCount = requestsToCountMap.get(hostName);
       // Check if this host was requested for any of the containers
       if (requestCount == null || requestCount.get() == 0) {
-        log.info(
-            "not_asked {} Saving the container {} in the buffer for ANY_HOST",
+        log.debug(
+            "Request count for the allocatedContainer on {} is null or 0. This means that the host was not requested " +
+                "for running containers.Hence, saving the container {} in the buffer for ANY_HOST",
             hostName,
             container.getId()
         );
@@ -122,11 +122,11 @@ public class ContainerRequestState {
         List<Container> allocatedContainersOnThisHost = allocatedContainers.get(hostName);
         if (requestCountOnThisHost > 0) {
           if (allocatedContainersOnThisHost == null) {
-            log.info("got_requested {} in the buffer for {}", container.getId().toString(), hostName);
+            log.debug("Saving the container {} in the buffer for {}", container.getId(), hostName);
             addToAllocatedContainerList(hostName, container);
           } else {
             if (allocatedContainersOnThisHost.size() < requestCountOnThisHost) {
-              log.info("got_requested {} in the buffer for {}", container.getId().toString(), hostName);
+              log.debug("Saving the container {} in the buffer for {}", container.getId(), hostName);
               addToAllocatedContainerList(hostName, container);
             } else {
               /**
@@ -134,7 +134,7 @@ public class ContainerRequestState {
                * requestCount != 0, it will be greater than the total request count for that host. Hence, it should be
                * assigned to ANY_HOST
                */
-              log.info(
+              log.debug(
                   "The number of containers already allocated on {} is greater than what was " +
                       "requested, which is {}. Hence, saving the container {} in the buffer for ANY_HOST",
                   new Object[]{
@@ -147,19 +147,19 @@ public class ContainerRequestState {
             }
           }
         } else {
-          log.info(
-                  "useless_requested This host was never requested. {} {} {}",
-                  new Object[]{
-                          hostName,
-                          requestCountOnThisHost,
-                          container.getId().toString()
-                  }
+          log.debug(
+              "This host was never requested. Hence, saving the container {} in the buffer for ANY_HOST",
+              new Object[]{
+                  hostName,
+                  requestCountOnThisHost,
+                  container.getId()
+              }
           );
           addToAllocatedContainerList(ANY_HOST, container);
         }
       }
     } else {
-      log.debug("ha_notenabled Saving the container {} in the buffer for ANY_HOST", container.getId());
+      log.debug("Saving the container {} in the buffer for ANY_HOST", container.getId());
       addToAllocatedContainerList(ANY_HOST, container);
     }
   }
