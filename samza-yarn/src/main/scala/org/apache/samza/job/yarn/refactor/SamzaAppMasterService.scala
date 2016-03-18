@@ -25,6 +25,7 @@ import org.apache.samza.coordinator.stream.CoordinatorStreamWriter
 import org.apache.samza.coordinator.stream.messages.SetConfig
 import org.apache.samza.metrics.ReadableMetricsRegistry
 import org.apache.samza.util.Logging
+import org.apache.samza.webapp.refactor.{ApplicationMasterWebServlet, ApplicationMasterRestServlet}
 
 /**
  * Samza's application master runs a very basic HTTP/JSON service to allow
@@ -40,13 +41,16 @@ class SamzaAppMasterService(config: Config, state: YarnAppState, registry: Reada
     // try starting the samza AM dashboard at a random rpc and tracking port
     info("Starting webapp at a random rpc and tracking port")
 
-    rpcApp = new HttpServer(resourceBasePath = "scalate")
+    rpcApp = new HttpServer(resourceBasePath = "refactor_scalate")
+     info(config)
+     info(state.toString)
+     info(registry)
     //TODO: Since the state has changed into Samza specific and Yarn specific states, this UI has to be refactored too.
-    //rpcApp.addServlet("/*", refactor ApplicationMasterRestServlet(config, state, registry))
+    rpcApp.addServlet("/*", new ApplicationMasterRestServlet(config, state, registry))
     rpcApp.start
 
-    webApp = new HttpServer(resourceBasePath = "scalate")
-    //webApp.addServlet("/*", refactor ApplicationMasterWebServlet(config, state))
+    webApp = new HttpServer(resourceBasePath = "refactor_scalate")
+    webApp.addServlet("/*", new ApplicationMasterWebServlet(config, state))
     webApp.start
 
     state.jobModelReader.start

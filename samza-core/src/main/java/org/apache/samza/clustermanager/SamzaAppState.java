@@ -114,8 +114,28 @@ public class SamzaAppState {
 
   public AtomicInteger matchedContainerRequests = new AtomicInteger(0);
 
+  @Override
+  public String toString() {
+    return "SamzaAppState{" +
+        "jobModelReader=" + jobModelReader +
+        ", jmxUrl='" + jmxUrl + '\'' +
+        ", jmxTunnelingUrl='" + jmxTunnelingUrl + '\'' +
+        ", completedContainers=" + completedContainers +
+        ", failedContainers=" + failedContainers +
+        ", releasedContainers=" + releasedContainers +
+        ", failedContainersStatus=" + failedContainersStatus +
+        ", containerCount=" + containerCount +
+        ", finishedContainers=" + finishedContainers +
+        ", neededContainers=" + neededContainers +
+        ", runningContainers=" + runningContainers +
+        ", status=" + status +
+        ", jobHealthy=" + jobHealthy +
+        ", containerRequests=" + containerRequests +
+        ", matchedContainerRequests=" + matchedContainerRequests +
+        '}';
+  }
+
   public SamzaAppState(JobModelReader jobModelReader) {
     this.jobModelReader = jobModelReader;
-
   }
 }

@@ -161,9 +161,10 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
       log.info("Got coordinator system config {} ", coordinatorSystemConfig);
 
       ContainerManagerFactory factory = getContainerProcessManagerFactory(clusterManagerConfig);
+      state = new SamzaAppState(jobModelReader);
+
       this.processManager = factory.getContainerProcessManager(jobModelReader, this, state);
 
-      state = new SamzaAppState(jobModelReader);
       metrics = new SamzaAppMasterMetrics(config, state, registry);
       taskManager = new SamzaTaskManager(config, state, processManager);
 

@@ -22,13 +22,19 @@ package org.apache.samza.job.yarn.refactor;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerId;
+import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.samza.clustermanager.SamzaAppState;
 import org.apache.samza.coordinator.JobModelReader;
+import org.apache.samza.job.yarn.YarnContainer;
 
 import java.net.URL;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -40,8 +46,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class YarnAppState {
 
+  //DONT change this field name without changing all UI templates. This is used in all the UI classes.
+  //TODO: return a read-only view of Samza app state and pass it to the UI. but that's a separate effort.
    public final SamzaAppState samzaAppState;
-/*  The following state variables are primarily used for reference in the AM web services   */
+
+  /*  The following state variables are primarily used for reference in the AM web services   */
 
   /**
    * Task Id of the AM
@@ -92,13 +101,15 @@ public class YarnAppState {
    */
   public URL trackingUrl = null;
 
-  public Set<Container> runningContainers = new HashSet<Container>()  ;
+  //public Set<Container> runningContainers = new HashSet<Container>()  ;
+  public Map<Integer, YarnContainer> runningYarnContainers = new HashMap<Integer, YarnContainer>()  ;
 
   /**
   * Final status of the application
   * Modified by both the AMRMCallbackThread and the ContainerAllocator thread
   */
   public FinalApplicationStatus yarnContainerManagerStatus = FinalApplicationStatus.UNDEFINED;
+  public ConcurrentMap<String, ContainerStatus> failedContainersStatus = new ConcurrentHashMap<String, ContainerStatus>();
 
   /**
   * State indicating whether the job is healthy or not
@@ -126,18 +137,20 @@ public class YarnAppState {
   @Override
   public String toString() {
     return "YarnAppState{" +
-            "jobCoordinator=" + jobModelReader +
-            ", taskId=" + taskId +
-            ", amContainerId=" + amContainerId +
-            ", nodeHost='" + nodeHost + '\'' +
-            ", nodePort=" + nodePort +
-            ", nodeHttpPort=" + nodeHttpPort +
-            ", appAttemptId=" + appAttemptId +
-            ", coordinatorUrl=" + coordinatorUrl +
-            ", rpcUrl=" + rpcUrl +
-            ", trackingUrl=" + trackingUrl +
-            ", runningContainers=" + runningContainers +
-            ", status=" + yarnContainerManagerStatus +
-            '}';
+        "samzaAppState=" + samzaAppState +
+        ", jobModelReader=" + jobModelReader +
+        ", taskId=" + taskId +
+        ", amContainerId=" + amContainerId +
+        ", nodeHost='" + nodeHost + '\'' +
+        ", nodePort=" + nodePort +
+        ", nodeHttpPort=" + nodeHttpPort +
+        ", appAttemptId=" + appAttemptId +
+        ", coordinatorUrl=" + coordinatorUrl +
+        ", rpcUrl=" + rpcUrl +
+        ", trackingUrl=" + trackingUrl +
+        ", runningYarnContainers=" + runningYarnContainers +
+        ", yarnContainerManagerStatus=" + yarnContainerManagerStatus +
+        ", failedContainersStatus=" + failedContainersStatus +
+        '}';
   }
 }

@@ -31,6 +31,7 @@ import org.apache.samza.config.ShellCommandConfig;
 import org.apache.samza.config.YarnConfig;
 import org.apache.samza.coordinator.JobModelReader;
 import org.apache.samza.job.CommandBuilder;
+import org.apache.samza.job.yarn.YarnContainer;
 import org.apache.samza.metrics.MetricsRegistryMap;
 import org.apache.samza.util.hadoop.HttpFileSystem;
 import org.slf4j.Logger;
@@ -188,7 +189,6 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
 
     log.info("Release resource invoked {} ", resource);
     Container container = allocatedResources.get(resource);
-    state.runningContainers.remove(container);
     amClient.releaseAssignedContainer(container.getId());
 
   }
@@ -208,8 +208,28 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
       int containerID = Integer.parseInt(containerIDStr);
       log.info("Rreceived launch request for {} on hostname {}", containerID , resource.getHost());
       Container container = allocatedResources.get(resource);
-      state.runningContainers.add(container);
+
+      state.runningYarnContainers.put(containerID, new YarnContainer(container));
+
+
       yarnContainerRunner.runContainer(containerID, container, builder);
+  }
+
+  //TODO: Get rid of the YarnContainer object and just use Container in state.runningYarnContainers hashmap.
+  //In that case, this scan will turn into a lookup. This change will require alot of changes in the UI files because
+  //those UI stub templates operate on the YarnContainer object. Save it for later :-)
+
+  private int getIDForContainer(String lookupContainerId) {
+    int containerID = -1;
+    for(Map.Entry<Integer, YarnContainer> entry : state.runningYarnContainers.entrySet()) {
+      Integer key = entry.getKey();
+      YarnContainer yarnContainer = entry.getValue();
+      String yarnContainerId = yarnContainer.id().toString();
+      if(yarnContainerId.equals(lookupContainerId)) {
+         return key;
+      }
+    }
+    return containerID;
   }
 
   /**
@@ -251,11 +271,25 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
   public void onContainersCompleted(List<ContainerStatus> statuses) {
     List<SamzaResourceStatus> samzaResrcStatuses = new ArrayList<>();
 
+
     for(ContainerStatus status: statuses) {
       log.info("Container completed from RM " + status);
 
       SamzaResourceStatus samzaResrcStatus = new SamzaResourceStatus(status.getContainerId().toString(), status.getDiagnostics(), status.getExitStatus());
       samzaResrcStatuses.add(samzaResrcStatus);
+
+      int completedContainerID = getIDForContainer(status.getContainerId().toString());
+      log.info("Completed container had ID: {}", completedContainerID);
+
+      if(completedContainerID != -1){
+        if(state.runningYarnContainers.containsKey(completedContainerID)) {
+          log.info("removing container ID {} from completed containers", completedContainerID);
+          state.runningYarnContainers.remove(completedContainerID);
+
+          if(status.getExitStatus() != ContainerExitStatus.SUCCESS)
+           state.failedContainersStatus.put(status.getContainerId().toString(), status);
+        }
+      }
     }
     _callback.onResourcesCompleted(samzaResrcStatuses);
   }
