@@ -41,7 +41,7 @@ class SamzaAppMasterService(config: Config, state: YarnAppState, registry: Reada
     // try starting the samza AM dashboard at a random rpc and tracking port
     info("Starting webapp at a random rpc and tracking port")
 
-    rpcApp = new HttpServer(resourceBasePath = "refactor_scalate")
+    rpcApp = new HttpServer(resourceBasePath = "scalatev2")
      info(config)
      info(state.toString)
      info(registry)
@@ -49,7 +49,7 @@ class SamzaAppMasterService(config: Config, state: YarnAppState, registry: Reada
     rpcApp.addServlet("/*", new ApplicationMasterRestServlet(config, state, registry))
     rpcApp.start
 
-    webApp = new HttpServer(resourceBasePath = "refactor_scalate")
+    webApp = new HttpServer(resourceBasePath = "scalatev2")
     webApp.addServlet("/*", new ApplicationMasterWebServlet(config, state))
     webApp.start
 
