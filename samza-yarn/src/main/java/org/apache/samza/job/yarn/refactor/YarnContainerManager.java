@@ -56,7 +56,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    */
   private final AMRMClientAsync<AMRMClient.ContainerRequest> amClient;
 
-
+  private final int INVALID_YARN_CONTAINER_ID = -1;
   /**
    * A helper class to launch Yarn containers.
    */
@@ -208,19 +208,23 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
       int containerID = Integer.parseInt(containerIDStr);
       log.info("Rreceived launch request for {} on hostname {}", containerID , resource.getHost());
       Container container = allocatedResources.get(resource);
-
       state.runningYarnContainers.put(containerID, new YarnContainer(container));
-
-
       yarnContainerRunner.runContainer(containerID, container, builder);
   }
 
+
+  /**
+   * Given a lookupContainerId from Yarn (for example: containerId_app_12345, this method returns the SamzaContainer ID
+   * in the range [0,N-1] that maps to it.
+   * @param lookupContainerId  the Yarn container ID.
+   * @return  the samza container ID.
+   */
   //TODO: Get rid of the YarnContainer object and just use Container in state.runningYarnContainers hashmap.
   //In that case, this scan will turn into a lookup. This change will require alot of changes in the UI files because
-  //those UI stub templates operate on the YarnContainer object. Save it for later :-)
+  //those UI stub templates operate on the YarnContainer object. Save this change for later :-)
 
   private int getIDForContainer(String lookupContainerId) {
-    int containerID = -1;
+    int samzaContainerID = INVALID_YARN_CONTAINER_ID;
     for(Map.Entry<Integer, YarnContainer> entry : state.runningYarnContainers.entrySet()) {
       Integer key = entry.getKey();
       YarnContainer yarnContainer = entry.getValue();
@@ -229,7 +233,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
          return key;
       }
     }
-    return containerID;
+    return samzaContainerID;
   }
 
   /**
@@ -281,7 +285,8 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
       int completedContainerID = getIDForContainer(status.getContainerId().toString());
       log.info("Completed container had ID: {}", completedContainerID);
 
-      if(completedContainerID != -1){
+      //
+      if(completedContainerID != INVALID_YARN_CONTAINER_ID){
         if(state.runningYarnContainers.containsKey(completedContainerID)) {
           log.info("removing container ID {} from completed containers", completedContainerID);
           state.runningYarnContainers.remove(completedContainerID);

@@ -101,7 +101,6 @@ public class YarnAppState {
    */
   public URL trackingUrl = null;
 
-  //public Set<Container> runningContainers = new HashSet<Container>()  ;
   public Map<Integer, YarnContainer> runningYarnContainers = new HashMap<Integer, YarnContainer>()  ;
 
   /**
