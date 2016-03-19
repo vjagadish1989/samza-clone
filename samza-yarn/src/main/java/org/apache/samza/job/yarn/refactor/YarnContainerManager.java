@@ -285,7 +285,8 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
       int completedContainerID = getIDForContainer(status.getContainerId().toString());
       log.info("Completed container had ID: {}", completedContainerID);
 
-      //
+      //remove the container from the list of running containers, if failed with a non-zero exit code, add it to the list of
+      //failed containers.
       if(completedContainerID != INVALID_YARN_CONTAINER_ID){
         if(state.runningYarnContainers.containsKey(completedContainerID)) {
           log.info("removing container ID {} from completed containers", completedContainerID);
