@@ -63,11 +63,11 @@ public abstract class AbstractContainerAllocator implements Runnable {
    */
   private final TaskConfig taskConfig;
 
-  private Config config;
+  private final Config config;
   /**
    * State corresponding to num failed containers, running containers etc.
    */
-  SamzaAppState state;
+  private final SamzaAppState state;
 
   /**
    * ContainerRequestState indicates the state of all unfulfilled container requests and allocated containers
@@ -75,7 +75,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
   protected final ContainerRequestState containerRequestState;
 
   /* State that controls the lifecycle of the allocator thread*/
-  private AtomicBoolean isRunning = new AtomicBoolean(true);
+  private volatile boolean isRunning = true;
 
   public AbstractContainerAllocator(ContainerProcessManager containerProcessManager,
                                     ContainerRequestState containerRequestState,
@@ -99,7 +99,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
    */
   @Override
   public void run() {
-    while(isRunning.get()) {
+    while(isRunning) {
       try {
         assignContainerRequests();
         // Release extra containers and update the entire system's state
@@ -107,8 +107,8 @@ public abstract class AbstractContainerAllocator implements Runnable {
         Thread.sleep(allocatorSleepIntervalMs);
       }
       catch (InterruptedException e) {
-        //TODO: Maybe rethrow interrupts, and set interrupted flag of current thread.
-        log.info("Got InterruptedException in AllocatorThread.", e);
+        log.error("Got InterruptedException in AllocatorThread.", e);
+        Thread.currentThread().interrupt();
       }
       catch (Exception e) {
         log.error("Got unknown Exception in AllocatorThread.", e);
@@ -186,7 +186,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
    * Checks if this allocator has a pending request.
    * @return {@code true} if there is a pending request, {@code false} otherwise.
    */
-  protected boolean hasPendingRequest() {
+  protected final boolean hasPendingRequest() {
     return peekPendingRequest() != null;
   }
 
@@ -195,7 +195,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
    *
    * @return  the pending request or {@code null} if there is no pending request.
    */
-  protected SamzaResourceRequest peekPendingRequest() {
+  protected final SamzaResourceRequest peekPendingRequest() {
     return containerRequestState.peekPendingRequest();
   }
 
@@ -254,7 +254,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
 
 
   public void stop() {
-    isRunning.set(false);
+    isRunning=false;
   }
 
 }

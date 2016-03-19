@@ -105,7 +105,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    * Tracks the exception occuring in any callbacks from the ContainerProcessManager. Any errors from the
    * ContainerProcessManager will trigger shutdown of the YarnJobCoordinator.
    */
-  private Throwable storedException;
+  private volatile boolean exceptionOccured = false;
 
   private static final Logger log = LoggerFactory.getLogger(ClusterBasedJobCoordinator.class);
 
@@ -182,7 +182,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
 
       boolean isInterrupted = false;
 
-      while (!taskManager.shouldShutdown() && !isInterrupted && storedException == null)
+      while (!taskManager.shouldShutdown() && !isInterrupted && !exceptionOccured)
       {
         try {
           Thread.sleep(taskManagerPollInterval);
@@ -298,8 +298,8 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
   @Override
   public void onError(Throwable e)
   {
-      log.error("Stored exception : {}", e);
-      storedException = e;
+      log.error("Exception occured in callbacks from the ContainerManager : {}", e);
+      exceptionOccured = true;
   }
 
   /**
