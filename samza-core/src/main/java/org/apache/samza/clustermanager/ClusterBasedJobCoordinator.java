@@ -144,8 +144,6 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     //the config in the constructor. (since the config can be constructed from the jobmodel returned by the reader). But,
     //
 
-    JobModelReader reader = JobModelReader.apply(coordinatorSystemConfig, registryMap);
-    Config config = reader.jobModel().getConfig();
 
     this.jobModelReader = reader;
     this.state = new SamzaAppState(jobModelReader);
