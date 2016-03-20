@@ -119,10 +119,10 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    * Creates a new ClusterBasedJobCoordinator instance from a config. Invoke run() to actually
    * run the jobcoordinator.
    *
-   * @param config the coordinator stream config that can be used to read the
+   * @param coordinatorSystemConfig the coordinator stream config that can be used to read the
    *                                {@link org.apache.samza.job.model.JobModel from.
    */
-  public ClusterBasedJobCoordinator(JobModelReader reader, Config config, MetricsRegistryMap registryMap)
+  public ClusterBasedJobCoordinator(Config coordinatorSystemConfig)
   {
     //TODO1: A couple of these classes - namely
     //  1.JobCoordinator (jobModelReader in the new case)
@@ -136,18 +136,15 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     // 2.jmxServer.close is called when class X's lifecycle ends. (during a clean shutdown)
     // this leads to unclean code in class X as class X has to call close in 2 places.
 
-    //TODO2: This require re-designing the JobCoordinator (JobModelReader now) class. The class has
-    //i) Starts all components, but an exception in the middle of construction does not cleanly shutdown.
-    //ii) Decouple the exposing of the JobModel from the building the JobModel. (Move the http server to another class)
-
-    //Until these 2 fixes, we'll retain the 'reader' in the constructor for now. It seems weird to have both the reader and
-    //the config in the constructor. (since the config can be constructed from the jobmodel returned by the reader). But,
-    //
+    //TODO2: Re-design the JobCoordinator (JobModelReader now) class.
+    //i) Decouple the exposing of the JobModel from building the JobModel. (Move the http server to another class)
+    //Once both the above are completed, the new constructor will look like ClusterBasedJobCoordinator(JobModelReaderInterface reader).
 
 
-    this.jobModelReader = reader;
+    MetricsRegistryMap registry = new MetricsRegistryMap();
+    this.jobModelReader = JobModelReader.apply(coordinatorSystemConfig, registry);;
     this.state = new SamzaAppState(jobModelReader);
-    this.config = config;
+    this.config = jobModelReader.jobModel().getConfig();
 
     clusterManagerConfig = new ClusterManagerConfig(config);
     isJmxEnabled = clusterManagerConfig.getJmxEnabled();
@@ -156,7 +153,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     processManager = factory.getContainerProcessManager(jobModelReader, this, state);
     taskManagerPollInterval = clusterManagerConfig.getJobCoordinatorSleepInterval();
 
-    metrics = new SamzaAppMasterMetrics(config, state, registryMap);
+    metrics = new SamzaAppMasterMetrics(config, state, registry);
     taskManager = new SamzaTaskManager(config, state, processManager);
   }
 
@@ -326,11 +323,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
       log.error("Exception while reading coordinator stream config {}", e);
       throw new SamzaException(e);
     }
-    log.info("Got coordinator system config: {}  ", coordinatorSystemConfig);
-    MetricsRegistryMap registryMap = new MetricsRegistryMap();
-    JobModelReader reader = JobModelReader.apply(coordinatorSystemConfig, registryMap);
-    Config config = reader.jobModel().getConfig();
-    ClusterBasedJobCoordinator jc = new ClusterBasedJobCoordinator(reader, config, registryMap);
+    ClusterBasedJobCoordinator jc = new ClusterBasedJobCoordinator(coordinatorSystemConfig);
     jc.run();
   }
 }
