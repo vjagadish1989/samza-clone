@@ -67,7 +67,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
   /**
    * State corresponding to num failed containers, running containers etc.
    */
-  private final SamzaAppState state;
+  protected final SamzaAppState state;
 
   /**
    * ContainerRequestState indicates the state of all unfulfilled container requests and allocated containers

@@ -34,10 +34,10 @@ import org.junit.Assert._
 import org.junit.Test
 import org.mockito.Mockito
 import java.net.URL
-import org.apache.samza.coordinator.{JobModelReader, JobModelReader$}
+import org.apache.samza.coordinator.JobCoordinator
 
 class TestSamzaAppMasterLifecycle {
-  val coordinator = new JobModelReader(null, null)
+  val coordinator = new JobCoordinator(null, null)
   val amClient = new AMRMClientAsyncImpl[ContainerRequest](1, Mockito.mock(classOf[CallbackHandler])) {
     var host = ""
     var port = 0
