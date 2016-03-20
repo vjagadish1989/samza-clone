@@ -194,10 +194,9 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
           Thread.sleep(taskManagerPollInterval);
         }
         catch (InterruptedException e) {
-          //TODO: Set interrupt flag?
           isInterrupted = true;
           log.error("Interrupted in job coordinator loop {} ", e);
-          e.printStackTrace();
+          Thread.currentThread().interrupt();
         }
       }
     }
@@ -229,17 +228,14 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     }
     catch (InstantiationException e) {
       log.error("Instantiation exception when creating ContainerManager", e);
-      e.printStackTrace();
       throw new SamzaException(e);
     }
     catch (IllegalAccessException e) {
       log.error("Illegal access exception when creating ContainerManager", e);
-      e.printStackTrace();
       throw new SamzaException(e);
     }
     catch (ClassNotFoundException e) {
       log.error("ClassNotFound Exception when creating ContainerManager", e);
-      e.printStackTrace();
       throw new SamzaException(e);
     }
     return factory;
@@ -250,24 +246,44 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    */
   private void onShutDown() {
     if (metrics != null) {
-      metrics.stop();
+      try {
+        metrics.stop();
+      }
+      catch(Throwable e) {
+        log.error("Exception while stopping metrics {}", e);
+      }
+      log.info("Stopped metrics reporters");
     }
-    log.info("stopped metrics reporters");
 
     if (taskManager != null) {
-      taskManager.stop();
+      try {
+        taskManager.stop();
+      }
+      catch(Throwable e) {
+        log.error("Exception while stopping task manager {}", e);
+      }
+      log.info("Stopped task manager");
     }
-    log.info("stopped task manager");
 
     if (processManager != null) {
-      processManager.stop(state.status);
+      try {
+        processManager.stop(state.status);
+      }
+      catch(Throwable e) {
+        log.error("Exception while stopping process manager {}", e);
+      }
+      log.info("Stopped container process manager");
     }
-    log.info("stopped container process manager");
 
     if (jmxServer != null) {
+      try {
         jmxServer.stop();
+        log.info("Stopped Jmx Server");
+      }
+      catch(Throwable e) {
+        log.error("Exception while stopping jmx server {}", e);
+      }
     }
-    log.info("stopped Jmx Server");
   }
 
   /**
