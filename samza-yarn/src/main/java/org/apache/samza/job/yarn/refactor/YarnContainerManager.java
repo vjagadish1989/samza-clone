@@ -206,7 +206,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
   public void launchStreamProcessor(SamzaResource resource, CommandBuilder builder) throws SamzaContainerLaunchException {
       String containerIDStr = builder.buildEnvironment().get(ShellCommandConfig.ENV_CONTAINER_ID());
       int containerID = Integer.parseInt(containerIDStr);
-      log.info("Rreceived launch request for {} on hostname {}", containerID , resource.getHost());
+      log.info("Received launch request for {} on hostname {}", containerID , resource.getHost());
       Container container = allocatedResources.get(resource);
       state.runningContainers.add(container);
       yarnContainerRunner.runContainer(containerID, container, builder);

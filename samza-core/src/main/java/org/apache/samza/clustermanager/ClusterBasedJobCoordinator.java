@@ -124,17 +124,17 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    */
   public ClusterBasedJobCoordinator(Config coordinatorSystemConfig)
   {
-    //TODO1: A couple of these classes - namely
+    //TODO1: A couple of classes - namely
     //  1.JobCoordinator (jobModelReader in the new case)
     //  2.JmxServer
     // follow this weird pattern where their components are *started* in the constructor.
-    // For example, the JmxServer class starts up the jmxServer in the constructor instead of just defining a separate start method.
-    // This makes the life-cycle hard to manage. (for example, consider an class X that includes a JmxServer member (in addition to several others)
-    // and instantiates a JmxServer in its constructor.
-    // Then class X must ensure:
+    // For example, the JmxServer class starts up the jmxServer in the constructor instead
+    // of just defining a separate start method. This makes the life-cycle hard to manage.
+    // (for example, consider a class X that includes a JmxServer member (in addition to several others)
+    // and instantiates a JmxServer in its constructor. Then class X must ensure:
     // 1.jmxServer.close is called when constructor of class X fails due to some other reason unrelated to JmxServer
     // 2.jmxServer.close is called when class X's lifecycle ends. (during a clean shutdown)
-    // this leads to unclean code in class X as class X has to call close in 2 places.
+    // this leads to buggy code in class X as class X has to call close in 2 places.
 
     //TODO2: Re-design the JobCoordinator (JobModelReader now) class.
     //i) Decouple the exposing of the JobModel from building the JobModel. (Move the http server to another class)
