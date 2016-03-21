@@ -289,26 +289,26 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
   /**
    * Called by the {@link ContainerProcessManager} when there are resources available.
    * This delegates handling of the callbacks to the {@link SamzaTaskManager}
-   * @param resources a list of available resources.
+   * @param containers a list of available resources.
    */
   @Override
-  public void onResourcesAvailable(List<SamzaResource> resources)
+  public void onResourcesAvailable(List<SamzaResource> containers)
   {
-      for (SamzaResource resource : resources) {
-          taskManager.onContainerAllocated(resource);
+      for (SamzaResource container : containers) {
+          taskManager.onContainerAllocated(container);
       }
   }
 
   /**
    *
    * Delegate callbacks of resource completion to the taskManager
-   * @param resourceStatuses the statuses for the resources that have completed
+   * @param containerStatuses the statuses for the resources that have completed
    */
   @Override
-  public void onResourcesCompleted(List<SamzaResourceStatus> resourceStatuses) {
-      for (SamzaResourceStatus resourceStatus : resourceStatuses)
+  public void onResourcesCompleted(List<SamzaResourceStatus> containerStatuses) {
+      for (SamzaResourceStatus containerStatus : containerStatuses)
       {
-          taskManager.onContainerCompleted(resourceStatus);
+          taskManager.onContainerCompleted(containerStatus);
       }
   }
 

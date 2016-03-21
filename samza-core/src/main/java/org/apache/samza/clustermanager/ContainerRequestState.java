@@ -106,19 +106,19 @@ public class ContainerRequestState {
    * Invoked each time a resource is returned from a {@link ContainerProcessManager}.
    * @param resource The resource that was returned from the {@link ContainerProcessManager}
    */
-  public void addResource(SamzaResource resource) {
+  public void addResource(SamzaResource container) {
     synchronized (lock) {
       if (hostAffinityEnabled) {
-        String hostName = resource.getHost();
+        String hostName = container.getHost();
         AtomicInteger requestCount = requestsToCountMap.get(hostName);
         // Check if this host was requested for any of the containers
         if (requestCount == null || requestCount.get() == 0) {
           log.info(
               " This host was not requested. {} saving the container {} in the buffer for ANY_HOST",
               hostName,
-              resource.getResourceID()
+              container.getResourceID()
           );
-          addToAllocatedContainerList(ANY_HOST, resource);
+          addToAllocatedContainerList(ANY_HOST, container);
         } else {
           // This host was indeed requested.
           int requestCountOnThisHost = requestCount.get();
@@ -126,8 +126,8 @@ public class ContainerRequestState {
           if (requestCountOnThisHost > 0) {
             //there are pending requests for containers on this host.
             if (allocatedContainersOnThisHost == null || allocatedContainersOnThisHost.size() < requestCountOnThisHost) {
-              log.info("Got matched container {} in the buffer for preferredHost: {}", resource.getResourceID(), hostName);
-              addToAllocatedContainerList(hostName, resource);
+              log.info("Got matched container {} in the buffer for preferredHost: {}", container.getResourceID(), hostName);
+              addToAllocatedContainerList(hostName, container);
             } else {
               /**
                * The RM may allocate more containers on a given host than requested. In such a case, even though the
@@ -140,29 +140,29 @@ public class ContainerRequestState {
                   new Object[]{
                       hostName,
                       requestCountOnThisHost,
-                      resource.getResourceID()
+                      container.getResourceID()
                   }
               );
-              addToAllocatedContainerList(ANY_HOST, resource);
+              addToAllocatedContainerList(ANY_HOST, container);
             }
           }
         }
       } else {
-        log.info("Host affinity not enabled. Saving the container {} in the buffer for ANY_HOST", resource.getResourceID());
-        addToAllocatedContainerList(ANY_HOST, resource);
+        log.info("Host affinity not enabled. Saving the container {} in the buffer for ANY_HOST", container.getResourceID());
+        addToAllocatedContainerList(ANY_HOST, container);
       }
     }
   }
 
   // Appends a container to the list of allocated containers
   private void addToAllocatedContainerList(String host, SamzaResource container) {
-    List<SamzaResource> list = allocatedContainers.get(host);
-    if (list != null) {
-      list.add(container);
+    List<SamzaResource> containers = allocatedContainers.get(host);
+    if (containers != null) {
+      containers.add(container);
     } else {
-      list = new ArrayList<SamzaResource>();
-      list.add(container);
-      allocatedContainers.put(host, list);
+      containers = new ArrayList<SamzaResource>();
+      containers.add(container);
+      allocatedContainers.put(host, containers);
     }
   }
 

@@ -22,13 +22,18 @@ package org.apache.samza.job.yarn.refactor;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerId;
+import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.samza.clustermanager.SamzaAppState;
 import org.apache.samza.coordinator.JobModelReader;
+import org.apache.samza.job.yarn.YarnContainer;
 
 import java.net.URL;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -36,12 +41,69 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * is useful for information to display in the UI.
  *
  * TODO: make these variables private, provide thread-safe accessors.
+ * Saving making changes to variables in YarnAppState because it is used by the UI, and changes to
+ * variable names, data structure etc. will require changes to the UI scaml templates too. This is tracked
+ * as a part of SAMZA-902
  */
 
 public class YarnAppState {
 
-   public final SamzaAppState samzaAppState;
-/*  The following state variables are primarily used for reference in the AM web services   */
+   /*
+   * Final status of the application
+   * Modified by both the AMRMCallbackThread and the ContainerAllocator thread
+   */
+   public FinalApplicationStatus yarnContainerManagerStatus = FinalApplicationStatus.UNDEFINED;
+
+  /**
+   /**
+  * State indicating whether the job is healthy or not
+  * Modified by both the AMRMCallbackThread and the ContainerAllocator thread
+  */
+
+  public Map<Integer, YarnContainer> runningYarnContainers = new ConcurrentHashMap<Integer, YarnContainer>()  ;
+
+  public ConcurrentMap<String, ContainerStatus> failedContainersStatus = new ConcurrentHashMap<String, ContainerStatus>();
+
+  public YarnAppState(JobModelReader jobModelReader,
+                    int taskId,
+                    ContainerId amContainerId,
+                    String nodeHost,
+                    int nodePort,
+                    int nodeHttpPort,
+                    SamzaAppState state) {
+    this.jobModelReader = jobModelReader;
+    this.taskId = taskId;
+    this.amContainerId = amContainerId;
+    this.nodeHost = nodeHost;
+    this.nodePort = nodePort;
+    this.nodeHttpPort = nodeHttpPort;
+    this.appAttemptId = amContainerId.getApplicationAttemptId();
+    this.samzaAppState = state;
+  }
+
+
+  @Override
+  public String toString() {
+    return "YarnAppState{" +
+        "samzaAppState=" + samzaAppState +
+        ", jobModelReader=" + jobModelReader +
+        ", taskId=" + taskId +
+        ", amContainerId=" + amContainerId +
+        ", nodeHost='" + nodeHost + '\'' +
+        ", nodePort=" + nodePort +
+        ", nodeHttpPort=" + nodeHttpPort +
+        ", appAttemptId=" + appAttemptId +
+        ", coordinatorUrl=" + coordinatorUrl +
+        ", rpcUrl=" + rpcUrl +
+        ", trackingUrl=" + trackingUrl +
+        ", runningYarnContainers=" + runningYarnContainers +
+        ", yarnContainerManagerStatus=" + yarnContainerManagerStatus +
+        ", failedContainersStatus=" + failedContainersStatus +
+        '}';
+  }
+
+  public final SamzaAppState samzaAppState;
+   /* The following state variables are primarily used for reference in the AM web services   */
 
   /**
    * Task Id of the AM
@@ -93,53 +155,4 @@ public class YarnAppState {
    * URL of the {@link org.apache.samza.webapp.ApplicationMasterWebServlet}
    */
   public URL trackingUrl = null;
-
-  public final Set<Container> runningContainers = new HashSet<Container>()  ;
-
-  /**
-  * Final status of the application
-  * Modified by both the AMRMCallbackThread and the ContainerAllocator thread
-  */
-  public FinalApplicationStatus yarnContainerManagerStatus = FinalApplicationStatus.UNDEFINED;
-
-  /**
-  * State indicating whether the job is healthy or not
-  * Modified by both the AMRMCallbackThread and the ContainerAllocator thread
-  */
-
-
-  public YarnAppState(JobModelReader jobModelReader,
-                    int taskId,
-                    ContainerId amContainerId,
-                    String nodeHost,
-                    int nodePort,
-                    int nodeHttpPort,
-                    SamzaAppState state) {
-    this.jobModelReader = jobModelReader;
-    this.taskId = taskId;
-    this.amContainerId = amContainerId;
-    this.nodeHost = nodeHost;
-    this.nodePort = nodePort;
-    this.nodeHttpPort = nodeHttpPort;
-    this.appAttemptId = amContainerId.getApplicationAttemptId();
-    this.samzaAppState = state;
-  }
-
-  @Override
-  public String toString() {
-    return "YarnAppState{" +
-            "jobCoordinator=" + jobModelReader +
-            ", taskId=" + taskId +
-            ", amContainerId=" + amContainerId +
-            ", nodeHost='" + nodeHost + '\'' +
-            ", nodePort=" + nodePort +
-            ", nodeHttpPort=" + nodeHttpPort +
-            ", appAttemptId=" + appAttemptId +
-            ", coordinatorUrl=" + coordinatorUrl +
-            ", rpcUrl=" + rpcUrl +
-            ", trackingUrl=" + trackingUrl +
-            ", runningContainers=" + runningContainers +
-            ", status=" + yarnContainerManagerStatus +
-            '}';
-  }
 }

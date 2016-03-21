@@ -31,7 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * SamzaAppState encapsulates state like - completedContainers, runningContainers. This
- * class is also used to display information in the Samza UI.
+ * class is also used to display information in the Samza UI. Changing any variable name/
+ * data structure type in this class WILL break the UI.
  *
  * TODO:
  * 1.Make these variables private, final
