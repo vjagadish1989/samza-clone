@@ -37,15 +37,15 @@ public class ContainerAllocator extends AbstractContainerAllocator {
   }
 
   /**
-   * During the run() method, the thread sleeps for allocatorSleepIntervalMs ms. It then invokes assignContainerRequests,
+   * During the run() method, the thread sleeps for allocatorSleepIntervalMs ms. It then invokes assignResourceRequests,
    * and tries to allocate any unsatisfied request that is still in the request queue {@link ContainerRequestState})
    * with allocated containers, if any.
    *
    * Since host-affinity is not enabled, all allocated container resources are buffered in the list keyed by "ANY_HOST".
    * */
   @Override
-  public void assignContainerRequests() {
-    while (hasPendingRequest() && hasAllocatedContainer(ContainerRequestState.ANY_HOST)) {
+  public void assignResourceRequests() {
+    while (hasPendingRequest() && hasAllocatedResource(ContainerRequestState.ANY_HOST)) {
       SamzaResourceRequest request = peekPendingRequest();
       runStreamProcessor(request, ContainerRequestState.ANY_HOST);
     }

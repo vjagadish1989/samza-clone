@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * SamzaTaskManager is responsible for requesting containers, handling failures, and notifying the application master that the
@@ -226,7 +225,7 @@ public class SamzaTaskManager   {
                     state.jobHealthy.set(false);
 
                     // request a container on refactor host
-                    containerAllocator.requestContainer(containerId, ContainerRequestState.ANY_HOST);
+                    containerAllocator.requestResource(containerId, ContainerRequestState.ANY_HOST);
                 }
                 break;
 
@@ -303,7 +302,7 @@ public class SamzaTaskManager   {
                     if (!tooManyFailedContainers) {
                         log.info("Requesting a refactor container ");
                         // Request a refactor container
-                        containerAllocator.requestContainer(containerId, lastSeenOn);
+                        containerAllocator.requestResource(containerId, lastSeenOn);
                     }
                 }
 

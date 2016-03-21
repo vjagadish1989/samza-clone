@@ -57,14 +57,14 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
    * allocatedContainers buffer keyed by "ANY_HOST".
    */
   @Override
-  public void assignContainerRequests()  {
+  public void assignResourceRequests()  {
     while (hasPendingRequest()) {
       SamzaResourceRequest request = peekPendingRequest();;
       log.info("Handling request: " + request.getExpectedContainerID() + " " + request.getRequestTimestampMs() + " " + request.getPreferredHost());
       String preferredHost = request.getPreferredHost();
       int expectedContainerId = request.getExpectedContainerID();
 
-      if (hasAllocatedContainer(preferredHost)) {
+      if (hasAllocatedResource(preferredHost)) {
         // Found allocated container at preferredHost
         log.info("Found a matched-container {} on the preferred host. Running on {}", expectedContainerId, preferredHost);
         runStreamProcessor(request, preferredHost);
@@ -75,7 +75,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
             preferredHost, expectedContainerId);
 
         boolean expired = requestExpired(request);
-        boolean containerAvailableOnAnyHost = hasAllocatedContainer(ContainerRequestState.ANY_HOST);
+        boolean containerAvailableOnAnyHost = hasAllocatedResource(ContainerRequestState.ANY_HOST);
 
         if(expired && containerAvailableOnAnyHost) {
           log.info("Request expired. running on ANY_HOST");

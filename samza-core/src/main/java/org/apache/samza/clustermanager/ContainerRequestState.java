@@ -194,7 +194,7 @@ public class ContainerRequestState {
    * Needs to be synchronized because it is modifying shared state buffers
    * @return the number of containers released.
    */
-  public int releaseExtraContainers() {
+  public int releaseExtraResources() {
     synchronized (lock) {
       int numReleasedContainers = 0;
       if (requestsQueue.isEmpty()) {

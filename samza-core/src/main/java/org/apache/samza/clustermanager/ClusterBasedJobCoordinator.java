@@ -199,7 +199,6 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     }
     catch (Throwable e) {
         log.error("Exception thrown in the JobCoordinator loop {} ", e);
-        e.printStackTrace();
         throw new SamzaException(e);
     }
     finally {

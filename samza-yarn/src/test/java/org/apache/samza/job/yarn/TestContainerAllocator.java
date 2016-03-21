@@ -114,7 +114,7 @@ public class TestContainerAllocator {
         containerUtil,
         new YarnConfig(config)
     );
-    Field requestStateField = containerAllocator.getClass().getSuperclass().getDeclaredField("containerRequestState");
+    Field requestStateField = containerAllocator.getClass().getSuperclass().getDeclaredField("resourceRequestState");
     requestStateField.setAccessible(true);
     requestStateField.set(containerAllocator, requestState);
 

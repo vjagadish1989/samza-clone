@@ -70,18 +70,18 @@ public abstract class AbstractContainerAllocator implements Runnable {
   /**
    * ContainerRequestState indicates the state of all unfulfilled container requests and allocated containers
    */
-  protected final ContainerRequestState containerRequestState;
+  protected final ContainerRequestState resourceRequestState;
 
   /* State that controls the lifecycle of the allocator thread*/
   private volatile boolean isRunning = true;
 
   public AbstractContainerAllocator(ContainerProcessManager containerProcessManager,
-                                    ContainerRequestState containerRequestState,
+                                    ContainerRequestState resourceRequestState,
                                     Config config, SamzaAppState state) {
     ClusterManagerConfig clusterManagerConfig = new ClusterManagerConfig(config);
     this.containerProcessManager = containerProcessManager;
     this.allocatorSleepIntervalMs = clusterManagerConfig.getAllocatorSleepTime();
-    this.containerRequestState = containerRequestState;
+    this.resourceRequestState = resourceRequestState;
     this.containerMemoryMb = clusterManagerConfig.getContainerMemoryMb();
     this.containerNumCpuCore = clusterManagerConfig.getNumCores();
     this.taskConfig = new TaskConfig(config);
@@ -99,9 +99,9 @@ public abstract class AbstractContainerAllocator implements Runnable {
   public void run() {
     while(isRunning) {
       try {
-        assignContainerRequests();
+        assignResourceRequests();
         // Release extra containers and update the entire system's state
-        containerRequestState.releaseExtraContainers();
+        resourceRequestState.releaseExtraResources();
         Thread.sleep(allocatorSleepIntervalMs);
       }
       catch (InterruptedException e) {
@@ -118,7 +118,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
    * Assigns the container requests from the queue to the allocated containers from the cluster manager and
    * runs them.
    */
-  protected abstract void assignContainerRequests();
+  protected abstract void assignResourceRequests();
 
   /**
    * Updates the request state and runs the container on the specified host. Assumes a container
@@ -132,32 +132,32 @@ public abstract class AbstractContainerAllocator implements Runnable {
    */
   protected void runStreamProcessor(SamzaResourceRequest request, String preferredHost) {
     CommandBuilder builder = getCommandBuilder(request.getExpectedContainerID());
-    // Get the available container
-    SamzaResource container = peekAllocatedContainer(preferredHost);
-    if (container == null)
-      throw new SamzaException("Expected container was unavailable on host " + preferredHost);
+    // Get the available resource
+    SamzaResource resource = peekAllocatedResource(preferredHost);
+    if (resource == null)
+      throw new SamzaException("Expected resource was unavailable on host " + preferredHost);
 
     // Update state
-    containerRequestState.updateStateAfterAssignment(request, preferredHost, container);
+    resourceRequestState.updateStateAfterAssignment(request, preferredHost, resource);
     int expectedContainerId = request.getExpectedContainerID();
 
-    // Cancel request and run container
+    // Cancel request and run resource
     log.info("Found available containers on {}. Assigning request for container_id {} with "
-            + "timestamp {} to container {}",
-        new Object[]{preferredHost, String.valueOf(expectedContainerId), request.getRequestTimestampMs(), container.getResourceID()});
+            + "timestamp {} to resource {}",
+        new Object[]{preferredHost, String.valueOf(expectedContainerId), request.getRequestTimestampMs(), resource.getResourceID()});
     try {
-      //launches a StreamProcessor on the container
-      containerProcessManager.launchStreamProcessor(container, builder);
+      //launches a StreamProcessor on the resource
+      containerProcessManager.launchStreamProcessor(resource, builder);
 
       if (state.neededContainers.decrementAndGet() == 0) {
         state.jobHealthy.set(true);
       }
-      state.runningContainers.put(request.getExpectedContainerID(), container);
+      state.runningContainers.put(request.getExpectedContainerID(), resource);
 
     } catch (SamzaContainerLaunchException e) {
-      log.warn(String.format("Got exception while starting container %s. Requesting a new container on any host", container), e);
-      containerProcessManager.releaseResources(container);
-      requestContainer(expectedContainerId, ContainerRequestState.ANY_HOST);
+      log.warn(String.format("Got exception while starting resource %s. Requesting a new resource on any host", resource), e);
+      containerProcessManager.releaseResources(resource);
+      requestResource(expectedContainerId, ContainerRequestState.ANY_HOST);
     }
   }
 
@@ -176,7 +176,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
       if (preferredHost == null)
         preferredHost = ContainerRequestState.ANY_HOST;
 
-      requestContainer(containerId, preferredHost);
+      requestResource(containerId, preferredHost);
     }
   }
 
@@ -194,7 +194,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
    * @return  the pending request or {@code null} if there is no pending request.
    */
   protected final SamzaResourceRequest peekPendingRequest() {
-    return containerRequestState.peekPendingRequest();
+    return resourceRequestState.peekPendingRequest();
   }
 
   /**
@@ -204,19 +204,19 @@ public abstract class AbstractContainerAllocator implements Runnable {
    *                            this request
    * @param preferredHost Name of the host that you prefer to run the container on
    */
-  public final void requestContainer(int expectedContainerId, String preferredHost) {
+  public final void requestResource(int expectedContainerId, String preferredHost) {
     SamzaResourceRequest request = new SamzaResourceRequest(this.containerNumCpuCore, this.containerMemoryMb,
         preferredHost, UUID.randomUUID().toString() ,expectedContainerId);
-    containerRequestState.addResourceRequest(request);
+    resourceRequestState.addResourceRequest(request);
     state.containerRequests.incrementAndGet();
   }
 
   /**
-   * @param host  the host for which a container is needed.
-   * @return      {@code true} if there is a container allocated for the specified host, {@code false} otherwise.
+   * @param host  the host for which a resource is needed.
+   * @return      {@code true} if there is a resource allocated for the specified host, {@code false} otherwise.
    */
-  protected boolean hasAllocatedContainer(String host) {
-    return peekAllocatedContainer(host) != null;
+  protected boolean hasAllocatedResource(String host) {
+    return peekAllocatedResource(host) != null;
   }
 
   /**
@@ -225,8 +225,8 @@ public abstract class AbstractContainerAllocator implements Runnable {
    * @param host  the host for which a container is needed.
    * @return      the first {@link SamzaResource} allocated for the specified host or {@code null} if there isn't one.
    */
-  protected SamzaResource peekAllocatedContainer(String host) {
-    return containerRequestState.peekContainer(host);
+  protected SamzaResource peekAllocatedResource(String host) {
+    return resourceRequestState.peekContainer(host);
   }
 
   /**
@@ -247,7 +247,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
    * @param container returned by the ContainerManager
    */
   public final void addContainer(SamzaResource container) {
-    containerRequestState.addResource(container);
+    resourceRequestState.addResource(container);
   }
 
 
