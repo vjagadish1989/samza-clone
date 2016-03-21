@@ -247,9 +247,10 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    * @param lookupContainerId  the Yarn container ID.
    * @return  the samza container ID.
    */
+
   //TODO: Get rid of the YarnContainer object and just use Container in state.runningYarnContainers hashmap.
-  //In that case, this scan will turn into a lookup. This change will require alot of changes in the UI files because
-  //those UI stub templates operate on the YarnContainer object. Save this change for later :-)
+  //In that case, this scan will turn into a lookup. This change will require changes/testing in the UI files because
+  //those UI stub templates operate on the YarnContainer object. This will be a part of SAMZA-902 :-)
 
   private int getIDForContainer(String lookupContainerId) {
     int samzaContainerID = INVALID_YARN_CONTAINER_ID;
@@ -312,7 +313,6 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
   @Override
   public void onContainersCompleted(List<ContainerStatus> statuses) {
     List<SamzaResourceStatus> samzaResrcStatuses = new ArrayList<>();
-
 
     for(ContainerStatus status: statuses) {
       log.info("Container completed from RM " + status);
@@ -380,7 +380,6 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    * Callback invoked when there is an error in the Yarn client. This delegates the
    * callback handling to the {@link org.apache.samza.clustermanager.ContainerProcessManager.Callback} instance.
    *
-   * @param e
    */
   @Override
   public void onError(Throwable e) {
