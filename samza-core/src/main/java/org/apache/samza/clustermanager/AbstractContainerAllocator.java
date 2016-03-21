@@ -198,7 +198,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
   }
 
   /**
-   * Method to request a container resource from yarn
+   * Method to request a container resource from the cluster manager
    *
    * @param expectedContainerId Identifier of the container that will be run when a container resource is allocated for
    *                            this request

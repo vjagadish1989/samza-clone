@@ -104,7 +104,7 @@ public class ContainerRequestState {
 
   /**
    * Invoked each time a resource is returned from a {@link ContainerProcessManager}.
-   * @param resource The resource that was returned from the {@link ContainerProcessManager}
+   * @param container The resource that was returned from the {@link ContainerProcessManager}
    */
   public void addResource(SamzaResource container) {
     synchronized (lock) {

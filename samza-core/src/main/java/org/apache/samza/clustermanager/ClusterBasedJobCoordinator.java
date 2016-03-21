@@ -122,8 +122,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    * @param coordinatorSystemConfig the coordinator stream config that can be used to read the
    *                                {@link org.apache.samza.job.model.JobModel from.
    */
-  public ClusterBasedJobCoordinator(Config coordinatorSystemConfig)
-  {
+  public ClusterBasedJobCoordinator(Config coordinatorSystemConfig) {
     //TODO1: A couple of classes - namely
     //  1.JobCoordinator (jobModelReader in the new case)
     //  2.JmxServer
@@ -163,8 +162,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    * Starts the JobCoordinator.
    *
    */
-  public void run()
-  {
+  public void run() {
     if(!isStarted.compareAndSet(false, true)){
       log.info("Attempting to start an already started job coordinator. ");
       return;
@@ -188,8 +186,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
 
       boolean isInterrupted = false;
 
-      while (!taskManager.shouldShutdown() && !isInterrupted && !exceptionOccurred)
-      {
+      while (!taskManager.shouldShutdown() && !isInterrupted && !exceptionOccurred) {
         try {
           Thread.sleep(taskManagerPollInterval);
         }
@@ -222,8 +219,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     final String containerManagerFactoryClass = clusterManagerConfig.getContainerManagerClass();
     final ContainerManagerFactory factory;
 
-    try
-    {
+    try {
       factory = (ContainerManagerFactory) Class.forName(containerManagerFactoryClass).newInstance();
     }
     catch (InstantiationException e) {
@@ -292,8 +288,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    * @param containers a list of available resources.
    */
   @Override
-  public void onResourcesAvailable(List<SamzaResource> containers)
-  {
+  public void onResourcesAvailable(List<SamzaResource> containers) {
       for (SamzaResource container : containers) {
           taskManager.onContainerAllocated(container);
       }
@@ -306,8 +301,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    */
   @Override
   public void onResourcesCompleted(List<SamzaResourceStatus> containerStatuses) {
-      for (SamzaResourceStatus containerStatus : containerStatuses)
-      {
+      for (SamzaResourceStatus containerStatus : containerStatuses) {
           taskManager.onContainerCompleted(containerStatus);
       }
   }
