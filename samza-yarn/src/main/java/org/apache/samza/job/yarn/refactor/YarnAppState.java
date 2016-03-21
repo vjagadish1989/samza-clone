@@ -78,6 +78,8 @@ public class YarnAppState {
    * and {@link org.apache.samza.webapp.ApplicationMasterRestServlet}
    */
   public final ApplicationAttemptId appAttemptId;
+
+  //TODO: Make the below 3 variables immutable. Tracked as a part of SAMZA-902. Save for later.
   /**
    * Job Coordinator URL
    * Usage in {@link org.apache.samza.job.yarn.SamzaAppMasterService} &amp; YarnContainerRunner
@@ -92,7 +94,7 @@ public class YarnAppState {
    */
   public URL trackingUrl = null;
 
-  public Set<Container> runningContainers = new HashSet<Container>()  ;
+  public final Set<Container> runningContainers = new HashSet<Container>()  ;
 
   /**
   * Final status of the application
