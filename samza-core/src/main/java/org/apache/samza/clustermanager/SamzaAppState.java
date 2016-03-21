@@ -34,7 +34,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * class is also used to display information in the Samza UI.
  *
  * TODO:
- * 1.Make these variables private, provide thread-safe accessors.
+ * 1.Make these variables private, final
+ * 2.Provide thread-safe accessors.
+ * //Since the scope of that change is larger, I'm tracking it to work later as a part of SAMZA-902
+ *
  */
 
 public class SamzaAppState {
@@ -61,22 +64,22 @@ public class SamzaAppState {
   /**
    * Number of containers that have completed their execution and exited successfully
    */
-  public AtomicInteger completedContainers = new AtomicInteger(0);
+  public final AtomicInteger completedContainers = new AtomicInteger(0);
 
   /**
    * Number of failed containers
    * */
-  public AtomicInteger failedContainers = new AtomicInteger(0);
+  public final AtomicInteger failedContainers = new AtomicInteger(0);
 
   /**
    * Number of containers released due to extra allocation returned by the RM
    */
-  public AtomicInteger releasedContainers = new AtomicInteger(0);
+  public final AtomicInteger releasedContainers = new AtomicInteger(0);
 
   /**
    * ContainerStatus of failed containers.
    */
-  public ConcurrentMap<String, SamzaResourceStatus> failedContainersStatus = new ConcurrentHashMap<String, SamzaResourceStatus>();
+  public final ConcurrentMap<String, SamzaResourceStatus> failedContainersStatus = new ConcurrentHashMap<String, SamzaResourceStatus>();
 
   /**
    * Number of containers configured for the job
@@ -86,19 +89,19 @@ public class SamzaAppState {
   /**
    * Set of finished containers - TODO: Can be changed to a counter
    */
-  public Set<Integer> finishedContainers = new HashSet<Integer>();
+  public final Set<Integer> finishedContainers = new HashSet<Integer>();
 
   /**
    *  Number of containers needed for the job to be declared healthy
    *  Modified by both the AMRMCallbackThread and the ContainerAllocator thread
    */
-  public AtomicInteger neededContainers = new AtomicInteger(0);
+  public final AtomicInteger neededContainers = new AtomicInteger(0);
 
   /**
    *  Map of the samzaContainerId to the {@link SamzaResource} on which it is running
    *  Modified by both the AMRMCallbackThread and the ContainerAllocator thread
    */
-  public ConcurrentMap<Integer, SamzaResource> runningContainers = new ConcurrentHashMap<Integer, SamzaResource>(0);
+  public final ConcurrentMap<Integer, SamzaResource> runningContainers = new ConcurrentHashMap<Integer, SamzaResource>(0);
 
   /**
    * Final status of the application
@@ -109,11 +112,11 @@ public class SamzaAppState {
    * State indicating whether the job is healthy or not
    * Modified by both the callback handler and the ContainerAllocator thread
    */
-  public AtomicBoolean jobHealthy = new AtomicBoolean(true);
+  public final AtomicBoolean jobHealthy = new AtomicBoolean(true);
 
-  public AtomicInteger containerRequests = new AtomicInteger(0);
+  public final AtomicInteger containerRequests = new AtomicInteger(0);
 
-  public AtomicInteger matchedContainerRequests = new AtomicInteger(0);
+  public final AtomicInteger matchedContainerRequests = new AtomicInteger(0);
 
   public SamzaAppState(JobModelReader jobModelReader) {
     this.jobModelReader = jobModelReader;

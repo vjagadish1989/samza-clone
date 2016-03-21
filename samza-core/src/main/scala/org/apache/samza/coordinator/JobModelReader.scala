@@ -96,10 +96,10 @@ object JobModelReader extends Logging {
 
     val streamMetadataCache = new StreamMetadataCache(systemAdmins)
 
-    val jobCoordinator = getJobCoordinator(config, changelogManager, localityManager, streamMetadataCache)
-    createChangeLogStreams(config, jobCoordinator.jobModel.maxChangeLogStreamPartitions, streamMetadataCache)
+    val jobModelReader = getJobModelReader(config, changelogManager, localityManager, streamMetadataCache)
+    createChangeLogStreams(config, jobModelReader.jobModel.maxChangeLogStreamPartitions, streamMetadataCache)
 
-    jobCoordinator
+    jobModelReader
   }
 
   def apply(coordinatorSystemConfig: Config): JobModelReader = apply(coordinatorSystemConfig, new MetricsRegistryMap())
@@ -108,7 +108,7 @@ object JobModelReader extends Logging {
    * Build a JobModelReader using a Samza job's configuration.
    * //TODO:rename this method.
    */
-  def getJobCoordinator(config: Config,
+  def getJobModelReader(config: Config,
                         changelogManager: ChangelogPartitionManager,
                         localityManager: LocalityManager,
                         streamMetadataCache: StreamMetadataCache) = {
@@ -277,15 +277,8 @@ object JobModelReader extends Logging {
 }
 
 /**
- * <p>JobCoordinator is responsible for managing the lifecycle of a Samza job
- * once it's been started. This includes starting and stopping containers,
- * managing configuration, etc.</p>
- *
- * <p>Any refactor cluster manager that's integrated with Samza (YARN, Mesos, etc)
- * must integrate with the job coordinator.</p>
- *
  * <p>This class' API is currently unstable, and likely to change. The
- * coordinator's responsibility is simply to propagate the job model, and HTTP
+ * reader's responsibility is simply to propagate the job model, and expose HTTP
  * server right now.</p>
  */
 class JobModelReader(

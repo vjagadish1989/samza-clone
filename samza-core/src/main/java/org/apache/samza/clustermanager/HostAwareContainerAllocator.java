@@ -41,12 +41,12 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
   /**
    * Tracks the expiration of a request for resources.
    */
-  private final int CONTAINER_REQUEST_TIMEOUT;
+  private final int containerRequestTimeout;
 
   public HostAwareContainerAllocator(ContainerProcessManager manager ,
                                      int timeout, Config config, SamzaAppState state) {
     super(manager, new ContainerRequestState(true, manager), config, state);
-    this.CONTAINER_REQUEST_TIMEOUT = timeout;
+    this.containerRequestTimeout = timeout;
   }
 
   /**
@@ -58,8 +58,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
    */
   @Override
   public void assignContainerRequests()  {
-    while (hasPendingRequest())
-    {
+    while (hasPendingRequest()) {
       SamzaResourceRequest request = peekPendingRequest();;
       log.info("Handling request: " + request.getExpectedContainerID() + " " + request.getRequestTimestampMs() + " " + request.getPreferredHost());
       String preferredHost = request.getPreferredHost();
@@ -85,7 +84,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
         else {
           log.info("Either the request timestamp {} is greater than container request timeout {}ms or we couldn't "
                   + "find any free allocated containers in the buffer. Breaking out of loop.",
-              request.getRequestTimestampMs(), CONTAINER_REQUEST_TIMEOUT);
+              request.getRequestTimestampMs(), containerRequestTimeout);
           break;
         }
       }
@@ -99,7 +98,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
    */
   private boolean requestExpired(SamzaResourceRequest request) {
     long currTime = System.currentTimeMillis();
-    boolean requestExpired =  currTime - request.getRequestTimestampMs() > CONTAINER_REQUEST_TIMEOUT;
+    boolean requestExpired =  currTime - request.getRequestTimestampMs() > containerRequestTimeout;
     if(requestExpired == true) {
       log.info("Request {} with currTime {} has expired", request, currTime);
     }

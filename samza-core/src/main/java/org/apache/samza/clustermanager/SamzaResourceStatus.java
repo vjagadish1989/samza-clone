@@ -39,10 +39,6 @@ package org.apache.samza.clustermanager;
  */
 public final class SamzaResourceStatus
 {
-  private final String resourceID;
-  private final String diagnostics;
-  private final int exitCode;
-
   /**
    * Indicates that the StreamProcessor on the resource successfully completed.
    */
@@ -62,6 +58,11 @@ public final class SamzaResourceStatus
    * many cluster managers.
    */
   public static final int DISK_FAIL=3;
+
+  private final String resourceID;
+  private final String diagnostics;
+  private final int exitCode;
+
 
   public SamzaResourceStatus(String resourceID, String diagnostics, int exitCode) {
       this.resourceID = resourceID;

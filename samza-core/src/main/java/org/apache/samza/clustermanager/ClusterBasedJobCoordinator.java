@@ -142,10 +142,10 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
 
 
     MetricsRegistryMap registry = new MetricsRegistryMap();
-    this.jobModelReader = JobModelReader.apply(coordinatorSystemConfig, registry);;
-    this.config = jobModelReader.jobModel().getConfig();
+    jobModelReader = JobModelReader.apply(coordinatorSystemConfig, registry);;
+    config = jobModelReader.jobModel().getConfig();
 
-    this.state = new SamzaAppState(jobModelReader, this.config);
+    state = new SamzaAppState(jobModelReader);
 
     clusterManagerConfig = new ClusterManagerConfig(config);
     isJmxEnabled = clusterManagerConfig.getJmxEnabled();
@@ -178,8 +178,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
       jmxServer = null;
     }
 
-    try
-    {
+    try {
       //initialize JobCoordinator state
       log.info("Starting Yarn Job Coordinator");
 
@@ -306,8 +305,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    * @param resourceStatuses the statuses for the resources that have completed
    */
   @Override
-  public void onResourcesCompleted(List<SamzaResourceStatus> resourceStatuses)
-  {
+  public void onResourcesCompleted(List<SamzaResourceStatus> resourceStatuses) {
       for (SamzaResourceStatus resourceStatus : resourceStatuses)
       {
           taskManager.onContainerCompleted(resourceStatus);
@@ -319,8 +317,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    * @param e the underlying exception/error
    */
   @Override
-  public void onError(Throwable e)
-  {
+  public void onError(Throwable e) {
       log.error("Exception occured in callbacks from the ContainerManager : {}", e);
       exceptionOccurred = true;
   }
