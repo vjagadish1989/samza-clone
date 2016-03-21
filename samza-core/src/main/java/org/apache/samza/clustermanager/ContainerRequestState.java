@@ -34,7 +34,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * {@link ContainerRequestState} maintains the state variables for all the container requests and the allocated containers returned
  * by the RM.
  *
- * This class is thread-safe, and can safely support concurrent accesses without any form of external synchronization.
+ * This class is thread-safe, and can safely support concurrent accesses without any form of external synchronization. Currently,
+ * this state is shared across both the Allocator Thread, and the Callback handler thread.
  *
  */
 public class ContainerRequestState {
@@ -54,7 +55,7 @@ public class ContainerRequestState {
    * This state variable is used to look-up whether an allocated container on a host was ever requested in the past.
    * This map is not updated when host-affinity is not enabled
    */
-  private final ConcurrentHashMap<String, AtomicInteger> requestsToCountMap = new ConcurrentHashMap<String, AtomicInteger>();
+  private final Map<String, AtomicInteger> requestsToCountMap = new HashMap<>();
   /**
    * Indicates whether host-affinity is enabled or not
    */
@@ -278,8 +279,10 @@ public class ContainerRequestState {
    *
    * @return  the pending request or {@code null} if there is no pending request.
    */
-  public synchronized SamzaResourceRequest peekPendingRequest() {
-    return this.requestsQueue.peek();
+  public SamzaResourceRequest peekPendingRequest() {
+    synchronized (lock) {
+      return this.requestsQueue.peek();
+    }
   }
 
   /**
