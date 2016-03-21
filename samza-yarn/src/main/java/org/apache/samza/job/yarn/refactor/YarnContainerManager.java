@@ -257,7 +257,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
     synchronized (lock) {
       AMRMClient.ContainerRequest containerRequest = requestsMap.get(request);
       if (containerRequest == null) {
-        log.info("Cancellation already cancelled. ", containerRequest);
+        log.info("Cancellation of {} already done. ", containerRequest);
         return;
       }
       requestsMap.remove(request);
@@ -269,7 +269,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
   /**
    * Stops the YarnContainerManager and all its sub-components.
    * Stop should NOT be called from multiple threads.
-   * TODO: fix this to make stop idempotent.
+   * TODO: fix this to make stop idempotent?.
    */
   @Override
   public void stop(SamzaAppState.SamzaAppStatus status) {
