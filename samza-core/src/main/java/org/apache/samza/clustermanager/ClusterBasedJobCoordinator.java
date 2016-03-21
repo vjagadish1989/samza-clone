@@ -134,7 +134,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     // and instantiates a JmxServer in its constructor. Then class X must ensure:
     // 1.jmxServer.close is called when constructor of class X fails due to some other reason unrelated to JmxServer
     // 2.jmxServer.close is called when class X's lifecycle ends. (during a clean shutdown)
-    // this leads to buggy code in class X as class X has to call close in 2 places.
+    // this leads to buggy code in class X as class X has to call jmxServer.close() in 2 places.
 
     //TODO2: Re-design the JobCoordinator (JobModelReader now) class.
     //i) Decouple the exposing of the JobModel from building the JobModel. (Move the http server to another class)
@@ -143,8 +143,9 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
 
     MetricsRegistryMap registry = new MetricsRegistryMap();
     this.jobModelReader = JobModelReader.apply(coordinatorSystemConfig, registry);;
-    this.state = new SamzaAppState(jobModelReader);
     this.config = jobModelReader.jobModel().getConfig();
+
+    this.state = new SamzaAppState(jobModelReader, this.config);
 
     clusterManagerConfig = new ClusterManagerConfig(config);
     isJmxEnabled = clusterManagerConfig.getJmxEnabled();

@@ -37,11 +37,11 @@ package org.apache.samza.clustermanager;
  * resource preemption, disk failures on host.
  *
  */
-public class SamzaResourceStatus
+public final class SamzaResourceStatus
 {
-  String resourceID;
-  String diagnostics;
-  int exitCode;
+  private final String resourceID;
+  private final String diagnostics;
+  private final int exitCode;
 
   /**
    * Indicates that the StreamProcessor on the resource successfully completed.
@@ -73,24 +73,12 @@ public class SamzaResourceStatus
       return exitCode;
   }
 
-  public void setExitCode(int exitCode) {
-      this.exitCode = exitCode;
-  }
-
   public String getDiagnostics() {
       return diagnostics;
   }
 
-  public void setDiagnostics(String diagnostics) {
-      this.diagnostics = diagnostics;
-  }
-
   public String getResourceID() {
       return resourceID;
-  }
-
-  public void setResourceID(String resourceID) {
-      this.resourceID = resourceID;
   }
 
   @Override

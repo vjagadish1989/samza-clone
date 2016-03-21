@@ -24,6 +24,7 @@ package org.apache.samza.clustermanager;
  * during container launch should be of this type so it can be handled explicitly.
  */
 public class SamzaContainerLaunchException extends Exception {
+  private static final long serialVersionUID = -3957939806997013992L;
 
   public SamzaContainerLaunchException() {
     super();

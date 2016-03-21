@@ -40,12 +40,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
  * An {@link YarnContainerManager} implements a ContainerProcessManager using Yarn as the underlying
  * resource manager. This class is as an adaptor between Yarn and translates Yarn callbacks into
  * Samza specific callback methods as specified in Callback.
+ *
+ * Thread-safety:
+ * 1.Start and stop methods should  NOT be called from multiple threads.
+ * 2.ALL callbacks from the YarnContainerManager are invoked from a single Callback thread of the AMRMClient.
+ * 3.Stop should not be called more than once.
  *
  */
 
@@ -78,14 +85,17 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    */
   private final SamzaAppMasterService service;
 
-  private static final Logger log = LoggerFactory.getLogger(YarnContainerManager.class);
 
   /**
    * State variables to map Yarn specific callbacks into Samza specific callbacks.
    */
-  final Map<SamzaResource, Container> allocatedResources = new HashMap<SamzaResource, Container>();
-  final Map<SamzaResourceRequest, AMRMClient.ContainerRequest> requestsMap = new HashMap<>();
+  private final ConcurrentHashMap<SamzaResource, Container> allocatedResources = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<SamzaResourceRequest, AMRMClient.ContainerRequest> requestsMap = new ConcurrentHashMap<>();
 
+  final AtomicBoolean started = new AtomicBoolean(false);
+  private final Object lock = new Object();
+
+  private static final Logger log = LoggerFactory.getLogger(YarnContainerManager.class);
 
   /**
    * Creates an YarnContainerManager from config, a jobModelReader and a callback.
@@ -131,6 +141,10 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
   @Override
   public void start()
   {
+    if(!started.compareAndSet(false, true)) {
+      log.info("Attempting to start an already started ContainerManager");
+      return;
+    }
     service.onInit();
     log.info("Starting YarnContainerManager.");
     amClient.init(hConfig);
@@ -170,9 +184,11 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
               null,
               priority);
     }
-
-    requestsMap.put(resourceRequest, issuedRequest);
-    amClient.addContainerRequest(issuedRequest);
+    //ensure that updating the state and making the request are done atomically.
+    synchronized (lock) {
+      requestsMap.put(resourceRequest, issuedRequest);
+      amClient.addContainerRequest(issuedRequest);
+    }
   }
 
   /**
@@ -185,12 +201,18 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
   @Override
   public void releaseResources(SamzaResource resource)
   {
-
     log.info("Release resource invoked {} ", resource);
-    Container container = allocatedResources.get(resource);
-    state.runningContainers.remove(container);
-    amClient.releaseAssignedContainer(container.getId());
-
+    //ensure that updating state and removing the request are done atomically
+    synchronized (lock) {
+      Container container = allocatedResources.get(resource);
+      if (container == null) {
+        log.info("Resource {} already released. ", resource);
+        return;
+      }
+      state.runningContainers.remove(container);
+      amClient.releaseAssignedContainer(container.getId());
+      allocatedResources.remove(resource);
+    }
   }
 
   /**
@@ -204,12 +226,20 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
 
   @Override
   public void launchStreamProcessor(SamzaResource resource, CommandBuilder builder) throws SamzaContainerLaunchException {
-      String containerIDStr = builder.buildEnvironment().get(ShellCommandConfig.ENV_CONTAINER_ID());
-      int containerID = Integer.parseInt(containerIDStr);
-      log.info("Received launch request for {} on hostname {}", containerID , resource.getHost());
+    String containerIDStr = builder.buildEnvironment().get(ShellCommandConfig.ENV_CONTAINER_ID());
+    int containerID = Integer.parseInt(containerIDStr);
+    log.info("Received launch request for {} on hostname {}", containerID , resource.getHost());
+
+    synchronized (lock) {
       Container container = allocatedResources.get(resource);
+      if (container == null) {
+        log.info("Resource {} already released. ", resource);
+        return;
+      }
+
       state.runningContainers.add(container);
       yarnContainerRunner.runContainer(containerID, container, builder);
+    }
   }
 
   /**
@@ -223,18 +253,27 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
   @Override
   public void cancelResourceRequest(SamzaResourceRequest request) {
     log.info("Cancelling request {} ", request);
-    AMRMClient.ContainerRequest containerRequest = requestsMap.get(request);
-    amClient.removeContainerRequest(containerRequest);
+    //ensure that removal and cancellation are done atomically.
+    synchronized (lock) {
+      AMRMClient.ContainerRequest containerRequest = requestsMap.get(request);
+      if (containerRequest == null) {
+        log.info("Cancellation already cancelled. ", containerRequest);
+        return;
+      }
+      requestsMap.remove(request);
+      amClient.removeContainerRequest(containerRequest);
+    }
   }
 
 
   /**
-   * Stops the YarnContainerManager and all its sub-components
+   * Stops the YarnContainerManager and all its sub-components.
+   * Stop should NOT be called from multiple threads.
+   * TODO: fix this to make stop idempotent.
    */
   @Override
   public void stop(SamzaAppState.SamzaAppStatus status) {
     log.info("Stopping AM client " );
-
     lifecycle.onShutdown(status);
     amClient.stop();
     log.info("Stopping the AM service " );

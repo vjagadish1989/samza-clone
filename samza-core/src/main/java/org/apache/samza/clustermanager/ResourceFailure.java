@@ -27,11 +27,11 @@ public class ResourceFailure {
   /**
    * Number of times a container has failed
    * */
-  private int count;
+  private final int count;
   /**
    * Latest failure time of the container
    * */
-  private Long lastFailure;
+  private final Long lastFailure;
 
   public ResourceFailure(int count,
                          Long lastFailure) {

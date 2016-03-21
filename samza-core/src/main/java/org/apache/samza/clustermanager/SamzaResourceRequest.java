@@ -34,10 +34,13 @@ import org.slf4j.LoggerFactory;
  */
 public class SamzaResourceRequest implements Comparable<SamzaResourceRequest>
 {
+  private static final Logger log = LoggerFactory.getLogger(SamzaResourceRequest.class);
+
   /**
    * Specifications of a resource request.
    */
   private final int numCores;
+
   private final int memoryMB;
   /**
    * The preferred host on which the resource must be allocated. Can be set to
@@ -57,8 +60,6 @@ public class SamzaResourceRequest implements Comparable<SamzaResourceRequest>
    * The timestamp in millis when the request was created.
    */
   private final long requestTimestampMs;
-
-  private static final Logger log = LoggerFactory.getLogger(SamzaResourceRequest.class);
 
   public SamzaResourceRequest(int numCores, int memoryMB, String preferredHost, String requestID, int expectedContainerID) {
       this.numCores = numCores;

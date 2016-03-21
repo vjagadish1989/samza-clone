@@ -51,12 +51,15 @@ import org.apache.samza.coordinator.stream.CoordinatorStreamSystemFactory
  * Helper companion object that is responsible for wiring up a JobModelReader
  * given a Config object.
  */
+
+//TODO: Make this thread-safe. Tracked as a part of umbrella ticket SAMZA-901
+// 1. Decouple the exposing of JobModel and the generation of JobModel.
+// 2. Make the JobModel object completely immutable - currently it's not (or) use copy on write to
+//    when returning JobModel from this class.
+// 3. Then, make this class thread-safe.
+
 object JobModelReader extends Logging {
 
-  /**
-   * a volatile value to store the current instantiated <code>JobModelReader</code>
-   */
-  @volatile var currentJobCoordinator: JobModelReader = null
   val jobModelRef: AtomicReference[JobModel] = new AtomicReference[JobModel]()
 
   /**
@@ -114,8 +117,7 @@ object JobModelReader extends Logging {
 
     val server = new HttpServer
     server.addServlet("/*", new JobServlet(jobModelRef))
-    currentJobCoordinator = new JobModelReader(jobModel, server)
-    currentJobCoordinator
+    new JobModelReader(jobModel, server)
   }
 
   /**

@@ -22,8 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,12 +44,11 @@ public class ContainerRequestState {
   /**
    * Maintain a map of hostname to a list of containers allocated on this host
    */
-  //A CHM is probably not needed here. We anyways need to synchronize to guarantee atomic execution of methods.
-  private final ConcurrentHashMap<String, List<SamzaResource>> allocatedContainers = new ConcurrentHashMap<String, List<SamzaResource>>();
+  private final Map<String, List<SamzaResource>> allocatedContainers = new HashMap<>();
   /**
    * Represents the queue of container requests made by the {@link org.apache.samza.clustermanager.SamzaTaskManager}
    */
-  private final PriorityBlockingQueue<SamzaResourceRequest> requestsQueue = new PriorityBlockingQueue<SamzaResourceRequest>();
+  private final PriorityQueue<SamzaResourceRequest> requestsQueue = new PriorityQueue<SamzaResourceRequest>();
   /**
    * Maintain a map of hostname to the number of requests made for containers on this host
    * This state variable is used to look-up whether an allocated container on a host was ever requested in the past.
@@ -61,6 +62,7 @@ public class ContainerRequestState {
 
   private final ContainerProcessManager manager;
 
+  private final Object lock = new Object();
 
   public ContainerRequestState(boolean hostAffinityEnabled, ContainerProcessManager manager) {
     this.hostAffinityEnabled = hostAffinityEnabled;
@@ -72,79 +74,82 @@ public class ContainerRequestState {
    *
    * @param request {@link SamzaResourceRequest} to be queued
    */
-  public synchronized void addResourceRequest(SamzaResourceRequest request) {
-    requestsQueue.add(request);
-    String preferredHost = request.getPreferredHost();
+  public void addResourceRequest(SamzaResourceRequest request) {
+    synchronized (lock) {
+      requestsQueue.add(request);
+      String preferredHost = request.getPreferredHost();
 
-    // if host affinity is enabled, update state.
-    if (hostAffinityEnabled) {
-      //increment # of requests on the host.
-      if (requestsToCountMap.containsKey(preferredHost)) {
-        requestsToCountMap.get(preferredHost).incrementAndGet();
+      // if host affinity is enabled, update state.
+      if (hostAffinityEnabled) {
+        //increment # of requests on the host.
+        if (requestsToCountMap.containsKey(preferredHost)) {
+          requestsToCountMap.get(preferredHost).incrementAndGet();
+        } else {
+          requestsToCountMap.put(preferredHost, new AtomicInteger(1));
+        }
+        /**
+         * The following is important to correlate allocated container data with the requestsQueue made before. If
+         * the preferredHost is requested for the first time, the state should reflect that the allocatedContainers
+         * list is empty and NOT null.
+         */
+
+        if (!allocatedContainers.containsKey(preferredHost)) {
+          allocatedContainers.put(preferredHost, new ArrayList<SamzaResource>());
+        }
       }
-      else {
-        requestsToCountMap.put(preferredHost, new AtomicInteger(1));
-      }
-      /**
-       * The following is important to correlate allocated container data with the requestsQueue made before. If
-       * the preferredHost is requested for the first time, the state should reflect that the allocatedContainers
-       * list is empty and NOT null.
-       */
-      if (!allocatedContainers.containsKey(preferredHost)) {
-        allocatedContainers.put(preferredHost, new ArrayList<SamzaResource>());
-      }
+      manager.requestResources(request);
     }
-    manager.requestResources(request);
   }
 
   /**
    * Invoked each time a resource is returned from a {@link ContainerProcessManager}.
    * @param resource The resource that was returned from the {@link ContainerProcessManager}
    */
-  public synchronized void addResource(SamzaResource resource) {
-    if(hostAffinityEnabled) {
-      String hostName = resource.getHost();
-      AtomicInteger requestCount = requestsToCountMap.get(hostName);
-      // Check if this host was requested for any of the containers
-      if (requestCount == null || requestCount.get() == 0) {
-        log.info(
-            " This host was not requested. {} saving the container {} in the buffer for ANY_HOST",
-            hostName,
-            resource.getResourceID()
-        );
-        addToAllocatedContainerList(ANY_HOST, resource);
-      }
-      else {
-        // This host was indeed requested.
-        int requestCountOnThisHost = requestCount.get();
-        List<SamzaResource> allocatedContainersOnThisHost = allocatedContainers.get(hostName);
-        if (requestCountOnThisHost > 0) {
-          //there are pending requests for containers on this host.
-          if (allocatedContainersOnThisHost == null || allocatedContainersOnThisHost.size() < requestCountOnThisHost) {
-            log.info("Got matched container {} in the buffer for preferredHost: {}", resource.getResourceID(), hostName);
-            addToAllocatedContainerList(hostName, resource);
-          } else {
-            /**
-             * The RM may allocate more containers on a given host than requested. In such a case, even though the
-             * requestCount != 0, it will be greater than the total request count for that host. Hence, it should be
-             * assigned to ANY_HOST
-             */
-            log.info(
-                "The number of containers already allocated on {} is greater than what was " +
-                    "requested, which is {}. Hence, saving the container {} in the buffer for ANY_HOST",
-                new Object[]{
-                    hostName,
-                    requestCountOnThisHost,
-                    resource.getResourceID()
-                }
-            );
-            addToAllocatedContainerList(ANY_HOST, resource);
+  public void addResource(SamzaResource resource) {
+    synchronized (lock) {
+      if (hostAffinityEnabled) {
+        String hostName = resource.getHost();
+        AtomicInteger requestCount = requestsToCountMap.get(hostName);
+        // Check if this host was requested for any of the containers
+        if (requestCount == null || requestCount.get() == 0) {
+          log.info(
+              " This host was not requested. {} saving the container {} in the buffer for ANY_HOST",
+              hostName,
+              resource.getResourceID()
+          );
+          addToAllocatedContainerList(ANY_HOST, resource);
+        } else {
+          // This host was indeed requested.
+          int requestCountOnThisHost = requestCount.get();
+          List<SamzaResource> allocatedContainersOnThisHost = allocatedContainers.get(hostName);
+          if (requestCountOnThisHost > 0) {
+            //there are pending requests for containers on this host.
+            if (allocatedContainersOnThisHost == null || allocatedContainersOnThisHost.size() < requestCountOnThisHost) {
+              log.info("Got matched container {} in the buffer for preferredHost: {}", resource.getResourceID(), hostName);
+              addToAllocatedContainerList(hostName, resource);
+            } else {
+              /**
+               * The RM may allocate more containers on a given host than requested. In such a case, even though the
+               * requestCount != 0, it will be greater than the total request count for that host. Hence, it should be
+               * assigned to ANY_HOST
+               */
+              log.info(
+                  "The number of containers already allocated on {} is greater than what was " +
+                      "requested, which is {}. Hence, saving the container {} in the buffer for ANY_HOST",
+                  new Object[]{
+                      hostName,
+                      requestCountOnThisHost,
+                      resource.getResourceID()
+                  }
+              );
+              addToAllocatedContainerList(ANY_HOST, resource);
+            }
           }
         }
+      } else {
+        log.info("Host affinity not enabled. Saving the container {} in the buffer for ANY_HOST", resource.getResourceID());
+        addToAllocatedContainerList(ANY_HOST, resource);
       }
-    } else {
-      log.info("Host affinity not enabled. Saving the container {} in the buffer for ANY_HOST", resource.getResourceID());
-      addToAllocatedContainerList(ANY_HOST, resource);
     }
   }
 
@@ -169,16 +174,18 @@ public class ContainerRequestState {
    * @param assignedHost  Host to which the container was assigned
    * @param container Allocated container resource that was used to satisfy this request
    */
-  public synchronized void updateStateAfterAssignment(SamzaResourceRequest request, String assignedHost, SamzaResource container) {
-    requestsQueue.remove(request);
-    allocatedContainers.get(assignedHost).remove(container);
-    if (hostAffinityEnabled) {
-      // assignedHost may not always be the preferred host.
-      // Hence, we should safely decrement the counter for the preferredHost
-      requestsToCountMap.get(request.getPreferredHost()).decrementAndGet();
+  public void updateStateAfterAssignment(SamzaResourceRequest request, String assignedHost, SamzaResource container) {
+    synchronized (lock) {
+      requestsQueue.remove(request);
+      allocatedContainers.get(assignedHost).remove(container);
+      if (hostAffinityEnabled) {
+        // assignedHost may not always be the preferred host.
+        // Hence, we should safely decrement the counter for the preferredHost
+        requestsToCountMap.get(request.getPreferredHost()).decrementAndGet();
+      }
+      // To avoid getting back excess containers
+      manager.cancelResourceRequest(request);
     }
-    // To avoid getting back excess containers
-    manager.cancelResourceRequest(request);
   }
 
   /**
@@ -186,23 +193,24 @@ public class ContainerRequestState {
    * Needs to be synchronized because it is modifying shared state buffers
    * @return the number of containers released.
    */
-  public synchronized int releaseExtraContainers() {
-    int numReleasedContainers = 0;
-    if (requestsQueue.isEmpty()) {
-      log.debug("Container Requests Queue is empty.");
-      if (hostAffinityEnabled) {
-        List<String> allocatedHosts = getAllocatedHosts();
-        for (String host : allocatedHosts) {
-          numReleasedContainers += releaseContainersForHost(host);
+  public int releaseExtraContainers() {
+    synchronized (lock) {
+      int numReleasedContainers = 0;
+      if (requestsQueue.isEmpty()) {
+        log.debug("Container Requests Queue is empty.");
+        if (hostAffinityEnabled) {
+          List<String> allocatedHosts = getAllocatedHosts();
+          for (String host : allocatedHosts) {
+            numReleasedContainers += releaseContainersForHost(host);
+          }
+        } else {
+          numReleasedContainers += releaseContainersForHost(ANY_HOST);
         }
-      } else {
-        numReleasedContainers += releaseContainersForHost(ANY_HOST);
+        clearState();
       }
-      clearState();
+      return numReleasedContainers;
     }
-    return numReleasedContainers;
   }
-
   /**
    * Releases all allocated containers for the specified host.
    * @param host  the host for which the containers should be released.
@@ -253,14 +261,16 @@ public class ContainerRequestState {
    * @return      the first {@link SamzaResource} allocated for the specified host or {@code null} if there isn't one.
    */
 
-  public synchronized SamzaResource peekContainer(String host)
+  public SamzaResource peekContainer(String host)
   {
-    List<SamzaResource> containersOnTheHost = this.allocatedContainers.get(host);
+    synchronized (lock) {
+      List<SamzaResource> containersOnTheHost = this.allocatedContainers.get(host);
 
-    if (containersOnTheHost == null || containersOnTheHost.isEmpty()) {
-      return null;
+      if (containersOnTheHost == null || containersOnTheHost.isEmpty()) {
+        return null;
+      }
+      return containersOnTheHost.get(0);
     }
-    return containersOnTheHost.get(0);
   }
 
   /**
@@ -268,15 +278,17 @@ public class ContainerRequestState {
    *
    * @return  the pending request or {@code null} if there is no pending request.
    */
-  protected synchronized SamzaResourceRequest peekPendingRequest() {
+  public synchronized SamzaResourceRequest peekPendingRequest() {
     return this.requestsQueue.peek();
   }
 
   /**
    * Returns the number of pending SamzaContainer requests in the queue.
    */
-  public synchronized int numPendingRequests() {
-    return this.requestsQueue.size();
+  public int numPendingRequests() {
+    synchronized (lock) {
+      return this.requestsQueue.size();
+    }
   }
 
 
@@ -288,12 +300,14 @@ public class ContainerRequestState {
    * @param host hostname
    * @return list of containers allocated on the given host, or null
    */
-  public synchronized List<SamzaResource> getContainersOnAHost(String host) {
-    List<SamzaResource> containerList =  allocatedContainers.get(host);
-    if(containerList == null)
-      return null;
+  public List<SamzaResource> getContainersOnAHost(String host) {
+    synchronized (lock) {
+      List<SamzaResource> containerList = allocatedContainers.get(host);
+      if (containerList == null)
+        return null;
 
-    return new ArrayList<SamzaResource>(containerList);
+      return new ArrayList<SamzaResource>(containerList);
+    }
   }
 
 }

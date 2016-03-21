@@ -19,6 +19,7 @@
 
 package org.apache.samza.clustermanager;
 
+import org.apache.samza.config.Config;
 import org.apache.samza.coordinator.JobModelReader;
 
 import java.util.HashSet;
@@ -80,7 +81,7 @@ public class SamzaAppState {
   /**
    * Number of containers configured for the job
    */
-  public int containerCount = 0;
+  public final AtomicInteger containerCount = new AtomicInteger(0);
 
   /**
    * Set of finished containers - TODO: Can be changed to a counter
@@ -116,6 +117,5 @@ public class SamzaAppState {
 
   public SamzaAppState(JobModelReader jobModelReader) {
     this.jobModelReader = jobModelReader;
-
   }
 }

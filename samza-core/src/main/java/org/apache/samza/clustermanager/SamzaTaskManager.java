@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * SamzaTaskManager is responsible for requesting containers, handling failures, and notifying the application master that the
@@ -40,6 +41,11 @@ import java.util.Map;
  *        internal requestQueue in {@link org.apache.samza.clustermanager.ContainerRequestState}
  *  - The allocator thread defined here assigns the allocated containers to pending requests
  *    (See {@link org.apache.samza.clustermanager.ContainerAllocator} or {@link org.apache.samza.clustermanager.HostAwareContainerAllocator})
+ *
+
+ *    //TODO: Ideally this class can be made a singleton;
+ *    //TODO:  The SamzaTaskManager is NOT thread-safe. Invoking the callback methods in the SamzaTaskManager
+ *    //in a multi-threaded context will corrupt state. Attempt fixing it later.
  */
 
 public class SamzaTaskManager   {
@@ -76,13 +82,14 @@ public class SamzaTaskManager   {
    * If there are too many failed container failures (configured by job.container.retry.count) for a
    * container, the job exits.
    */
-  private boolean tooManyFailedContainers = false;
+  private volatile boolean tooManyFailedContainers = false;
 
   /**
    * A map that keeps track of how many times each container failed. The key is the container ID, and the
    * value is the {@link ResourceFailure} object that has a count of failures.
+   *
    */
-  private final Map<Integer, ResourceFailure> containerFailures = new HashMap<Integer, ResourceFailure>();
+  private final Map<Integer, ResourceFailure> containerFailures = new HashMap<>();
 
   public SamzaTaskManager(Config config,
                           SamzaAppState state,
@@ -118,15 +125,15 @@ public class SamzaTaskManager   {
       log.info(" TaskManager state: Too many FailedContainers: {} No. Completed containers: {} Num Configured containers: {}" +
           " AllocatorThread liveness: {} ", new Object[]{tooManyFailedContainers, state.completedContainers.get(), state.containerCount, allocatorThread.isAlive()});
 
-        return tooManyFailedContainers || state.completedContainers.get() == state.containerCount || !allocatorThread.isAlive();
+        return tooManyFailedContainers || state.completedContainers.get() == state.containerCount.get() || !allocatorThread.isAlive();
     }
 
     public void start() {
         log.info("Starting the Samza task manager");
+        final int containerCount = jobConfig.getContainerCount();
 
-        state.containerCount = jobConfig.getContainerCount();
-
-        state.neededContainers.set(state.containerCount);
+        state.containerCount.set(containerCount);
+        state.neededContainers.set(containerCount);
 
         // Request initial set of containers
         Map<Integer, String> containerToHostMapping = state.jobModelReader.jobModel().getAllContainerLocality();
@@ -164,7 +171,7 @@ public class SamzaTaskManager   {
      */
     //TODO: make this more modular as in SAMZA-867 (Doing it in a separate RB to avoid scope creep)
     public void onContainerCompleted(SamzaResourceStatus containerStatus) {
-        String containerIdStr = containerStatus.resourceID;
+        String containerIdStr = containerStatus.getResourceID();
         int containerId = -1;
         for(Map.Entry<Integer, SamzaResource> entry: state.runningContainers.entrySet()) {
             if(entry.getValue().getResourceID().equals(containerStatus.getResourceID())) {
@@ -191,7 +198,7 @@ public class SamzaTaskManager   {
                     containerFailures.remove(containerId);
                 }
 
-                if (state.completedContainers.get() == state.containerCount) {
+                if (state.completedContainers.get() == state.containerCount.get()) {
                     log.info("Setting job status to SUCCEEDED, since all containers have been marked as completed.");
                     state.status = SamzaAppState.SamzaAppStatus.SUCCEEDED;
                 }
