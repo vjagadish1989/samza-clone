@@ -62,7 +62,6 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    */
   private final AMRMClientAsync<AMRMClient.ContainerRequest> amClient;
 
-
   /**
    * A helper class to launch Yarn containers.
    */
@@ -101,8 +100,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    * Creates an YarnContainerManager from config, a jobModelReader and a callback.
    *
    */
-  public YarnContainerManager (Config config, JobModelReader jobModelReader, ContainerProcessManager.Callback callback, SamzaAppState samzaAppState )
-  {
+  public YarnContainerManager (Config config, JobModelReader jobModelReader, ContainerProcessManager.Callback callback, SamzaAppState samzaAppState ) {
     super(callback);
     hConfig = new YarnConfiguration();
     hConfig.set("fs.http.impl", HttpFileSystem.class.getName());
@@ -137,10 +135,10 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
 
   /**
    * Starts the YarnContainerManager and initialize all its sub-systems.
+   * Attempting to start an already started container manager will return immediately.
    */
   @Override
-  public void start()
-  {
+  public void start() {
     if(!started.compareAndSet(false, true)) {
       log.info("Attempting to start an already started ContainerManager");
       return;
@@ -157,8 +155,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    * Request resources for running container processes.
    */
   @Override
-  public void requestResources(SamzaResourceRequest resourceRequest)
-  {
+  public void requestResources(SamzaResourceRequest resourceRequest) {
     final int DEFAULT_PRIORITY = 0;
     log.info("Requesting resources on  " + resourceRequest.getPreferredHost() + " for container " + resourceRequest.getExpectedContainerID());
 
@@ -199,8 +196,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
    */
 
   @Override
-  public void releaseResources(SamzaResource resource)
-  {
+  public void releaseResources(SamzaResource resource) {
     log.info("Release resource invoked {} ", resource);
     //ensure that updating state and removing the request are done atomically
     synchronized (lock) {

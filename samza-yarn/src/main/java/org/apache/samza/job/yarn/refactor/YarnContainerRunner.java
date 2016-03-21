@@ -60,7 +60,7 @@ public class YarnContainerRunner {
   private final Config config;
   private final YarnConfiguration yarnConfiguration;
 
-  private NMClient nmClient;
+  private final NMClient nmClient;
   private final YarnConfig yarnConfig;
   private final TaskConfig taskConfig;
 
@@ -69,6 +69,7 @@ public class YarnContainerRunner {
    * @param config
    * @param yarnConfiguration
    */
+
   public YarnContainerRunner(Config config,
                              YarnConfiguration yarnConfiguration) {
     this.config = config;
@@ -81,13 +82,11 @@ public class YarnContainerRunner {
     this.taskConfig = new TaskConfig(config);
   }
 
-  protected void setNmClient(NMClient nmClient){
-    this.nmClient = nmClient;
-  }
-
-
-
-
+  /**
+   * Runs a process as specified by the command builder on the container.
+   * @throws SamzaContainerLaunchException
+   */
+  //TODO: we don't need samzaContainerId as a param here.
   public void runContainer(int samzaContainerId, Container container, CommandBuilder cmdBuilder) throws SamzaContainerLaunchException {
     String containerIdStr = ConverterUtils.toString(container.getId());
     log.info("Got available container ID ({}) for container: {}", samzaContainerId, container);
@@ -132,6 +131,10 @@ public class YarnContainerRunner {
       log.info("Started container ID {}", samzaContainerId);
   }
 
+  /**
+   *    Runs a command as a process on the container. All binaries needed by the physical process are packaged in the URL
+   *    specified by packagePath.
+   */
   private void startContainer(Path packagePath,
                                 Container container,
                                 Map<String, String> env,
