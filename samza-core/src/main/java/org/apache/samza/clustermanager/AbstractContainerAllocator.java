@@ -222,11 +222,11 @@ public abstract class AbstractContainerAllocator implements Runnable {
   /**
    * Retrieves, but does not remove, the first allocated container on the specified host.
    *
-   * @param host  the host for which a container is needed.
+   * @param host  the host on which a resource is needed.
    * @return      the first {@link SamzaResource} allocated for the specified host or {@code null} if there isn't one.
    */
   protected SamzaResource peekAllocatedResource(String host) {
-    return resourceRequestState.peekContainer(host);
+    return resourceRequestState.peekResource(host);
   }
 
   /**
@@ -241,13 +241,13 @@ public abstract class AbstractContainerAllocator implements Runnable {
     return cmdBuilder;
   }
   /**
-   * Adds allocated container to a synchronized buffer of allocated containers list
+   * Adds allocated samzaResource to a synchronized buffer of allocated containers list
    * See allocatedContainers in {@link ContainerRequestState}
    *
-   * @param container returned by the ContainerManager
+   * @param samzaResource returned by the ContainerManager
    */
-  public final void addContainer(SamzaResource container) {
-    resourceRequestState.addResource(container);
+  public final void addResource(SamzaResource samzaResource) {
+    resourceRequestState.addResource(samzaResource);
   }
 
 

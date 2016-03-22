@@ -161,7 +161,7 @@ public class SamzaTaskManager   {
 
     public void onContainerAllocated(SamzaResource container) {
         log.info("Container allocated from RM on " + container.getHost());
-        containerAllocator.addContainer(container);
+        containerAllocator.addResource(container);
     }
 
     /**

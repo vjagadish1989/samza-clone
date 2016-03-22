@@ -97,7 +97,7 @@ public class TestContainerRequestState {
   }
 
   /**
-   * Test addContainer() updates the state correctly
+   * Test addResource() updates the state correctly
    */
   @Test
   public void testAddContainer() {
