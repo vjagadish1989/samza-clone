@@ -152,7 +152,7 @@ public class SamzaTaskManager   {
         try {
             allocatorThread.join();
         } catch (InterruptedException ie) {
-          log.info("Allocator Thread join() threw an interrupted exception", ie);
+          log.error("Allocator Thread join() threw an interrupted exception", ie);
           Thread.currentThread().interrupt();
         }
         log.info("Finished stop of Samza task manager");
