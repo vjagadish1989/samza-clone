@@ -177,7 +177,7 @@ public class YarnContainerRunner {
       allTokens = ByteBuffer.wrap(dob.getData(), 0, dob.getLength());
 
     } catch (IOException ioe) {
-      ioe.printStackTrace();
+      log.error("IOException when writing credentials.", ioe);
       throw new SamzaContainerLaunchException("IO Exception when writing credentials to output buffer");
     }
 

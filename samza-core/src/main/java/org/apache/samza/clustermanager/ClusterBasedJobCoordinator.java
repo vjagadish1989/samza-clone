@@ -59,6 +59,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 6. Document newly added configs.
  */
 public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callback {
+
+  private static final Logger log = LoggerFactory.getLogger(ClusterBasedJobCoordinator.class);
+
   private final Config config;
   private final ClusterManagerConfig clusterManagerConfig;
   /**
@@ -105,8 +108,6 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
    */
   private volatile boolean exceptionOccurred = false;
 
-  private static final Logger log = LoggerFactory.getLogger(ClusterBasedJobCoordinator.class);
-
   /**
    * Internal boolean to check if the job coordinator has already been started.
    */
@@ -126,7 +127,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     //TODO1: A couple of classes - namely
     //  1.JobCoordinator (jobModelReader in the new case)
     //  2.JmxServer
-    // follow this weird pattern where their components are *started* in the constructor.
+    // follow this pattern where their components are *started* in the constructor.
     // For example, the JmxServer class starts up the jmxServer in the constructor instead
     // of just defining a separate start method. This makes the life-cycle hard to manage.
     // (for example, consider a class X that includes a JmxServer member (in addition to several others)

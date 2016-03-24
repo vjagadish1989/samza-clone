@@ -250,7 +250,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
     return cmdBuilder;
   }
   /**
-   * Adds allocated samzaResource to a synchronized buffer of allocated resources list
+   * Adds allocated samzaResource to a synchronized buffer of allocated resources.
    * See allocatedResources in {@link ContainerRequestState}
    *
    * @param samzaResource returned by the ContainerManager
@@ -259,7 +259,9 @@ public abstract class AbstractContainerAllocator implements Runnable {
     resourceRequestState.addResource(samzaResource);
   }
 
-
+  /**
+   * Stops the Allocator. Setting this flag to false, exits the allocator loop.
+   */
   public void stop() {
     isRunning=false;
   }
