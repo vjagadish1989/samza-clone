@@ -34,15 +34,30 @@ import java.util.UUID;
 
 /**
  * {@link AbstractContainerAllocator} makes requests for physical resources to the resource manager and also runs
- * a container process on an allocated physical resource. Sub-classes should override the allocateContainers() method to match
- * containers to hosts according to some strategy.
+ * a container process on an allocated physical resource. Sub-classes should override the assignResourceRequests()
+ * method to assign resource requests according to some strategy.
  *
  * See {@link ContainerAllocator} and {@link HostAwareContainerAllocator} for two such strategies
  *
  * It is not safe to share the same object among multiple threads without external synchronization.
  */
+
+//TODO: Make AbstractContainerAllocator a concrete class and have an AllocationStrategy implementation as a member.
+
 public abstract class AbstractContainerAllocator implements Runnable {
+
   private static final Logger log = LoggerFactory.getLogger(AbstractContainerAllocator.class);
+
+  /* State that controls the lifecycle of the allocator thread*/
+  private volatile boolean isRunning = true;
+
+  /**
+   * Config and derived config objects
+   */
+  private final TaskConfig taskConfig;
+
+  private final Config config;
+
   /**
    * A ContainerProcessManager for the allocator to request for resources.
    */
@@ -55,13 +70,8 @@ public abstract class AbstractContainerAllocator implements Runnable {
    * Each container currently has the same configuration - memory, and numCpuCores.
    */
   protected final int containerMemoryMb;
-  protected final int containerNumCpuCore;
-  /**
-   * Config and derived config objects
-   */
-  private final TaskConfig taskConfig;
+  protected final int containerNumCpuCores;
 
-  private final Config config;
   /**
    * State corresponding to num failed containers, running containers etc.
    */
@@ -72,9 +82,6 @@ public abstract class AbstractContainerAllocator implements Runnable {
    */
   protected final ContainerRequestState resourceRequestState;
 
-  /* State that controls the lifecycle of the allocator thread*/
-  private volatile boolean isRunning = true;
-
   public AbstractContainerAllocator(ContainerProcessManager containerProcessManager,
                                     ContainerRequestState resourceRequestState,
                                     Config config, SamzaAppState state) {
@@ -83,7 +90,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
     this.allocatorSleepIntervalMs = clusterManagerConfig.getAllocatorSleepTime();
     this.resourceRequestState = resourceRequestState;
     this.containerMemoryMb = clusterManagerConfig.getContainerMemoryMb();
-    this.containerNumCpuCore = clusterManagerConfig.getNumCores();
+    this.containerNumCpuCores = clusterManagerConfig.getNumCores();
     this.taskConfig = new TaskConfig(config);
     this.state = state;
     this.config = config;
@@ -105,7 +112,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
         Thread.sleep(allocatorSleepIntervalMs);
       }
       catch (InterruptedException e) {
-        log.error("Got InterruptedException in AllocatorThread.", e);
+        log.warn("Got InterruptedException in AllocatorThread.", e);
         Thread.currentThread().interrupt();
       }
       catch (Exception e) {
@@ -115,8 +122,8 @@ public abstract class AbstractContainerAllocator implements Runnable {
   }
 
   /**
-   * Assigns the container requests from the queue to the allocated containers from the cluster manager and
-   * runs them.
+   * Assign resources from the cluster manager and matches them to run container processes on them.
+   *
    */
   protected abstract void assignResourceRequests();
 
@@ -141,7 +148,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
     resourceRequestState.updateStateAfterAssignment(request, preferredHost, resource);
     int expectedContainerId = request.getExpectedContainerID();
 
-    // Cancel request and run resource
+    //run container on resource
     log.info("Found available resources on {}. Assigning request for container_id {} with "
             + "timestamp {} to resource {}",
         new Object[]{preferredHost, String.valueOf(expectedContainerId), request.getRequestTimestampMs(), resource.getResourceID()});
@@ -164,13 +171,14 @@ public abstract class AbstractContainerAllocator implements Runnable {
   /**
    * Called during initial request for resources
    *
-   * @param containerToHostMappings Map of container ID to its last seen host (locality).
-   *                                The locality value is null, either
+   * @param resourceToHostMappings A Map of <containerId, hostName>, containerId is the ID of the container process
+   *                               to run on the resource. hostName is the host on which the resource must be allocated.
+   *                                The hostName value is null, either
    *                                - when host-affinity is not enabled, or
    *                                - when host-affinity is enabled and job is run for the first time
    */
-  public void requestResources(Map<Integer, String> containerToHostMappings) {
-    for (Map.Entry<Integer, String> entry : containerToHostMappings.entrySet()) {
+  public void requestResources(Map<Integer, String> resourceToHostMappings) {
+    for (Map.Entry<Integer, String> entry : resourceToHostMappings.entrySet()) {
       int containerId = entry.getKey();
       String preferredHost = entry.getValue();
       if (preferredHost == null)
@@ -181,7 +189,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
   }
 
   /**
-   * Checks if this allocator has a pending request.
+   * Checks if this allocator has a pending resource request.
    * @return {@code true} if there is a pending request, {@code false} otherwise.
    */
   protected final boolean hasPendingRequest() {
@@ -205,13 +213,14 @@ public abstract class AbstractContainerAllocator implements Runnable {
    * @param preferredHost Name of the host that you prefer to run the container on
    */
   public final void requestResource(int expectedContainerId, String preferredHost) {
-    SamzaResourceRequest request = new SamzaResourceRequest(this.containerNumCpuCore, this.containerMemoryMb,
+    SamzaResourceRequest request = new SamzaResourceRequest(this.containerNumCpuCores, this.containerMemoryMb,
         preferredHost, UUID.randomUUID().toString() ,expectedContainerId);
     resourceRequestState.addResourceRequest(request);
     state.containerRequests.incrementAndGet();
   }
 
   /**
+   * Returns true if there are resources allocated on a host.
    * @param host  the host for which a resource is needed.
    * @return      {@code true} if there is a resource allocated for the specified host, {@code false} otherwise.
    */
