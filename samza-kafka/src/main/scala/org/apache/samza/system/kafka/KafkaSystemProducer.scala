@@ -47,7 +47,6 @@ class KafkaSystemProducer(systemName: String,
   val sendFailed: AtomicBoolean = new AtomicBoolean(false)
   var exceptionThrown: AtomicReference[Exception] = new AtomicReference[Exception]()
   val StreamNameNullOrEmptyErrorMsg = "Stream Name should be specified in the stream configuration file.";
-  val maxProducerRetries: Int = 1000
 
   def start() {
   }
@@ -89,12 +88,9 @@ class KafkaSystemProducer(systemName: String,
 
     sendFailed.set(false)
 
-    var numRetries: Int = 0
-
     retryBackoff.run(
       loop => {
         if(sendFailed.get()) {
-          warn("Exception when producing to partitionKey : %s %s ".format(envelope.getKey )
           throw exceptionThrown.get()
         }
         val futureRef: Future[RecordMetadata] =
@@ -118,8 +114,7 @@ class KafkaSystemProducer(systemName: String,
           loop.done
       },
       (exception, loop) => {
-        numRetries += 1
-        if( (exception != null && !exception.isInstanceOf[RetriableException]) || numRetries >= MAX_RETRIES ) {   // Exception is thrown & not retriable
+        if(exception != null && !exception.isInstanceOf[RetriableException]) {   // Exception is thrown & not retriable
           debug("Exception detail : ", exception)
           //Close producer
           stop()
@@ -127,7 +122,7 @@ class KafkaSystemProducer(systemName: String,
           //Mark loop as done as we are not going to retry
           loop.done
           metrics.sendFailed.inc
-          throw new SamzaException("Failed to send message. Exception:\n %s, key: %s partitionKey: %s system: %s stream: %s".format(exception, envelope.getKey, envelope.getPartitionKey, envelope.getSystemStream.getStream, envelope.getSystemStream.getStream))
+          throw new SamzaException("Failed to send message. Exception:\n %s".format(exception))
         } else {
           warn("Retrying send messsage due to RetriableException - %s. Turn on debugging to get a full stack trace".format(exception))
           debug("Exception detail:", exception)

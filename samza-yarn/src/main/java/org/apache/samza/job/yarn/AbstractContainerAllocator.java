@@ -52,7 +52,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
   protected final int containerMaxMemoryMb;
   protected final int containerMaxCpuCore;
 
-  // resourceRequestState indicate the state of all unfulfilled container requests and allocated containers
+  // containerRequestState indicate the state of all unfulfilled container requests and allocated containers
   private final ContainerRequestState containerRequestState;
 
   // state that controls the lifecycle of the allocator thread

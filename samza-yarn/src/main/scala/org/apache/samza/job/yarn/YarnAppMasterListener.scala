@@ -20,7 +20,6 @@
 package org.apache.samza.job.yarn
 import org.apache.hadoop.yarn.api.records.Container
 import org.apache.hadoop.yarn.api.records.ContainerStatus
-import org.apache.samza.clustermanager.SamzaAppState.SamzaAppStatus
 
 /**
  * Classes that wish to listen to callback events from YarnAppMaster must
