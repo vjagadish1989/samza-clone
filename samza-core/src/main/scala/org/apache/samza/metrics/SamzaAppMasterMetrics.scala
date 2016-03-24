@@ -56,7 +56,7 @@ class SamzaAppMasterMetrics(
 
    def start() {
     val mRunningContainers = newGauge("running-containers", () => state.runningContainers.size)
-    val mNeededContainers = newGauge("needed-containers", () => state.neededContainers.get())
+    val mNeededContainers = newGauge("needed-containers", () => state.neededResources.get())
     val mCompletedContainers = newGauge("completed-containers", () => state.completedContainers.get())
     val mFailedContainers = newGauge("failed-containers", () => state.failedContainers.get())
     val mReleasedContainers = newGauge("released-containers", () => state.releasedContainers.get())
@@ -73,7 +73,7 @@ class SamzaAppMasterMetrics(
       "locality-matched",
       () => {
         if (state.containerRequests.get() != 0) {
-          state.matchedContainerRequests.get() / state.containerRequests.get()
+          state.matchedResourceRequests.get() / state.containerRequests.get()
         } else {
           0L
         }

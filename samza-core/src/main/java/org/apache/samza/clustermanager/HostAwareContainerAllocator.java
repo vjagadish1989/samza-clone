@@ -41,12 +41,12 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
   /**
    * Tracks the expiration of a request for resources.
    */
-  private final int containerRequestTimeout;
+  private final int requestTimeout;
 
   public HostAwareContainerAllocator(ContainerProcessManager manager ,
                                      int timeout, Config config, SamzaAppState state) {
     super(manager, new ContainerRequestState(true, manager), config, state);
-    this.containerRequestTimeout = timeout;
+    this.requestTimeout = timeout;
   }
 
   /**
@@ -68,23 +68,23 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
         // Found allocated container at preferredHost
         log.info("Found a matched-container {} on the preferred host. Running on {}", expectedContainerId, preferredHost);
         runStreamProcessor(request, preferredHost);
-        state.matchedContainerRequests.incrementAndGet();
+        state.matchedResourceRequests.incrementAndGet();
 
       } else {
-        log.info("Did not find any allocated containers on preferred host {} for running container id {}",
+        log.info("Did not find any allocated resources on preferred host {} for running container id {}",
             preferredHost, expectedContainerId);
 
         boolean expired = requestExpired(request);
-        boolean containerAvailableOnAnyHost = hasAllocatedResource(ContainerRequestState.ANY_HOST);
+        boolean resourceAvailableOnAnyHost = hasAllocatedResource(ContainerRequestState.ANY_HOST);
 
-        if(expired && containerAvailableOnAnyHost) {
+        if(expired && resourceAvailableOnAnyHost) {
           log.info("Request expired. running on ANY_HOST");
           runStreamProcessor(request, ContainerRequestState.ANY_HOST);
         }
         else {
-          log.info("Either the request timestamp {} is greater than container request timeout {}ms or we couldn't "
-                  + "find any free allocated containers in the buffer. Breaking out of loop.",
-              request.getRequestTimestampMs(), containerRequestTimeout);
+          log.info("Either the request timestamp {} is greater than resource request timeout {}ms or we couldn't "
+                  + "find any free allocated resources in the buffer. Breaking out of loop.",
+              request.getRequestTimestampMs(), requestTimeout);
           break;
         }
       }
@@ -98,7 +98,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
    */
   private boolean requestExpired(SamzaResourceRequest request) {
     long currTime = System.currentTimeMillis();
-    boolean requestExpired =  currTime - request.getRequestTimestampMs() > containerRequestTimeout;
+    boolean requestExpired =  currTime - request.getRequestTimestampMs() > requestTimeout;
     if(requestExpired == true) {
       log.info("Request {} with currTime {} has expired", request, currTime);
     }

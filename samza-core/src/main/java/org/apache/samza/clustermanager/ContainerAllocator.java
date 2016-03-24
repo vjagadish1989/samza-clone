@@ -39,9 +39,9 @@ public class ContainerAllocator extends AbstractContainerAllocator {
   /**
    * During the run() method, the thread sleeps for allocatorSleepIntervalMs ms. It then invokes assignResourceRequests,
    * and tries to allocate any unsatisfied request that is still in the request queue {@link ContainerRequestState})
-   * with allocated containers, if any.
+   * with allocated resources, if any.
    *
-   * Since host-affinity is not enabled, all allocated container resources are buffered in the list keyed by "ANY_HOST".
+   * Since host-affinity is not enabled, all allocated resources are buffered in the list keyed by "ANY_HOST".
    * */
   @Override
   public void assignResourceRequests() {

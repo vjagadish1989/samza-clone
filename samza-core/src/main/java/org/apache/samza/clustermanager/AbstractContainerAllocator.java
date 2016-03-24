@@ -90,7 +90,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
   }
 
   /**
-   * Continuously assigns requested containers to the allocated containers provided by the cluster manager.
+   * Continually schedule StreamProcessors to run on resources obtained from the cluster manager.
    * The loop frequency is governed by thread sleeps for allocatorSleepIntervalMs ms.
    *
    * Terminates when the isRunning flag is cleared.
@@ -121,14 +121,14 @@ public abstract class AbstractContainerAllocator implements Runnable {
   protected abstract void assignResourceRequests();
 
   /**
-   * Updates the request state and runs the container on the specified host. Assumes a container
+   * Updates the request state and runs a container process on the specified host. Assumes a resource
    * is available on the preferred host, so the caller must verify that before invoking this method.
    *
    * @param request             the {@link SamzaResourceRequest} which is being handled.
-   * @param preferredHost       the preferred host on which the container should be run or
+   * @param preferredHost       the preferred host on which the StreamProcessor process should be run or
    *                            {@link ContainerRequestState#ANY_HOST} if there is no host preference.
    * @throws
-   * SamzaException if there is no available container in the specified host.
+   * SamzaException if there is no allocated resource in the specified host.
    */
   protected void runStreamProcessor(SamzaResourceRequest request, String preferredHost) {
     CommandBuilder builder = getCommandBuilder(request.getExpectedContainerID());
@@ -142,14 +142,14 @@ public abstract class AbstractContainerAllocator implements Runnable {
     int expectedContainerId = request.getExpectedContainerID();
 
     // Cancel request and run resource
-    log.info("Found available containers on {}. Assigning request for container_id {} with "
+    log.info("Found available resources on {}. Assigning request for container_id {} with "
             + "timestamp {} to resource {}",
         new Object[]{preferredHost, String.valueOf(expectedContainerId), request.getRequestTimestampMs(), resource.getResourceID()});
     try {
       //launches a StreamProcessor on the resource
       containerProcessManager.launchStreamProcessor(resource, builder);
 
-      if (state.neededContainers.decrementAndGet() == 0) {
+      if (state.neededResources.decrementAndGet() == 0) {
         state.jobHealthy.set(true);
       }
       state.runningContainers.put(request.getExpectedContainerID(), resource);
@@ -162,14 +162,14 @@ public abstract class AbstractContainerAllocator implements Runnable {
   }
 
   /**
-   * Called during initial request for containers
+   * Called during initial request for resources
    *
-   * @param containerToHostMappings Map of containerId to its last seen host (locality).
+   * @param containerToHostMappings Map of container ID to its last seen host (locality).
    *                                The locality value is null, either
    *                                - when host-affinity is not enabled, or
    *                                - when host-affinity is enabled and job is run for the first time
    */
-  public void requestContainers(Map<Integer, String> containerToHostMappings) {
+  public void requestResources(Map<Integer, String> containerToHostMappings) {
     for (Map.Entry<Integer, String> entry : containerToHostMappings.entrySet()) {
       int containerId = entry.getKey();
       String preferredHost = entry.getValue();
@@ -198,9 +198,9 @@ public abstract class AbstractContainerAllocator implements Runnable {
   }
 
   /**
-   * Method to request a container resource from the cluster manager
+   * Method to request a resource from the cluster manager
    *
-   * @param expectedContainerId Identifier of the container that will be run when a container resource is allocated for
+   * @param expectedContainerId Identifier of the container that will be run when a resource is allocated for
    *                            this request
    * @param preferredHost Name of the host that you prefer to run the container on
    */
@@ -220,7 +220,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
   }
 
   /**
-   * Retrieves, but does not remove, the first allocated container on the specified host.
+   * Retrieves, but does not remove, the first allocated resource on the specified host.
    *
    * @param host  the host on which a resource is needed.
    * @return      the first {@link SamzaResource} allocated for the specified host or {@code null} if there isn't one.
@@ -241,8 +241,8 @@ public abstract class AbstractContainerAllocator implements Runnable {
     return cmdBuilder;
   }
   /**
-   * Adds allocated samzaResource to a synchronized buffer of allocated containers list
-   * See allocatedContainers in {@link ContainerRequestState}
+   * Adds allocated samzaResource to a synchronized buffer of allocated resources list
+   * See allocatedResources in {@link ContainerRequestState}
    *
    * @param samzaResource returned by the ContainerManager
    */

@@ -96,7 +96,7 @@ public class SamzaAppState {
    *  Number of containers needed for the job to be declared healthy
    *  Modified by both the AMRMCallbackThread and the ContainerAllocator thread
    */
-  public final AtomicInteger neededContainers = new AtomicInteger(0);
+  public final AtomicInteger neededResources = new AtomicInteger(0);
 
   /**
    *  Map of the samzaContainerId to the {@link SamzaResource} on which it is running
@@ -117,7 +117,7 @@ public class SamzaAppState {
 
   public final AtomicInteger containerRequests = new AtomicInteger(0);
 
-  public final AtomicInteger matchedContainerRequests = new AtomicInteger(0);
+  public final AtomicInteger matchedResourceRequests = new AtomicInteger(0);
 
   public SamzaAppState(JobModelReader jobModelReader) {
     this.jobModelReader = jobModelReader;

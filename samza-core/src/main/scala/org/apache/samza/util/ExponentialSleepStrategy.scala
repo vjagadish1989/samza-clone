@@ -37,7 +37,8 @@ import org.apache.samza.util.ExponentialSleepStrategy.RetryLoop
 class ExponentialSleepStrategy(
     backOffMultiplier: Double = 2.0,
     initialDelayMs: Long = 100,
-    maximumDelayMs: Long = 10000) {
+    maximumDelayMs: Long = 10000,
+    numRetries: Int = 1000) {
 
   require(backOffMultiplier > 1.0, "backOffMultiplier must be greater than 1")
   require(initialDelayMs > 0, "initialDelayMs must be positive")

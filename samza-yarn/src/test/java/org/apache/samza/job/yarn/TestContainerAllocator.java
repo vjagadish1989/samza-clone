@@ -144,7 +144,7 @@ public class TestContainerAllocator {
   }
 
   /**
-   * Test requestContainers
+   * Test requestResources
    */
   @Test
   public void testRequestContainers() throws Exception {

@@ -132,12 +132,12 @@ public class SamzaTaskManager   {
         final int containerCount = jobConfig.getContainerCount();
 
         state.containerCount.set(containerCount);
-        state.neededContainers.set(containerCount);
+        state.neededResources.set(containerCount);
 
         // Request initial set of containers
         Map<Integer, String> containerToHostMapping = state.jobModelReader.jobModel().getAllContainerLocality();
 
-        containerAllocator.requestContainers(containerToHostMapping);
+        containerAllocator.requestResources(containerToHostMapping);
 
         // Start container allocator thread
         log.info("Starting the container allocator thread");
@@ -221,7 +221,7 @@ public class SamzaTaskManager   {
                 if (containerId != -1) {
                     log.info("Released container {} was assigned task group ID {}. Requesting a refactor container for the task group.", containerIdStr, containerId);
 
-                    state.neededContainers.incrementAndGet();
+                    state.neededResources.incrementAndGet();
                     state.jobHealthy.set(false);
 
                     // request a container on refactor host
@@ -239,7 +239,7 @@ public class SamzaTaskManager   {
                 state.jobHealthy.set(false);
 
                 if(containerId != -1) {
-                    state.neededContainers.incrementAndGet();
+                    state.neededResources.incrementAndGet();
                     // Find out previously running container location
                     String lastSeenOn = state.jobModelReader.jobModel().getContainerToHostValue(containerId, SetContainerHostMapping.HOST_KEY);
                     if (!hostAffinityEnabled || lastSeenOn == null) {
