@@ -90,7 +90,7 @@ public abstract class ContainerProcessManager
   public abstract void requestResources (SamzaResourceRequest resourceRequest);
 
   /***
-   * Remove a previously submitted resource request. The previous container request may
+   * Remove a previously submitted resource request. The previous resource request may
    * have been submitted to the cluster manager. Even after the remove request, a ContainerProcessManagerCallback
    * implementation must be prepared to receive an allocation for the previous request.
    * This is merely a best effort cancellation.

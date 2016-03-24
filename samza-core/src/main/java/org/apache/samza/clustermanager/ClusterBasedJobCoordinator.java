@@ -179,7 +179,7 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
 
     try {
       //initialize JobCoordinator state
-      log.info("Starting Yarn Job Coordinator");
+      log.info("Starting Cluster Based Job Coordinator");
 
       processManager.start();
       metrics.start();
@@ -285,24 +285,24 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
   /**
    * Called by the {@link ContainerProcessManager} when there are resources available.
    * This delegates handling of the callbacks to the {@link SamzaTaskManager}
-   * @param containers a list of available resources.
+   * @param resources a list of available resources.
    */
   @Override
-  public void onResourcesAvailable(List<SamzaResource> containers) {
-      for (SamzaResource container : containers) {
-          taskManager.onContainerAllocated(container);
+  public void onResourcesAvailable(List<SamzaResource> resources) {
+      for (SamzaResource resource : resources) {
+          taskManager.onContainerAllocated(resource);
       }
   }
 
   /**
    *
    * Delegate callbacks of resource completion to the taskManager
-   * @param containerStatuses the statuses for the resources that have completed
+   * @param resourceStatuses the statuses for the resources that have completed
    */
   @Override
-  public void onResourcesCompleted(List<SamzaResourceStatus> containerStatuses) {
-      for (SamzaResourceStatus containerStatus : containerStatuses) {
-          taskManager.onContainerCompleted(containerStatus);
+  public void onResourcesCompleted(List<SamzaResourceStatus> resourceStatuses) {
+      for (SamzaResourceStatus resourceStatus : resourceStatuses) {
+          taskManager.onContainerCompleted(resourceStatus);
       }
   }
 

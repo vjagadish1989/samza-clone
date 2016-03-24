@@ -29,8 +29,8 @@ import java.util.PriorityQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * {@link ContainerRequestState} maintains the state variables for all the container requests and the allocated containers returned
- * by the RM.
+ * {@link ContainerRequestState} maintains the state variables for all the resource requests and the allocated resources returned
+ * by the cluster manager.
  *
  * This class is thread-safe, and can safely support concurrent accesses without any form of external synchronization. Currently,
  * this state is shared across both the Allocator Thread, and the Callback handler thread.
@@ -122,7 +122,7 @@ public class ContainerRequestState {
           int requestCountOnThisHost = requestCount.get();
           List<SamzaResource> allocatedResourcesOnThisHost = allocatedResources.get(hostName);
           if (requestCountOnThisHost > 0) {
-            //there are pending requests for containers on this host.
+            //there are pending requests for resources on this host.
             if (allocatedResourcesOnThisHost == null || allocatedResourcesOnThisHost.size() < requestCountOnThisHost) {
               log.info("Got matched samzaResource {} in the buffer for preferredHost: {}", samzaResource.getResourceID(), hostName);
               addToAllocatedResourceList(hostName, samzaResource);
@@ -152,7 +152,7 @@ public class ContainerRequestState {
     }
   }
 
-  // Appends a samzaResource to the list of allocated containers
+  // Appends a samzaResource to the list of allocated resources
   private void addToAllocatedResourceList(String host, SamzaResource samzaResource) {
     List<SamzaResource> samzaResources = allocatedResources.get(host);
     if (samzaResources != null) {

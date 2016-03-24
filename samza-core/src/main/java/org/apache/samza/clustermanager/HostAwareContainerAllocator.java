@@ -24,9 +24,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This is the allocator thread that will be used by SamzaTaskManager when host-affinity is enabled for a job. It is similar
- * to {@link ContainerAllocator}, except that it considers container locality for allocation.
+ * to {@link ContainerAllocator}, except that it considers locality for allocation.
  *
- * In case of host-affinity, each container request ({@link SamzaResourceRequest} encapsulates the identifier of the container
+ * In case of host-affinity, each request ({@link SamzaResourceRequest} encapsulates the identifier of the container
  * to be run and a "preferredHost". preferredHost is determined by the locality mappings in the coordinator stream.
  * This thread periodically wakes up and makes the best-effort to assign a container to the preferredHost. If the
  * preferredHost is not returned by the cluster manager before the corresponding container expires, the thread
@@ -50,10 +50,10 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
   }
 
   /**
-   * Since host-affinity is enabled, all allocated container resources are buffered in the list keyed by "preferredHost".
+   * Since host-affinity is enabled, all allocated resources are buffered in the list keyed by "preferredHost".
    *
    * If the requested host is not available, the thread checks to see if the request has expired.
-   * If it has expired, it runs the container with expectedContainerID on one of the available hosts from the
+   * If it has expired, it runs the container with expectedContainerID on one of the available resources from the
    * allocatedContainers buffer keyed by "ANY_HOST".
    */
   @Override

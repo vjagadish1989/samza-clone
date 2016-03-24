@@ -107,7 +107,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
     while(isRunning) {
       try {
         assignResourceRequests();
-        // Release extra containers and update the entire system's state
+        // Release extra resources and update the entire system's state
         resourceRequestState.releaseExtraResources();
         Thread.sleep(allocatorSleepIntervalMs);
       }
