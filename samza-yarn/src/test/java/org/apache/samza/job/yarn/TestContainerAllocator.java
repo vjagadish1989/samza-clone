@@ -114,7 +114,7 @@ public class TestContainerAllocator {
         containerUtil,
         new YarnConfig(config)
     );
-    Field requestStateField = containerAllocator.getClass().getSuperclass().getDeclaredField("resourceRequestState");
+    Field requestStateField = containerAllocator.getClass().getSuperclass().getDeclaredField("containerRequestState");
     requestStateField.setAccessible(true);
     requestStateField.set(containerAllocator, requestState);
 
@@ -144,7 +144,7 @@ public class TestContainerAllocator {
   }
 
   /**
-   * Test requestResources
+   * Test requestContainers
    */
   @Test
   public void testRequestContainers() throws Exception {
