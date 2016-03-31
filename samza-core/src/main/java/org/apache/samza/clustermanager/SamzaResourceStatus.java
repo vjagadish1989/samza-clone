@@ -46,18 +46,18 @@ public final class SamzaResourceStatus
   /**
    * Indicates the failure of the StreamProcessor running on the resource.
    */
-  public static final int ABORTED=1;
+  public static final int ABORTED=-100;
   /**
    * Indicates that the resource was preempted (given to another processor) by
    * the cluster manager
    */
-  public static final int PREEMPTED=2;
+  public static final int PREEMPTED=-102;
   /**
    * Indicates a disk failure in the host the resource is on.
    * Currently these are modelled after Yarn, could evolve as we add integrations with
    * many cluster managers.
    */
-  public static final int DISK_FAIL=3;
+  public static final int DISK_FAIL=-101;
 
   private final String resourceID;
   private final String diagnostics;

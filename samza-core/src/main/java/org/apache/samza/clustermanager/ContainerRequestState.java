@@ -22,10 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -310,5 +312,11 @@ public class ContainerRequestState {
       return new ArrayList<SamzaResource>(samzaResourceList);
     }
   }
+
+  //Package private, used only in tests.
+  Map<String, AtomicInteger> getRequestsToCountMap() {
+    return Collections.unmodifiableMap(requestsToCountMap);
+  }
+
 
 }

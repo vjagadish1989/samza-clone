@@ -371,7 +371,6 @@ public class TestHostAwareContainerAllocator {
     Thread.sleep(1000);
 
     MockContainerUtil mockContainerUtil = (MockContainerUtil) containerUtil;
-
     assertNotNull(mockContainerUtil.runningContainerList.get("xyz"));
     assertTrue(mockContainerUtil.runningContainerList.get("xyz").contains(container0));
 

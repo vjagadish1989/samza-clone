@@ -116,6 +116,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
         Thread.currentThread().interrupt();
       }
       catch (Exception e) {
+
         log.error("Got unknown Exception in AllocatorThread.", e);
       }
     }
@@ -246,6 +247,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
   private CommandBuilder getCommandBuilder(int samzaContainerId) {
     String cmdBuilderClassName = taskConfig.getCommandClass(ShellCommandBuilder.class.getName());
     CommandBuilder cmdBuilder = (CommandBuilder) Util.getObj(cmdBuilderClassName);
+
     cmdBuilder.setConfig(config).setId(samzaContainerId).setUrl(state.jobModelReader.server().getUrl());
     return cmdBuilder;
   }
