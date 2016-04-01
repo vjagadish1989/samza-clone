@@ -58,16 +58,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 5. Unit tests.
  * 6. Document newly added configs.
  */
-public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callback {
+public class ClusterBasedJobCoordinator {
 
   private static final Logger log = LoggerFactory.getLogger(ClusterBasedJobCoordinator.class);
 
   private final Config config;
   private final ClusterManagerConfig clusterManagerConfig;
-  /**
-   * A ContainerProcessManager takes care of requesting resources from a pool of resources
-   */
-  private final ContainerProcessManager processManager;
 
   /**
    * State to track container failures, host-container mappings
@@ -150,12 +146,10 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     clusterManagerConfig = new ClusterManagerConfig(config);
     isJmxEnabled = clusterManagerConfig.getJmxEnabled();
 
-    ContainerManagerFactory factory = getContainerProcessManagerFactory(clusterManagerConfig);
-    processManager = factory.getContainerProcessManager(jobModelReader, this, state);
     taskManagerPollInterval = clusterManagerConfig.getJobCoordinatorSleepInterval();
 
     metrics = new SamzaAppMasterMetrics(config, state, registry);
-    taskManager = new SamzaTaskManager(config, state, processManager);
+    taskManager = new SamzaTaskManager(config, state, jobModelReader);
   }
 
 
@@ -181,7 +175,6 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
       //initialize JobCoordinator state
       log.info("Starting Cluster Based Job Coordinator");
 
-      processManager.start();
       metrics.start();
       taskManager.start();
 
@@ -207,35 +200,6 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     }
   }
 
-  /**
-   * Returns an instantiated {@link ContainerManagerFactory} from a {@link ClusterManagerConfig}. The
-   * {@link ContainerManagerFactory} is used to return an implementation of a {@link ContainerProcessManager}
-   *
-   * @param clusterManagerConfig, the cluster manager config to parse.
-   *
-   */
-  private ContainerManagerFactory getContainerProcessManagerFactory(final ClusterManagerConfig clusterManagerConfig)
-  {
-    final String containerManagerFactoryClass = clusterManagerConfig.getContainerManagerClass();
-    final ContainerManagerFactory factory;
-
-    try {
-      factory = (ContainerManagerFactory) Class.forName(containerManagerFactoryClass).newInstance();
-    }
-    catch (InstantiationException e) {
-      log.error("Instantiation exception when creating ContainerManager", e);
-      throw new SamzaException(e);
-    }
-    catch (IllegalAccessException e) {
-      log.error("Illegal access exception when creating ContainerManager", e);
-      throw new SamzaException(e);
-    }
-    catch (ClassNotFoundException e) {
-      log.error("ClassNotFound Exception when creating ContainerManager", e);
-      throw new SamzaException(e);
-    }
-    return factory;
-  }
 
   /**
    * Stops all components of the JobCoordinator.
@@ -261,16 +225,6 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
       log.info("Stopped task manager");
     }
 
-    if (processManager != null) {
-      try {
-        processManager.stop(state.status);
-      }
-      catch(Throwable e) {
-        log.error("Exception while stopping process manager {}", e);
-      }
-      log.info("Stopped container process manager");
-    }
-
     if (jmxServer != null) {
       try {
         jmxServer.stop();
@@ -282,39 +236,6 @@ public class ClusterBasedJobCoordinator implements ContainerProcessManager.Callb
     }
   }
 
-  /**
-   * Called by the {@link ContainerProcessManager} when there are resources available.
-   * This delegates handling of the callbacks to the {@link SamzaTaskManager}
-   * @param resources a list of available resources.
-   */
-  @Override
-  public void onResourcesAvailable(List<SamzaResource> resources) {
-      for (SamzaResource resource : resources) {
-          taskManager.onContainerAllocated(resource);
-      }
-  }
-
-  /**
-   *
-   * Delegate callbacks of resource completion to the taskManager
-   * @param resourceStatuses the statuses for the resources that have completed
-   */
-  @Override
-  public void onResourcesCompleted(List<SamzaResourceStatus> resourceStatuses) {
-      for (SamzaResourceStatus resourceStatus : resourceStatuses) {
-          taskManager.onContainerCompleted(resourceStatus);
-      }
-  }
-
-  /**
-   * An error in the callback terminates the JobCoordinator
-   * @param e the underlying exception/error
-   */
-  @Override
-  public void onError(Throwable e) {
-      log.error("Exception occured in callbacks from the ContainerManager : {}", e);
-      exceptionOccurred = true;
-  }
 
   /**
    * The entry point for the {@link ClusterBasedJobCoordinator}
