@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.UUID;
 
 
 /**
@@ -59,9 +58,9 @@ public abstract class AbstractContainerAllocator implements Runnable {
   private final Config config;
 
   /**
-   * A ContainerProcessManager for the allocator to request for resources.
+   * A ClusterResourceManager for the allocator to request for resources.
    */
-  protected final ContainerProcessManager containerProcessManager;
+  protected final ClusterResourceManager containerProcessManager;
   /**
    * The allocator sleeps for allocatorSleepIntervalMs before it polls its queue for the next request
    */
@@ -82,7 +81,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
    */
   protected final ContainerRequestState resourceRequestState;
 
-  public AbstractContainerAllocator(ContainerProcessManager containerProcessManager,
+  public AbstractContainerAllocator(ClusterResourceManager containerProcessManager,
                                     ContainerRequestState resourceRequestState,
                                     Config config, SamzaAppState state) {
     ClusterManagerConfig clusterManagerConfig = new ClusterManagerConfig(config);
@@ -139,7 +138,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
    * SamzaException if there is no allocated resource in the specified host.
    */
   protected void runStreamProcessor(SamzaResourceRequest request, String preferredHost) {
-    CommandBuilder builder = getCommandBuilder(request.getExpectedContainerID());
+    CommandBuilder builder = getCommandBuilder(request.getContainerID());
     // Get the available resource
     SamzaResource resource = peekAllocatedResource(preferredHost);
     if (resource == null)
@@ -147,7 +146,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
 
     // Update state
     resourceRequestState.updateStateAfterAssignment(request, preferredHost, resource);
-    int expectedContainerId = request.getExpectedContainerID();
+    int expectedContainerId = request.getContainerID();
 
     //run container on resource
     log.info("Found available resources on {}. Assigning request for container_id {} with "
@@ -160,7 +159,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
       if (state.neededResources.decrementAndGet() == 0) {
         state.jobHealthy.set(true);
       }
-      state.runningContainers.put(request.getExpectedContainerID(), resource);
+      state.runningContainers.put(request.getContainerID(), resource);
 
     } catch (SamzaContainerLaunchException e) {
       log.warn(String.format("Got exception while starting resource %s. Requesting a new resource on any host", resource), e);
@@ -209,13 +208,13 @@ public abstract class AbstractContainerAllocator implements Runnable {
   /**
    * Method to request a resource from the cluster manager
    *
-   * @param expectedContainerId Identifier of the container that will be run when a resource is allocated for
+   * @param containerID Identifier of the container that will be run when a resource is allocated for
    *                            this request
    * @param preferredHost Name of the host that you prefer to run the container on
    */
-  public final void requestResource(int expectedContainerId, String preferredHost) {
+  public final void requestResource(int containerID, String preferredHost) {
     SamzaResourceRequest request = new SamzaResourceRequest(this.containerNumCpuCores, this.containerMemoryMb,
-        preferredHost, UUID.randomUUID().toString() ,expectedContainerId);
+        preferredHost, containerID);
     resourceRequestState.addResourceRequest(request);
     state.containerRequests.incrementAndGet();
   }
@@ -248,7 +247,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
     String cmdBuilderClassName = taskConfig.getCommandClass(ShellCommandBuilder.class.getName());
     CommandBuilder cmdBuilder = (CommandBuilder) Util.getObj(cmdBuilderClassName);
 
-    cmdBuilder.setConfig(config).setId(samzaContainerId).setUrl(state.jobModelReader.server().getUrl());
+    cmdBuilder.setConfig(config).setId(samzaContainerId).setUrl(state.jobModelManager.server().getUrl());
     return cmdBuilder;
   }
   /**
@@ -265,7 +264,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
    * Stops the Allocator. Setting this flag to false, exits the allocator loop.
    */
   public void stop() {
-    isRunning=false;
+    isRunning = false;
   }
 
 }

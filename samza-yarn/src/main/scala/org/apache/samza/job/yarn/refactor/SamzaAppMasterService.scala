@@ -49,10 +49,10 @@ class SamzaAppMasterService(config: Config, state: YarnAppState, registry: Reada
     //webApp.addServlet("/*", refactor ApplicationMasterWebServlet(config, state))
     webApp.start
 
-    state.jobModelReader.start
+    state.jobModelManager.start
     state.rpcUrl = rpcApp.getUrl
     state.trackingUrl = webApp.getUrl
-    state.coordinatorUrl = state.jobModelReader.server.getUrl
+    state.coordinatorUrl = state.jobModelManager.server.getUrl
 
     //write server url to coordinator stream
     val coordinatorStreamWriter: CoordinatorStreamWriter = new CoordinatorStreamWriter(config)
@@ -73,6 +73,6 @@ class SamzaAppMasterService(config: Config, state: YarnAppState, registry: Reada
       webApp.stop
     }
 
-    state.jobModelReader.stop
+    state.jobModelManager.stop
   }
 }

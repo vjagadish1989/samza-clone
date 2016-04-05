@@ -52,13 +52,7 @@ import org.apache.samza.coordinator.stream.CoordinatorStreamSystemFactory
  * given a Config object.
  */
 
-//TODO: Make this thread-safe. Tracked as a part of umbrella ticket SAMZA-901
-// 1. Decouple the exposing of JobModel and the generation of JobModel.
-// 2. Make the JobModel object completely immutable - currently it's not (or) use copy on write to
-//    when returning JobModel from this class.
-// 3. Then, make this class thread-safe.
-
-object JobModelReader extends Logging {
+object JobModelManager extends Logging {
 
   val jobModelRef: AtomicReference[JobModel] = new AtomicReference[JobModel]()
 
@@ -68,7 +62,7 @@ object JobModelReader extends Logging {
    * configuration. The method will use this config to read all configuration
    * from the coordinator stream, and instantiate a JobCoordinator.
    */
-  def apply(coordinatorSystemConfig: Config, metricsRegistryMap: MetricsRegistryMap): JobModelReader = {
+  def apply(coordinatorSystemConfig: Config, metricsRegistryMap: MetricsRegistryMap): JobModelManager = {
     val coordinatorStreamSystemFactory: CoordinatorStreamSystemFactory = new CoordinatorStreamSystemFactory()
     val coordinatorSystemConsumer = coordinatorStreamSystemFactory.getCoordinatorStreamSystemConsumer(coordinatorSystemConfig, metricsRegistryMap)
     val coordinatorSystemProducer = coordinatorStreamSystemFactory.getCoordinatorStreamSystemProducer(coordinatorSystemConfig, metricsRegistryMap)
@@ -102,7 +96,7 @@ object JobModelReader extends Logging {
     jobModelReader
   }
 
-  def apply(coordinatorSystemConfig: Config): JobModelReader = apply(coordinatorSystemConfig, new MetricsRegistryMap())
+  def apply(coordinatorSystemConfig: Config): JobModelManager = apply(coordinatorSystemConfig, new MetricsRegistryMap())
 
   /**
    * Build a JobModelReader using a Samza job's configuration.
@@ -117,7 +111,7 @@ object JobModelReader extends Logging {
 
     val server = new HttpServer
     server.addServlet("/*", new JobServlet(jobModelRef))
-    new JobModelReader(jobModel, server)
+    new JobModelManager(jobModel, server)
   }
 
   /**
@@ -281,7 +275,7 @@ object JobModelReader extends Logging {
  * reader's responsibility is simply to propagate the job model, and expose HTTP
  * server right now.</p>
  */
-class JobModelReader(
+class JobModelManager(
   /**
    * The data model that describes the Samza job's containers and tasks.
    */

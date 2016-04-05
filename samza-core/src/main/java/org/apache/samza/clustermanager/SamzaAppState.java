@@ -19,8 +19,7 @@
 
 package org.apache.samza.clustermanager;
 
-import org.apache.samza.config.Config;
-import org.apache.samza.coordinator.JobModelReader;
+import org.apache.samza.coordinator.JobModelManager;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -45,7 +44,7 @@ public class SamzaAppState {
 
   public enum SamzaAppStatus {UNDEFINED,SUCCEEDED,FAILED}
 
-  public final JobModelReader jobModelReader;
+  public final JobModelManager jobModelManager;
 
   /**
    * JMX Server URL, if enabled
@@ -119,7 +118,7 @@ public class SamzaAppState {
 
   public final AtomicInteger matchedResourceRequests = new AtomicInteger(0);
 
-  public SamzaAppState(JobModelReader jobModelReader) {
-    this.jobModelReader = jobModelReader;
+  public SamzaAppState(JobModelManager jobModelManager) {
+    this.jobModelManager = jobModelManager;
   }
 }

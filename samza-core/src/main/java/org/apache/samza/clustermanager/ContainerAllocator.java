@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is the default allocator that will be used by SamzaTaskManager.
+ * This is the default allocator that will be used by ContainerProcessManager.
  *
  * When host-affinity is not enabled, this periodically wakes up to assign a container to *ANY* allocated resource.
  * If there aren't enough containers, it waits by sleeping for {@code allocatorSleepIntervalMs} milliseconds.
@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class ContainerAllocator extends AbstractContainerAllocator {
   private static final Logger log = LoggerFactory.getLogger(ContainerAllocator.class);
 
-  public ContainerAllocator(ContainerProcessManager manager,
+  public ContainerAllocator(ClusterResourceManager manager,
                             Config config, SamzaAppState state) {
     super(manager, new ContainerRequestState(false, manager), config, state);
   }

@@ -35,7 +35,7 @@ public class ClusterManagerConfig extends MapConfig{
 
 
   private static final String CLUSTER_MANAGER_FACTORY = "samza.cluster-manager.factory";
-  private static final String CLUSTER_MANAGER_FACTORY_DEFAULT = "org.apache.samza.job.yarn.refactor.YarnContainerManagerFactory";
+  private static final String CLUSTER_MANAGER_FACTORY_DEFAULT = "org.apache.samza.job.yarn.refactor.YarnResourceManagerFactory";
 
   /**
    * Sleep interval for the allocator thread in milliseconds

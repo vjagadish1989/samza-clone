@@ -23,34 +23,32 @@ import org.apache.samza.config.ClusterManagerConfig;
 import org.apache.samza.config.Config;
 import org.apache.samza.config.MapConfig;
 import org.apache.samza.config.ShellCommandConfig;
-import org.apache.samza.coordinator.JobModelReader;
+import org.apache.samza.coordinator.JobModelManager;
 import org.apache.samza.metrics.JmxServer;
 import org.apache.samza.metrics.MetricsRegistryMap;
-import org.apache.samza.metrics.SamzaAppMasterMetrics;
 import org.apache.samza.serializers.model.SamzaObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Implements a JobCoordinator that is completely independent of the underlying cluster
  * manager system. This {@link ClusterBasedJobCoordinator} handles functionality common
  * to both Yarn and Mesos. It takes care of
- *  1. Requesting resources from an underlying {@link ContainerProcessManager}.
+ *  1. Requesting resources from an underlying {@link ClusterResourceManager}.
  *  2. Ensuring that placement of containers to resources happens (as per whether host affinity
  *  is configured or not).
  *
  *  Any offer based cluster management system that must integrate with Samza will merely
- *  implement a {@link ContainerManagerFactory} and a {@link ContainerProcessManager}.
+ *  implement a {@link ResourceManagerFactory} and a {@link ClusterResourceManager}.
  *
  *  This class is not thread-safe. For safe access in multi-threaded context, invocations
  *  should be synchronized by the callers.
  *
  * TODO:
- * 1. Refactor ContainerProcessManager to also handle process liveness, process start
+ * 1. Refactor ClusterResourceManager to also handle process liveness, process start
  * callbacks
  * 2. Refactor the JobModelReader to be an interface.
  * 3. Make ClusterBasedJobCoordinator implement the JobCoordinator API as in SAMZA-881.
@@ -63,6 +61,7 @@ public class ClusterBasedJobCoordinator {
   private static final Logger log = LoggerFactory.getLogger(ClusterBasedJobCoordinator.class);
 
   private final Config config;
+
   private final ClusterManagerConfig clusterManagerConfig;
 
   /**
@@ -73,7 +72,6 @@ public class ClusterBasedJobCoordinator {
   /**
    * Metrics to track stats around container failures, needed containers etc.
    */
-  private final SamzaAppMasterMetrics metrics;
 
   //even though some of these can be converted to local variables, it will not be the case
   //as we add more methods to the JobCoordinator and completely implement SAMZA-881.
@@ -81,12 +79,12 @@ public class ClusterBasedJobCoordinator {
   /**
    * Handles callback for allocated containers, failed containers.
    */
-  private final SamzaTaskManager taskManager;
+  private final ContainerProcessManager containerProcessManager;
 
   /**
    * A JobModelReader to return and refresh the {@link org.apache.samza.job.model.JobModel} when required.
    */
-  private final JobModelReader jobModelReader;
+  private final JobModelManager jobModelManager;
 
   /*
    * The interval for polling the Task Manager for shutdown.
@@ -97,12 +95,6 @@ public class ClusterBasedJobCoordinator {
    * Config specifies if a Jmx server should be started on this Job Coordinator
    */
   private final boolean isJmxEnabled;
-
-  /**
-   * Tracks the exception occuring in any callbacks from the ContainerProcessManager. Any errors from the
-   * ContainerProcessManager will trigger shutdown of the YarnJobCoordinator.
-   */
-  private volatile boolean exceptionOccurred = false;
 
   /**
    * Internal boolean to check if the job coordinator has already been started.
@@ -120,36 +112,20 @@ public class ClusterBasedJobCoordinator {
    *                                {@link org.apache.samza.job.model.JobModel from.
    */
   public ClusterBasedJobCoordinator(Config coordinatorSystemConfig) {
-    //TODO1: A couple of classes - namely
-    //  1.JobCoordinator (jobModelReader in the new case)
-    //  2.JmxServer
-    // follow this pattern where their components are *started* in the constructor.
-    // For example, the JmxServer class starts up the jmxServer in the constructor instead
-    // of just defining a separate start method. This makes the life-cycle hard to manage.
-    // (for example, consider a class X that includes a JmxServer member (in addition to several others)
-    // and instantiates a JmxServer in its constructor. Then class X must ensure:
-    // 1.jmxServer.close is called when constructor of class X fails due to some other reason unrelated to JmxServer
-    // 2.jmxServer.close is called when class X's lifecycle ends. (during a clean shutdown)
-    // this leads to buggy code in class X as class X has to call jmxServer.close() in 2 places.
-
-    //TODO2: Re-design the JobCoordinator (JobModelReader now) class.
-    //i) Decouple the exposing of the JobModel from building the JobModel. (Move the http server to another class)
-    //Once both the above are completed, the new constructor will look like ClusterBasedJobCoordinator(JobModelReaderInterface reader).
-
 
     MetricsRegistryMap registry = new MetricsRegistryMap();
-    jobModelReader = JobModelReader.apply(coordinatorSystemConfig, registry);;
-    config = jobModelReader.jobModel().getConfig();
 
-    state = new SamzaAppState(jobModelReader);
-
+    //build a JobModelReader and perform partition assignments.
+    jobModelManager = buildJobModelReader(coordinatorSystemConfig, registry);
+    config = jobModelManager.jobModel().getConfig();
+    state = new SamzaAppState(jobModelManager);
     clusterManagerConfig = new ClusterManagerConfig(config);
     isJmxEnabled = clusterManagerConfig.getJmxEnabled();
 
     taskManagerPollInterval = clusterManagerConfig.getJobCoordinatorSleepInterval();
 
-    metrics = new SamzaAppMasterMetrics(config, state, registry);
-    taskManager = new SamzaTaskManager(config, state, jobModelReader);
+    // build a container process Manager
+    containerProcessManager = new ContainerProcessManager(config, state, registry);
   }
 
 
@@ -162,7 +138,7 @@ public class ClusterBasedJobCoordinator {
       log.info("Attempting to start an already started job coordinator. ");
       return;
     }
-
+    // set up JmxServer (if jmx is enabled)
     if (isJmxEnabled) {
       jmxServer = new JmxServer();
       state.jmxUrl = jmxServer.getJmxUrl();
@@ -175,12 +151,11 @@ public class ClusterBasedJobCoordinator {
       //initialize JobCoordinator state
       log.info("Starting Cluster Based Job Coordinator");
 
-      metrics.start();
-      taskManager.start();
+      containerProcessManager.start();
 
       boolean isInterrupted = false;
 
-      while (!taskManager.shouldShutdown() && !isInterrupted && !exceptionOccurred) {
+      while (!containerProcessManager.shouldShutdown() && !isInterrupted) {
         try {
           Thread.sleep(taskManagerPollInterval);
         }
@@ -192,32 +167,22 @@ public class ClusterBasedJobCoordinator {
       }
     }
     catch (Throwable e) {
-        log.error("Exception thrown in the JobCoordinator loop {} ", e);
-        throw new SamzaException(e);
+      log.error("Exception thrown in the JobCoordinator loop {} ", e);
+      throw new SamzaException(e);
     }
     finally {
-        onShutDown();
+      onShutDown();
     }
   }
-
 
   /**
    * Stops all components of the JobCoordinator.
    */
   private void onShutDown() {
-    if (metrics != null) {
-      try {
-        metrics.stop();
-      }
-      catch(Throwable e) {
-        log.error("Exception while stopping metrics {}", e);
-      }
-      log.info("Stopped metrics reporters");
-    }
 
-    if (taskManager != null) {
+    if (containerProcessManager != null) {
       try {
-        taskManager.stop();
+        containerProcessManager.stop();
       }
       catch(Throwable e) {
         log.error("Exception while stopping task manager {}", e);
@@ -235,6 +200,12 @@ public class ClusterBasedJobCoordinator {
       }
     }
   }
+
+  public JobModelManager buildJobModelReader (Config coordinatorSystemConfig, MetricsRegistryMap registry)  {
+    JobModelManager jobModelManager = JobModelManager.apply(coordinatorSystemConfig, registry);;
+    return jobModelManager;
+  }
+
 
 
   /**

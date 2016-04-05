@@ -19,24 +19,27 @@
 
 package org.apache.samza.job.yarn.refactor;
 
-import org.apache.samza.clustermanager.ContainerManagerFactory;
-import org.apache.samza.clustermanager.ContainerProcessManager;
+import org.apache.samza.clustermanager.ClusterResourceManager;
+import org.apache.samza.clustermanager.ResourceManagerFactory;
 import org.apache.samza.clustermanager.SamzaAppState;
-import org.apache.samza.coordinator.JobModelReader;
+import org.apache.samza.config.Config;
+import org.apache.samza.coordinator.JobModelManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A YarnContainerProcessManagerFactory returns an implementation of a {@link ContainerProcessManager} for Yarn.
+ * A YarnContainerProcessManagerFactory returns an implementation of a {@link ClusterResourceManager} for Yarn.
  */
-public class YarnContainerManagerFactory implements ContainerManagerFactory {
+public class YarnResourceManagerFactory implements ResourceManagerFactory {
 
-    private static Logger log = LoggerFactory.getLogger(YarnContainerManagerFactory.class);
-    @Override
-    public ContainerProcessManager getContainerProcessManager(JobModelReader reader, ContainerProcessManager.Callback callback, SamzaAppState state) {
-        log.info("Creating an instance of a container process manager for Yarn. ");
+  private static Logger log = LoggerFactory.getLogger(YarnResourceManagerFactory.class);
 
-        YarnContainerManager manager = new YarnContainerManager(reader.jobModel().getConfig(),reader, callback, state);
-        return manager;
-    }
+  @Override
+  public ClusterResourceManager getClusterResourceManager(ClusterResourceManager.Callback callback, SamzaAppState state) {
+    log.info("Creating an instance of a cluster resource manager for Yarn. ");
+    JobModelManager jobModelManager = state.jobModelManager;
+    Config config = jobModelManager.jobModel().getConfig();
+    YarnClusterResourceManager manager = new YarnClusterResourceManager(config, jobModelManager, callback, state);
+    return manager;
+  }
 }

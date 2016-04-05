@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is the allocator thread that will be used by SamzaTaskManager when host-affinity is enabled for a job. It is similar
+ * This is the allocator thread that will be used by ContainerProcessManager when host-affinity is enabled for a job. It is similar
  * to {@link ContainerAllocator}, except that it considers locality for allocation.
  *
  * In case of host-affinity, each request ({@link SamzaResourceRequest} encapsulates the identifier of the container
@@ -43,7 +43,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
    */
   private final int requestTimeout;
 
-  public HostAwareContainerAllocator(ContainerProcessManager manager ,
+  public HostAwareContainerAllocator(ClusterResourceManager manager ,
                                      int timeout, Config config, SamzaAppState state) {
     super(manager, new ContainerRequestState(true, manager), config, state);
     this.requestTimeout = timeout;
@@ -60,19 +60,19 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
   public void assignResourceRequests()  {
     while (hasPendingRequest()) {
       SamzaResourceRequest request = peekPendingRequest();;
-      log.info("Handling request: " + request.getExpectedContainerID() + " " + request.getRequestTimestampMs() + " " + request.getPreferredHost());
+      log.info("Handling request: " + request.getContainerID() + " " + request.getRequestTimestampMs() + " " + request.getPreferredHost());
       String preferredHost = request.getPreferredHost();
-      int expectedContainerId = request.getExpectedContainerID();
+      int containerID = request.getContainerID();
 
       if (hasAllocatedResource(preferredHost)) {
         // Found allocated container at preferredHost
-        log.info("Found a matched-container {} on the preferred host. Running on {}", expectedContainerId, preferredHost);
+        log.info("Found a matched-container {} on the preferred host. Running on {}", containerID, preferredHost);
         runStreamProcessor(request, preferredHost);
         state.matchedResourceRequests.incrementAndGet();
 
       } else {
         log.info("Did not find any allocated resources on preferred host {} for running container id {}",
-            preferredHost, expectedContainerId);
+            preferredHost, containerID);
 
         boolean expired = requestExpired(request);
         boolean resourceAvailableOnAnyHost = hasAllocatedResource(ContainerRequestState.ANY_HOST);

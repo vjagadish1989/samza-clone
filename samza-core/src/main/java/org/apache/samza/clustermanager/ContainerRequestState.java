@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -47,7 +46,7 @@ public class ContainerRequestState {
    */
   private final Map<String, List<SamzaResource>> allocatedResources = new HashMap<>();
   /**
-   * Represents the queue of resource requests made by the {@link org.apache.samza.clustermanager.SamzaTaskManager}
+   * Represents the queue of resource requests made by the {@link ContainerProcessManager}
    */
   private final PriorityQueue<SamzaResourceRequest> requestsQueue = new PriorityQueue<SamzaResourceRequest>();
   /**
@@ -61,17 +60,17 @@ public class ContainerRequestState {
    */
   private final boolean hostAffinityEnabled;
 
-  private final ContainerProcessManager manager;
+  private final ClusterResourceManager manager;
 
   private final Object lock = new Object();
 
-  public ContainerRequestState(boolean hostAffinityEnabled, ContainerProcessManager manager) {
+  public ContainerRequestState(boolean hostAffinityEnabled, ClusterResourceManager manager) {
     this.hostAffinityEnabled = hostAffinityEnabled;
     this.manager = manager;
   }
 
   /**
-   * Enqueues a {@link SamzaResourceRequest} to be sent to a {@link ContainerProcessManager}.
+   * Enqueues a {@link SamzaResourceRequest} to be sent to a {@link ClusterResourceManager}.
    *
    * @param request {@link SamzaResourceRequest} to be queued
    */
@@ -103,8 +102,8 @@ public class ContainerRequestState {
   }
 
   /**
-   * Invoked each time a resource is returned from a {@link ContainerProcessManager}.
-   * @param samzaResource The resource that was returned from the {@link ContainerProcessManager}
+   * Invoked each time a resource is returned from a {@link ClusterResourceManager}.
+   * @param samzaResource The resource that was returned from the {@link ClusterResourceManager}
    */
   public void addResource(SamzaResource samzaResource) {
     synchronized (lock) {

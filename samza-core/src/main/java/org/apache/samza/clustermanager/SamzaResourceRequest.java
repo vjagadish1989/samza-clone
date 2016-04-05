@@ -22,8 +22,10 @@ package org.apache.samza.clustermanager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
+
 /**
- * Specification of a Request for resources from a ContainerProcessManager. A
+ * Specification of a Request for resources from a ClusterResourceManager. A
  * resource request currently includes cpu cores and memory in MB. A preferred host
  * can also be specified with a request.
  *
@@ -54,25 +56,25 @@ public class SamzaResourceRequest implements Comparable<SamzaResourceRequest>
   /**
    * The ID of the StreamProcessor which this request is for.
    */
-  private final int expectedContainerID;
+  private final int containerID;
 
   /**
    * The timestamp in millis when the request was created.
    */
   private final long requestTimestampMs;
 
-  public SamzaResourceRequest(int numCores, int memoryMB, String preferredHost, String requestID, int expectedContainerID) {
+  public SamzaResourceRequest(int numCores, int memoryMB, String preferredHost, int expectedContainerID) {
       this.numCores = numCores;
       this.memoryMB = memoryMB;
       this.preferredHost = preferredHost;
-      this.requestID = requestID;
-      this.expectedContainerID = expectedContainerID;
+      this.requestID = UUID.randomUUID().toString();
+      this.containerID = expectedContainerID;
       this.requestTimestampMs = System.currentTimeMillis();
-      log.info("Resource Request created for {} on {} at {}", new Object[] {this.expectedContainerID, this.preferredHost, this.requestTimestampMs}  );
+      log.info("Resource Request created for {} on {} at {}", new Object[] {this.containerID, this.preferredHost, this.requestTimestampMs}  );
   }
 
-  public int getExpectedContainerID() {
-    return expectedContainerID;
+  public int getContainerID() {
+    return containerID;
   }
 
   public long getRequestTimestampMs() {
@@ -102,7 +104,7 @@ public class SamzaResourceRequest implements Comparable<SamzaResourceRequest>
               ", memoryMB=" + memoryMB +
               ", preferredHost='" + preferredHost + '\'' +
               ", requestID='" + requestID + '\'' +
-              ", expectedContainerID=" + expectedContainerID +
+              ", containerID=" + containerID +
               ", requestTimestampMs=" + requestTimestampMs +
               '}';
   }

@@ -20,21 +20,17 @@
 package org.apache.samza.job.yarn.refactor;
 
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
-import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.samza.clustermanager.SamzaAppState;
-import org.apache.samza.coordinator.JobModelReader;
+import org.apache.samza.coordinator.JobModelManager;
 import org.apache.samza.job.yarn.YarnContainer;
 
 import java.net.URL;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * YarnAppState encapsulates Yarn specific state variables that are Yarn specific. This class
@@ -64,14 +60,14 @@ public class YarnAppState {
 
   public ConcurrentMap<String, ContainerStatus> failedContainersStatus = new ConcurrentHashMap<String, ContainerStatus>();
 
-  public YarnAppState(JobModelReader jobModelReader,
-                    int taskId,
-                    ContainerId amContainerId,
-                    String nodeHost,
-                    int nodePort,
-                    int nodeHttpPort,
-                    SamzaAppState state) {
-    this.jobModelReader = jobModelReader;
+  public YarnAppState(JobModelManager jobModelManager,
+                      int taskId,
+                      ContainerId amContainerId,
+                      String nodeHost,
+                      int nodePort,
+                      int nodeHttpPort,
+                      SamzaAppState state) {
+    this.jobModelManager = jobModelManager;
     this.taskId = taskId;
     this.amContainerId = amContainerId;
     this.nodeHost = nodeHost;
@@ -86,7 +82,7 @@ public class YarnAppState {
   public String toString() {
     return "YarnAppState{" +
         "samzaAppState=" + samzaAppState +
-        ", jobModelReader=" + jobModelReader +
+        ", jobModelReader=" + jobModelManager +
         ", taskId=" + taskId +
         ", amContainerId=" + amContainerId +
         ", nodeHost='" + nodeHost + '\'' +
@@ -110,7 +106,7 @@ public class YarnAppState {
    * Used for displaying in the AM UI. Usage found in {@link org.apache.samza.webapp.ApplicationMasterRestServlet}
    * and scalate/WEB-INF/views/index.scaml
    */
-  public final JobModelReader jobModelReader;
+  public final JobModelManager jobModelManager;
 
   public final int taskId;
   /**

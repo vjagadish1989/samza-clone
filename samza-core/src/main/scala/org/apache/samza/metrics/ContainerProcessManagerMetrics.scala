@@ -25,7 +25,7 @@ import org.apache.samza.config.Config
 import org.apache.samza.config.MetricsConfig.Config2Metrics
 import org.apache.samza.util.{Logging, Util}
 
-object SamzaAppMasterMetrics {
+object ContainerProcessManagerMetrics {
   val sourceName = "ApplicationMaster"
 }
 
@@ -34,7 +34,7 @@ object SamzaAppMasterMetrics {
  * registry, we might as well use it. This class takes Samza's application
  * master state, and converts it to metrics.
  */
-class SamzaAppMasterMetrics(
+class ContainerProcessManagerMetrics(
   val config: Config,
   val state: SamzaAppState,
   val registry: ReadableMetricsRegistry) extends MetricsHelper  with Logging {
@@ -48,9 +48,9 @@ class SamzaAppMasterMetrics(
     val reporter =
       Util
         .getObj[MetricsReporterFactory](metricsFactoryClassName)
-        .getMetricsReporter(reporterName, SamzaAppMasterMetrics.sourceName, config)
+        .getMetricsReporter(reporterName, ContainerProcessManagerMetrics.sourceName, config)
 
-    reporter.register(SamzaAppMasterMetrics.sourceName, registry)
+    reporter.register(ContainerProcessManagerMetrics.sourceName, registry)
     (reporterName, reporter)
   }).toMap
 

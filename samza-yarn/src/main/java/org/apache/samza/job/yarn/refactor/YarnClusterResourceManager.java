@@ -29,7 +29,7 @@ import org.apache.samza.clustermanager.*;
 import org.apache.samza.config.Config;
 import org.apache.samza.config.ShellCommandConfig;
 import org.apache.samza.config.YarnConfig;
-import org.apache.samza.coordinator.JobModelReader;
+import org.apache.samza.coordinator.JobModelManager;
 import org.apache.samza.job.CommandBuilder;
 import org.apache.samza.job.yarn.YarnContainer;
 import org.apache.samza.metrics.MetricsRegistryMap;
@@ -38,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,7 +45,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
- * An {@link YarnContainerManager} implements a ContainerProcessManager using Yarn as the underlying
+ * An {@link YarnClusterResourceManager} implements a ClusterResourceManager using Yarn as the underlying
  * resource manager. This class is as an adaptor between Yarn and translates Yarn callbacks into
  * Samza specific callback methods as specified in Callback.
  *
@@ -57,7 +56,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  */
 
-public class YarnContainerManager extends ContainerProcessManager implements AMRMClientAsync.CallbackHandler {
+public class YarnClusterResourceManager extends ClusterResourceManager implements AMRMClientAsync.CallbackHandler {
 
   private final int INVALID_YARN_CONTAINER_ID = -1;
 
@@ -98,13 +97,13 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
   final AtomicBoolean started = new AtomicBoolean(false);
   private final Object lock = new Object();
 
-  private static final Logger log = LoggerFactory.getLogger(YarnContainerManager.class);
+  private static final Logger log = LoggerFactory.getLogger(YarnClusterResourceManager.class);
 
   /**
    * Creates an YarnContainerManager from config, a jobModelReader and a callback.
    *
    */
-  public YarnContainerManager (Config config, JobModelReader jobModelReader, ContainerProcessManager.Callback callback, SamzaAppState samzaAppState ) {
+  public YarnClusterResourceManager(Config config, JobModelManager jobModelManager, ClusterResourceManager.Callback callback, SamzaAppState samzaAppState ) {
     super(callback);
     hConfig = new YarnConfiguration();
     hConfig.set("fs.http.impl", HttpFileSystem.class.getName());
@@ -126,7 +125,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
     //Instantiate the AM Client.
     this.amClient = AMRMClientAsync.createAMRMClientAsync(interval, this);
 
-    this.state = new YarnAppState(jobModelReader, -1, containerId, nodeHostString, nodePort, nodeHttpPort, samzaAppState);
+    this.state = new YarnAppState(jobModelManager, -1, containerId, nodeHostString, nodePort, nodeHttpPort, samzaAppState);
 
     log.info("Initialized YarnAppState: {}", state.toString());
     this.service = new SamzaAppMasterService(config, this.state, registry);
@@ -161,7 +160,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
   @Override
   public void requestResources(SamzaResourceRequest resourceRequest) {
     final int DEFAULT_PRIORITY = 0;
-    log.info("Requesting resources on  " + resourceRequest.getPreferredHost() + " for container " + resourceRequest.getExpectedContainerID());
+    log.info("Requesting resources on  " + resourceRequest.getPreferredHost() + " for container " + resourceRequest.getContainerID());
 
     int memoryMb = resourceRequest.getMemoryMB();
     int cpuCores = resourceRequest.getNumCores();
@@ -378,7 +377,7 @@ public class YarnContainerManager extends ContainerProcessManager implements AMR
 
   /**
    * Callback invoked when there is an error in the Yarn client. This delegates the
-   * callback handling to the {@link org.apache.samza.clustermanager.ContainerProcessManager.Callback} instance.
+   * callback handling to the {@link ClusterResourceManager.Callback} instance.
    *
    */
   @Override
