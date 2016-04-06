@@ -130,7 +130,42 @@ public class ContainerProcessManager implements ClusterResourceManager.Callback 
 
   }
 
-    public boolean shouldShutdown() {
+  //package private, used only in tests
+  ContainerProcessManager(Config config,
+                          SamzaAppState state,
+                          MetricsRegistryMap registry,
+                          ClusterResourceManager resourceManager) {
+    JobModelManager jobModelManager = state.jobModelManager;
+    this.state = state;
+    this.clusterManagerConfig = new ClusterManagerConfig(config);
+    this.jobConfig = new JobConfig(config);
+
+    this.hostAffinityEnabled = clusterManagerConfig.getHostAffinityEnabled();
+
+    this.clusterResourceManager = resourceManager;
+    this.metrics = new ContainerProcessManagerMetrics(config, state, registry);
+
+
+    if (this.hostAffinityEnabled) {
+      this.containerAllocator = new HostAwareContainerAllocator(
+          clusterResourceManager,
+          clusterManagerConfig.getContainerRequestTimeout(),
+          config,
+          state
+      );
+    } else {
+      this.containerAllocator = new ContainerAllocator(
+          clusterResourceManager,
+          config,
+          state);
+    }
+
+    this.allocatorThread = new Thread(this.containerAllocator, "Container Allocator Thread");
+    log.info("finished initialization of samza task manager");
+
+  }
+
+  public boolean shouldShutdown() {
       log.info(" TaskManager state: Too many FailedContainers: {} No. Completed containers: {} Num Configured containers: {}" +
           " AllocatorThread liveness: {} ", new Object[]{tooManyFailedContainers, state.completedContainers.get(), state.containerCount, allocatorThread.isAlive()});
 
