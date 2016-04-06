@@ -202,7 +202,7 @@ public class ClusterBasedJobCoordinator {
   }
 
   public JobModelManager buildJobModelReader (Config coordinatorSystemConfig, MetricsRegistryMap registry)  {
-    JobModelManager jobModelManager = JobModelManager.apply(coordinatorSystemConfig, registry);;
+    JobModelManager jobModelManager = JobModelManager.apply(coordinatorSystemConfig, registry);
     return jobModelManager;
   }
 

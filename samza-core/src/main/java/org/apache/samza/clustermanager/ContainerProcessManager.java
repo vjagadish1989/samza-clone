@@ -99,7 +99,6 @@ public class ContainerProcessManager implements ClusterResourceManager.Callback 
   public ContainerProcessManager(Config config,
                                  SamzaAppState state,
                                  MetricsRegistryMap registry) {
-    JobModelManager jobModelManager = state.jobModelManager;
     this.state = state;
     this.clusterManagerConfig = new ClusterManagerConfig(config);
     this.jobConfig = new JobConfig(config);
