@@ -195,17 +195,16 @@ public class ContainerProcessManager implements ClusterResourceManager.Callback 
 
     }
 
-    public void onContainerAllocated(SamzaResource container) {
+    public void onResourceAllocated(SamzaResource container) {
       log.info("Container allocated from RM on " + container.getHost());
       containerAllocator.addResource(container);
     }
 
     /**
-     * This methods handles the onContainerCompleted callback from the RM. Based on the ContainerExitStatus, it decides
+     * This methods handles the onResourceCompleted callback from the RM. Based on the ContainerExitStatus, it decides
      * whether a container that exited is marked as complete or failure.
      */
-    //TODO: make this more modular as in SAMZA-867 (Doing it in a separate RB to avoid scope creep)
-    public void onContainerCompleted(SamzaResourceStatus containerStatus) {
+    public void onResourceCompleted(SamzaResourceStatus containerStatus) {
       String containerIdStr = containerStatus.getResourceID();
       int containerId = -1;
       for(Map.Entry<Integer, SamzaResource> entry: state.runningContainers.entrySet()) {
@@ -348,7 +347,7 @@ public class ContainerProcessManager implements ClusterResourceManager.Callback 
   @Override
   public void onResourcesAvailable(List<SamzaResource> resources) {
     for (SamzaResource resource : resources) {
-      onContainerAllocated(resource);
+      onResourceAllocated(resource);
     }
 
   }
@@ -356,7 +355,7 @@ public class ContainerProcessManager implements ClusterResourceManager.Callback 
   @Override
   public void onResourcesCompleted(List<SamzaResourceStatus> resourceStatuses) {
     for (SamzaResourceStatus resourceStatus : resourceStatuses) {
-      onContainerCompleted(resourceStatus);
+      onResourceCompleted(resourceStatus);
     }
   }
 

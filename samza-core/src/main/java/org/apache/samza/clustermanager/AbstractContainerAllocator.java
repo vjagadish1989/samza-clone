@@ -38,10 +38,9 @@ import java.util.Map;
  *
  * See {@link ContainerAllocator} and {@link HostAwareContainerAllocator} for two such strategies
  *
- * It is not safe to share the same object among multiple threads without external synchronization.
+ * This class is not thread-safe.
  */
 
-//TODO: Make AbstractContainerAllocator a concrete class and have an AllocationStrategy implementation as a member.
 
 public abstract class AbstractContainerAllocator implements Runnable {
 
@@ -115,7 +114,6 @@ public abstract class AbstractContainerAllocator implements Runnable {
         Thread.currentThread().interrupt();
       }
       catch (Exception e) {
-
         log.error("Got unknown Exception in AllocatorThread.", e);
       }
     }

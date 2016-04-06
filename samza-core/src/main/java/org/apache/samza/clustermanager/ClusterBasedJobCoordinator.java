@@ -89,7 +89,7 @@ public class ClusterBasedJobCoordinator {
   /*
    * The interval for polling the Task Manager for shutdown.
    */
-  private final long taskManagerPollInterval;
+  private final long jobCoordinatorSleepInterval;
 
   /*
    * Config specifies if a Jmx server should be started on this Job Coordinator
@@ -122,7 +122,7 @@ public class ClusterBasedJobCoordinator {
     clusterManagerConfig = new ClusterManagerConfig(config);
     isJmxEnabled = clusterManagerConfig.getJmxEnabled();
 
-    taskManagerPollInterval = clusterManagerConfig.getJobCoordinatorSleepInterval();
+    jobCoordinatorSleepInterval = clusterManagerConfig.getJobCoordinatorSleepInterval();
 
     // build a container process Manager
     containerProcessManager = new ContainerProcessManager(config, state, registry);
@@ -157,7 +157,7 @@ public class ClusterBasedJobCoordinator {
 
       while (!containerProcessManager.shouldShutdown() && !isInterrupted) {
         try {
-          Thread.sleep(taskManagerPollInterval);
+          Thread.sleep(jobCoordinatorSleepInterval);
         }
         catch (InterruptedException e) {
           isInterrupted = true;

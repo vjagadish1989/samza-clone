@@ -105,15 +105,15 @@ public class ClusterManagerConfig extends MapConfig{
     }
 
   public int getAllocatorSleepTime() {
-      if(containsKey(ALLOCATOR_SLEEP_MS)) {
-        return getInt(ALLOCATOR_SLEEP_MS);
-      }
-      else if(containsKey(YARN_ALLOCATOR_SLEEP_MS)) {
-        log.info("Configuration {} is deprecated. Please use {}", YARN_ALLOCATOR_SLEEP_MS, ALLOCATOR_SLEEP_MS);
-        return getInt(YARN_ALLOCATOR_SLEEP_MS);
-      }
-      else
-          return DEFAULT_ALLOCATOR_SLEEP_MS;
+    if(containsKey(ALLOCATOR_SLEEP_MS)) {
+      return getInt(ALLOCATOR_SLEEP_MS);
+    }
+    else if(containsKey(YARN_ALLOCATOR_SLEEP_MS)) {
+      log.info("Configuration {} is deprecated. Please use {}", YARN_ALLOCATOR_SLEEP_MS, ALLOCATOR_SLEEP_MS);
+      return getInt(YARN_ALLOCATOR_SLEEP_MS);
+    }
+    else
+        return DEFAULT_ALLOCATOR_SLEEP_MS;
   }
 
   public int getNumCores() {
