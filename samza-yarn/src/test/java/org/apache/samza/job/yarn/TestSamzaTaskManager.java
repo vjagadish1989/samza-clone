@@ -21,12 +21,14 @@ package org.apache.samza.job.yarn;
 
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerExitStatus;
+import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.hadoop.yarn.client.api.async.impl.AMRMClientAsyncImpl;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.samza.config.Config;
+import org.apache.samza.config.JobConfig;
 import org.apache.samza.config.MapConfig;
 import org.apache.samza.config.YarnConfig;
 import org.apache.samza.container.LocalityManager;
@@ -43,6 +45,7 @@ import org.apache.samza.job.yarn.util.TestAMRMClientImpl;
 import org.apache.samza.job.yarn.util.TestUtil;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -62,7 +65,7 @@ public class TestSamzaTaskManager {
 
   private static volatile boolean isRunning = false;
 
-  private Config config = new MapConfig(new HashMap<String, String>() {
+  private Map<String, String> configVals = new HashMap<String, String>()  {
     {
       put("yarn.container.count", "1");
       put("systems.test-system.samza.factory", "org.apache.samza.job.yarn.MockSystemFactory");
@@ -76,7 +79,8 @@ public class TestSamzaTaskManager {
       put("yarn.allocator.sleep.ms", "1");
       put("yarn.container.request.timeout.ms", "2");
     }
-  });
+  };
+  private Config config = new MapConfig(configVals);
 
   private Config getConfig() {
     Map<String, String> map = new HashMap<>();
@@ -91,8 +95,8 @@ public class TestSamzaTaskManager {
     return new MapConfig(map);
   }
 
-  private SamzaAppState state = new SamzaAppState(getCoordinator(1), -1, ConverterUtils.toContainerId("container_1350670447861_0003_01_000001"), "", 1, 2);
-  private final HttpServer server = new MockHttpServer("/", 7777, null, new ServletHolder(DefaultServlet.class));
+  private SamzaAppState state = null;
+  private HttpServer server = null;
 
   private JobCoordinator getCoordinator(int containerCount) {
     Map<Integer, ContainerModel> containers = new java.util.HashMap<>();
@@ -101,15 +105,17 @@ public class TestSamzaTaskManager {
       containers.put(i, container);
     }
     Map<Integer, Map<String, String>> localityMap = new HashMap<>();
-    localityMap.put(0, new HashMap<String, String>(){{
-      put(SetContainerHostMapping.HOST_KEY, "abc");
-    }
+    localityMap.put(0, new HashMap<String, String>(){
+      {
+        put(SetContainerHostMapping.HOST_KEY, "abc");
+      }
     });
     LocalityManager mockLocalityManager = mock(LocalityManager.class);
     when(mockLocalityManager.readContainerLocality()).thenReturn(localityMap);
 
     JobModel jobModel = new JobModel(getConfig(), containers, mockLocalityManager);
-    return new JobCoordinator(jobModel, server);
+    JobCoordinator.jobModelRef().getAndSet(jobModel);
+    return new JobCoordinator(jobModel, server, null);
   }
 
   @Before
@@ -123,8 +129,16 @@ public class TestSamzaTaskManager {
         ));
     amRmClientAsync = TestUtil.getAMClient(testAMRMClient);
 
+    server = new MockHttpServer("/", 7777, null, new ServletHolder(DefaultServlet.class));
+
     // Initialize coordinator url
+    state = new SamzaAppState(getCoordinator(1), -1, ConverterUtils.toContainerId("container_1350670447861_0003_01_000001"), "", 1, 2);
     state.coordinatorUrl = new URL("http://localhost:1234");
+  }
+
+  @After
+  public void teardown() {
+    server.stop();
   }
 
   private Field getPrivateFieldFromTaskManager(String fieldName, SamzaTaskManager object) throws Exception {
@@ -455,5 +469,34 @@ public class TestSamzaTaskManager {
     assertEquals(ContainerRequestState.ANY_HOST, allocator.getContainerRequestState().getRequestsQueue().peek().getPreferredHost());
 
     taskManager.onShutdown();
+  }
+
+  @Test
+  public void testAppMasterWithFwk () {
+    SamzaTaskManager taskManager = new SamzaTaskManager(
+        new MapConfig(config),
+        state,
+        amRmClientAsync,
+        new YarnConfiguration()
+    );
+    taskManager.onInit();
+
+    assertFalse(taskManager.shouldShutdown());
+    ContainerId container2 = ConverterUtils.toContainerId("container_1350670447861_0003_01_000002");
+    taskManager.onContainerAllocated(TestUtil.getContainer(container2, "", 12345));
+
+
+    configVals.put(JobConfig.SAMZA_FWK_PATH(), "/export/content/whatever");
+    Config config1 = new MapConfig(configVals);
+
+    SamzaTaskManager taskManager1 = new SamzaTaskManager(
+        new MapConfig(config1),
+        state,
+        amRmClientAsync,
+        new YarnConfiguration()
+    );
+
+    taskManager1.onInit();
+    taskManager1.onContainerAllocated(TestUtil.getContainer(container2, "", 12345));
   }
 }

@@ -16,15 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.samza.container.grouper.task
 
-import org.apache.samza.config.Config
-import org.apache.samza.config.JobConfig.Config2Job
+package org.apache.samza.metrics;
+
 /**
- * Factory to build the GroupByContainerCount class.
+ * Thrown when the metrics validation fails. See {@link org.apache.samza.metrics.MetricsValidator}.
  */
-class GroupByContainerCountFactory extends TaskNameGrouperFactory {
-  override def build(config: Config): TaskNameGrouper = {
-    new GroupByContainerCount(config.getContainerCount)
+public class MetricsValidationFailureException extends Exception {
+  public MetricsValidationFailureException(String message) {
+    super(message);
+  }
+  public MetricsValidationFailureException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

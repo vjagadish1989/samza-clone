@@ -19,10 +19,11 @@
 
 package org.apache.samza.config
 
-import org.apache.samza.config.JobConfig.Config2Job
-import org.apache.samza.config.SystemConfig.Config2System
-import org.apache.samza.util.Logging
+
+import java.io.File
+
 import org.apache.samza.container.grouper.stream.GroupByPartitionFactory
+import org.apache.samza.util.Logging
 
 object JobConfig {
   // job config constants
@@ -38,6 +39,8 @@ object JobConfig {
   val CONFIG_REWRITER_CLASS = "job.config.rewriter.%s.class" // streaming.job_config_rewriter_class - regex, system, config
   val JOB_NAME = "job.name" // streaming.job_name
   val JOB_ID = "job.id" // streaming.job_id
+  val SAMZA_FWK_PATH = "samza.fwk.path"
+  val SAMZA_FWK_VERSION = "samza.fwk.version"
   val JOB_COORDINATOR_SYSTEM = "job.coordinator.system"
   val JOB_CONTAINER_COUNT = "job.container.count"
   val JOB_REPLICATION_FACTOR = "job.coordinator.replication.factor"
@@ -49,8 +52,28 @@ object JobConfig {
   // is not yet supported, and auto-creation of the topics cannot be always easily tuned off).
   // So we add a setting that allows for the job to continue even though number of partitions is not 1.
   val JOB_FAIL_CHECKPOINT_VALIDATION = "job.checkpoint.validation.enabled"
+  val MONITOR_PARTITION_CHANGE = "job.coordinator.monitor-partition-change"
+  val MONITOR_PARTITION_CHANGE_FREQUENCY_MS = "job.coordinator.monitor-partition-change.frequency.ms"
+  val DEFAULT_MONITOR_PARTITION_CHANGE_FREQUENCY_MS = 300000
 
   implicit def Config2Job(config: Config) = new JobConfig(config)
+
+  /**
+   * reads the config to figure out if split deployment is enabled
+   * and fwk directory is setup
+   * @return fwk + "/" + version
+   */
+  def getFwkPath (conf: Config) = {
+    var fwkPath = conf.get(JobConfig.SAMZA_FWK_PATH, "")
+    var fwkVersion = conf.get(JobConfig.SAMZA_FWK_VERSION)
+    if (fwkVersion == null || fwkVersion.isEmpty()) {
+      fwkVersion = "STABLE"
+    }
+    if (! fwkPath.isEmpty()) {
+      fwkPath = fwkPath + File.separator  + fwkVersion
+    }
+    fwkPath
+  }
 }
 
 class JobConfig(config: Config) extends ScalaMapConfig(config) with Logging {
@@ -73,6 +96,12 @@ class JobConfig(config: Config) extends ScalaMapConfig(config) with Logging {
         }
     }
   }
+
+  def getMonitorPartitionChange = getBoolean(JobConfig.MONITOR_PARTITION_CHANGE, false)
+
+  def getMonitorPartitionChangeFrequency = getInt(
+    JobConfig.MONITOR_PARTITION_CHANGE_FREQUENCY_MS,
+    JobConfig.DEFAULT_MONITOR_PARTITION_CHANGE_FREQUENCY_MS)
 
   def getStreamJobFactoryClass = getOption(JobConfig.STREAM_JOB_FACTORY_CLASS)
 
