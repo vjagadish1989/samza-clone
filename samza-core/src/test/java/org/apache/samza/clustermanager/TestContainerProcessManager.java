@@ -102,7 +102,7 @@ public class TestContainerProcessManager {
     when(mockLocalityManager.readContainerLocality()).thenReturn(localityMap);
 
     JobModel jobModel = new JobModel(getConfig(), containers, mockLocalityManager);
-    JobModelManager reader = new JobModelManager(jobModel, this.server);
+    JobModelManager reader = new JobModelManager(jobModel, this.server, null);
     return reader;
   }
 

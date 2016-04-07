@@ -339,7 +339,7 @@ public class TestHostAwareContainerAllocator {
       containers.put(i, container);
     }
     JobModel jobModel = new JobModel(getConfig(), containers);
-    return new JobModelManager(jobModel, server);
+    return new JobModelManager(jobModel, server, null);
   }
 
 
