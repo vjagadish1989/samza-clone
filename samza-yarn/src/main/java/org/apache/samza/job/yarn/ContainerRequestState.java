@@ -203,6 +203,7 @@ public class ContainerRequestState {
    */
   public synchronized int releaseExtraContainers() {
     int numReleasedContainers = 0;
+    System.out.println("size of req queue " + requestsQueue.size());
 
     if (requestsQueue.isEmpty()) {
       log.debug("Container Requests Queue is empty.");

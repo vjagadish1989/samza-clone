@@ -239,6 +239,7 @@ public class TestContainerAllocator {
           }
         }
     );
+
     requestState.registerContainerListener(listener);
 
     allocatorThread.start();

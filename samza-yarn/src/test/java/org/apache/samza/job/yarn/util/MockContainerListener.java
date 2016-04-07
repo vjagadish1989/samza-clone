@@ -64,6 +64,9 @@ public class MockContainerListener {
   }
 
   public synchronized void postReleaseContainers(int totalReleasedContainers) {
+
+    System.out.println(" released called " + totalReleasedContainers);
+
     if (totalReleasedContainers == numExpectedContainersReleased) {
       if (releaseContainerAssertions != null) {
         releaseContainerAssertions.run();
@@ -75,6 +78,7 @@ public class MockContainerListener {
   }
 
   public synchronized void verify() {
+
     // There could be 1 notifyAll() for each condition, so we must wait up to that many times
     for (int i = 0; i < NUM_CONDITIONS && !(allContainersAdded && allContainersReleased); i++) {
       try {

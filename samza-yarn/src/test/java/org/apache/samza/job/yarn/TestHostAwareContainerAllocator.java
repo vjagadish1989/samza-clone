@@ -179,6 +179,7 @@ public class TestHostAwareContainerAllocator {
           }
         }
     );
+    state.neededContainers.set(1);
     requestState.registerContainerListener(listener);
 
     // Only request 1 container and we should see 2 assignments in the assertions above (because of the retry)

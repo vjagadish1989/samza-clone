@@ -61,6 +61,8 @@ public class MockContainerListener {
   }
 
   public synchronized void postReleaseContainers(int totalReleasedContainers) {
+    System.out.println(" released called " + totalReleasedContainers);
+
     if (totalReleasedContainers == numExpectedContainersReleased) {
       if (releaseContainerAssertions != null) {
         releaseContainerAssertions.run();
@@ -80,7 +82,6 @@ public class MockContainerListener {
         // Do nothing
       }
     }
-
     assertTrue("Not all containers were added.", allContainersAdded);
     assertTrue("Not all containers were released.", allContainersReleased);
   }

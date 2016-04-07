@@ -105,6 +105,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
     while(isRunning) {
       try {
         assignResourceRequests();
+        System.out.println("allocator releasing extra");
         // Release extra resources and update the entire system's state
         resourceRequestState.releaseExtraResources();
         Thread.sleep(allocatorSleepIntervalMs);
@@ -161,7 +162,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
 
     } catch (SamzaContainerLaunchException e) {
       log.warn(String.format("Got exception while starting resource %s. Requesting a new resource on any host", resource), e);
-      containerProcessManager.releaseResources(resource);
+      resourceRequestState.releaseUnstartableContainer(resource);
       requestResource(expectedContainerId, ContainerRequestState.ANY_HOST);
     }
   }

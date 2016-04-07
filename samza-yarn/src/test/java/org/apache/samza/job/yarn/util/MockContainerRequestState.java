@@ -66,7 +66,7 @@ public class MockContainerRequestState extends ContainerRequestState {
   @Override
   public synchronized int releaseExtraContainers() {
     numReleasedContainers += super.releaseExtraContainers();
-
+    System.out.println("Inside release extra containers");
     for (MockContainerListener listener : _mockContainerListeners) {
       listener.postReleaseContainers(numReleasedContainers);
     }
@@ -77,6 +77,7 @@ public class MockContainerRequestState extends ContainerRequestState {
   @Override
   public void releaseUnstartableContainer(Container container) {
     super.releaseUnstartableContainer(container);
+    System.out.println("Inside release unstartable containers");
 
     numReleasedContainers += 1;
     for (MockContainerListener listener : _mockContainerListeners) {

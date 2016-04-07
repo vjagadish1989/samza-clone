@@ -196,6 +196,7 @@ public class ContainerRequestState {
   public int releaseExtraResources() {
     synchronized (lock) {
       int numReleasedResources = 0;
+      System.out.println("size of req queue " + requestsQueue.size());
       if (requestsQueue.isEmpty()) {
         log.debug("Resource Requests Queue is empty.");
         if (hostAffinityEnabled) {
@@ -211,6 +212,21 @@ public class ContainerRequestState {
       return numReleasedResources;
     }
   }
+
+  /**
+   * Releases a container that was allocated and assigned but could not be started.
+   * e.g. because of a ConnectException while trying to communicate with the NM.
+   * This method assumes the specified container and associated request have already
+   * been removed from their respective queues.
+   *
+   * @param resource the {@link SamzaResource} to release.
+   */
+  public void releaseUnstartableContainer(SamzaResource resource) {
+    log.info("Releasing unstartable container {}", resource.getResourceID());
+    manager.releaseResources(resource);
+  }
+
+
   /**
    * Releases all allocated resources for the specified host.
    * @param host  the host for which the resources should be released.

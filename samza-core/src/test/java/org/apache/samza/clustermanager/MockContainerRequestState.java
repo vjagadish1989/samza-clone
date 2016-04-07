@@ -69,6 +69,18 @@ public class MockContainerRequestState extends ContainerRequestState {
     return numAddedContainers;
   }
 
+  @Override
+  public void releaseUnstartableContainer(SamzaResource container) {
+    super.releaseUnstartableContainer(container);
+    System.out.println("Inside release unstartable containers");
+
+    numReleasedContainers += 1;
+    for (MockContainerListener listener : _mockContainerListeners) {
+      listener.postReleaseContainers(numReleasedContainers);
+    }
+  }
+
+
   public void registerContainerListener(MockContainerListener listener) {
     _mockContainerListeners.add(listener);
   }

@@ -80,8 +80,10 @@ public abstract class AbstractContainerAllocator implements Runnable {
   public void run() {
     while(isRunning.get()) {
       try {
-        assignContainerRequests();
+        System.out.println("allocator begin extra");
 
+        assignContainerRequests();
+        System.out.println("allocator relaesing extra");
         // Release extra containers and update the entire system's state
         containerRequestState.releaseExtraContainers();
 
