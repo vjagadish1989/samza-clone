@@ -33,6 +33,7 @@ import org.apache.samza.job.model.TaskModel;
 import org.apache.samza.metrics.MetricsRegistryMap;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -83,9 +84,10 @@ public class TestContainerProcessManager {
     return new MapConfig(map);
   }
 
-  private final HttpServer server = new MockHttpServer("/", 7777, null, new ServletHolder(DefaultServlet.class));
+  private HttpServer server = null;
 
-  private final SamzaAppState state = new SamzaAppState(getCoordinator(1));
+  private SamzaAppState state = null;
+
 
   private JobModelManager getCoordinator(int containerCount) {
     Map<Integer, ContainerModel> containers = new java.util.HashMap<>();
@@ -102,12 +104,17 @@ public class TestContainerProcessManager {
     when(mockLocalityManager.readContainerLocality()).thenReturn(localityMap);
 
     JobModel jobModel = new JobModel(getConfig(), containers, mockLocalityManager);
+    JobModelManager.jobModelRef().getAndSet(jobModel);
+
     JobModelManager reader = new JobModelManager(jobModel, this.server, null);
+
     return reader;
   }
 
   @Before
   public void setup() throws Exception {
+    server = new MockHttpServer("/", 7777, null, new ServletHolder(DefaultServlet.class));
+    state = new SamzaAppState(getCoordinator(1));
   }
 
   private Field getPrivateFieldFromTaskManager(String fieldName, ContainerProcessManager object) throws Exception {
@@ -382,6 +389,12 @@ public class TestContainerProcessManager {
     assertEquals(ContainerRequestState.ANY_HOST, allocator.getContainerRequestState().peekPendingRequest().getPreferredHost());
 
     taskManager.stop();
+  }
+
+
+  @After
+  public void teardown() {
+    server.stop();
   }
 
 }
