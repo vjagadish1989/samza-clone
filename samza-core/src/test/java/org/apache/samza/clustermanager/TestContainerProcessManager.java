@@ -20,6 +20,7 @@
 package org.apache.samza.clustermanager;
 
 import org.apache.samza.config.Config;
+import org.apache.samza.config.JobConfig;
 import org.apache.samza.config.MapConfig;
 import org.apache.samza.container.LocalityManager;
 import org.apache.samza.container.TaskName;
@@ -55,7 +56,7 @@ public class TestContainerProcessManager {
 
   private static volatile boolean isRunning = false;
 
-  private Config config = new MapConfig(new HashMap<String, String>() {
+  private Map<String, String> configVals = new HashMap<String, String>()  {
     {
       put("yarn.container.count", "1");
       put("systems.test-system.samza.factory", "org.apache.samza.job.yarn.MockSystemFactory");
@@ -69,7 +70,8 @@ public class TestContainerProcessManager {
       put("yarn.allocator.sleep.ms", "1");
       put("yarn.container.request.timeout.ms", "2");
     }
-  });
+  };
+  private Config config = new MapConfig(configVals);
 
   private Config getConfig() {
     Map<String, String> map = new HashMap<>();
@@ -390,6 +392,33 @@ public class TestContainerProcessManager {
 
     taskManager.stop();
   }
+
+  @Test
+  public void testAppMasterWithFwk () {
+    ContainerProcessManager taskManager = new ContainerProcessManager(
+        new MapConfig(config),
+        state,
+        new MetricsRegistryMap(),
+        manager
+    );
+    taskManager.start();
+    SamzaResource container2 = new SamzaResource(1, 1024, "", "id0" );
+    assertFalse(taskManager.shouldShutdown());
+    taskManager.onResourceAllocated(container2);
+
+    configVals.put(JobConfig.SAMZA_FWK_PATH(), "/export/content/whatever");
+    Config config1 = new MapConfig(configVals);
+
+    ContainerProcessManager taskManager1 = new ContainerProcessManager(
+        new MapConfig(config),
+        state,
+        new MetricsRegistryMap(),
+        manager
+    );
+    taskManager1.start();
+    taskManager1.onResourceAllocated(container2);
+  }
+
 
 
   @After

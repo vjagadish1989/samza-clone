@@ -38,6 +38,7 @@ import org.apache.hadoop.yarn.util.Records;
 import org.apache.samza.SamzaException;
 import org.apache.samza.clustermanager.SamzaContainerLaunchException;
 import org.apache.samza.config.Config;
+import org.apache.samza.config.JobConfig;
 import org.apache.samza.config.TaskConfig;
 import org.apache.samza.config.YarnConfig;
 import org.apache.samza.job.CommandBuilder;
@@ -91,18 +92,26 @@ public class YarnContainerRunner {
     String containerIdStr = ConverterUtils.toString(container.getId());
     log.info("Got available container ID ({}) for container: {}", samzaContainerId, container);
 
-    String cmdBuilderClassName;
-    if (taskConfig.getCommandClass().isDefined()) {
-      cmdBuilderClassName = taskConfig.getCommandClass().get();
-    } else {
-      cmdBuilderClassName = ShellCommandBuilder.class.getName();
+    // check if we have framework path specified. If yes - use it, if not use default ./__package/
+    String jobLib = ""; // in case of separate framework, this directory will point at the job's libraries
+    String cmdPath = "./__package/";
+
+    String fwkPath = JobConfig.getFwkPath(config);
+    if(fwkPath != null && (! fwkPath.isEmpty())) {
+      cmdPath = fwkPath;
+      jobLib = "export JOB_LIB_DIR=./__package/lib";
     }
+    log.info("In runContainer in util: fwkPath= " + fwkPath + ";cmdPath=" + cmdPath + ";jobLib=" + jobLib);
+    cmdBuilder.setCommandPath(cmdPath);
+
 
     String command = cmdBuilder.buildCommand();
     log.info("Container ID {} using command {}", samzaContainerId, command);
 
     Map<String, String> env = getEscapedEnvironmentVariablesMap(cmdBuilder);
     printContainerEnvironmentVariables(samzaContainerId, env);
+
+    log.info("Samza FWK path: " + command + "; env=" + env);
 
     Path path = new Path(yarnConfig.getPackagePath());
     log.info("Starting container ID {} using package path {}", samzaContainerId, path);
@@ -113,6 +122,7 @@ public class YarnContainerRunner {
         env,
         getFormattedCommand(
             ApplicationConstants.LOG_DIR_EXPANSION_VAR,
+            jobLib,
             command,
             ApplicationConstants.STDOUT,
             ApplicationConstants.STDERR)
@@ -234,10 +244,16 @@ public class YarnContainerRunner {
 
 
   private String getFormattedCommand(String logDirExpansionVar,
+                                     String jobLib,
                                      String command,
                                      String stdOut,
                                      String stdErr) {
-    return "export SAMZA_LOG_DIR=" + logDirExpansionVar + " && ln -sfn " + logDirExpansionVar +
-        " logs && exec ./__package/" + command + " 1>logs/" + stdOut + " 2>logs/" + stdErr;
+    if (!jobLib.isEmpty()) {
+      jobLib = "&& " + jobLib; // add job's libraries exported to an env variable
+    }
+
+    return String
+        .format("export SAMZA_LOG_DIR=%s %s && ln -sfn %s logs && exec %s 1>logs/%s 2>logs/%s", logDirExpansionVar,
+            jobLib, logDirExpansionVar, command, stdOut, stdErr);
   }
 }
