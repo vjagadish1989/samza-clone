@@ -100,8 +100,11 @@ public class YarnClusterResourceManager extends ClusterResourceManager implement
   private static final Logger log = LoggerFactory.getLogger(YarnClusterResourceManager.class);
 
   /**
-   * Creates an YarnContainerManager from config, a jobModelReader and a callback.
-   *
+   * Creates an YarnClusterResourceManager from config, a jobModelReader and a callback.
+   * @param config to instantiate the container manager with
+   * @param jobModelManager the jobModel manager to get the job model (mostly for the UI)
+   * @param callback the callback to receive events from Yarn.
+   * @param samzaAppState samza app state for display in the UI
    */
   public YarnClusterResourceManager(Config config, JobModelManager jobModelManager, ClusterResourceManager.Callback callback, SamzaAppState samzaAppState ) {
     super(callback);

@@ -41,7 +41,7 @@ import java.util.Map;
  *  - The callback handler thread that receives the responses from cluster manager and handles:
  *      - Populating a buffer when a container is allocated by the cluster manager
  *        (allocatedContainers in {@link org.apache.samza.clustermanager.ContainerRequestState}
- *      - Identifying the cause of container failure & re-request containers from the cluster manager by adding request to the
+ *      - Identifying the cause of container failure and re-request containers from the cluster manager by adding request to the
  *        internal requestQueue in {@link org.apache.samza.clustermanager.ContainerRequestState}
  *  - The allocator thread defined here assigns the allocated containers to pending requests
  *    (See {@link org.apache.samza.clustermanager.ContainerAllocator} or {@link org.apache.samza.clustermanager.HostAwareContainerAllocator})
@@ -237,6 +237,7 @@ public class ContainerProcessManager implements ClusterResourceManager.Callback 
     /**
      * This methods handles the onResourceCompleted callback from the RM. Based on the ContainerExitStatus, it decides
      * whether a container that exited is marked as complete or failure.
+     * @param containerStatus of the resource that completed
      */
     public void onResourceCompleted(SamzaResourceStatus containerStatus) {
       String containerIdStr = containerStatus.getResourceID();

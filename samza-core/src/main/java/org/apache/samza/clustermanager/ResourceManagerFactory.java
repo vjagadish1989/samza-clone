@@ -28,12 +28,12 @@ import org.apache.samza.coordinator.JobModelManager;
 public interface ResourceManagerFactory
 {
   /**
-   * Return a ClusterResourceManager
+   * Return a {@link ClusterResourceManager }
    * @param callback to be registered with the {@link ClusterResourceManager}
    * @param state Useful if the ClusterResourceManager wants to host an UI.
    * //TODO: Remove the SamzaAppState param and refactor into a smaller focussed class.
    * //TODO: Investigate the possibility a common Samza UI for all cluster managers - Yarn,Mesos,Standalone
-   * @return
+   * @return the instantiated {@link ClusterResourceManager}
    */
   public ClusterResourceManager getClusterResourceManager(ClusterResourceManager.Callback callback, SamzaAppState state);
 }

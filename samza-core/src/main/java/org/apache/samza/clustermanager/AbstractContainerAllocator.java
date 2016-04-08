@@ -169,7 +169,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
   /**
    * Called during initial request for resources
    *
-   * @param resourceToHostMappings A Map of <containerId, hostName>, containerId is the ID of the container process
+   * @param resourceToHostMappings A Map of [containerId, hostName] containerId is the ID of the container process
    *                               to run on the resource. hostName is the host on which the resource must be allocated.
    *                                The hostName value is null, either
    *                                - when host-affinity is not enabled, or

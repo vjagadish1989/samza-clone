@@ -29,7 +29,6 @@ package org.apache.samza.clustermanager;
  *     <li><em>Exit status</em> of the StreamProcessor.</li>
  *     <li><em>Diagnostic</em> message for a failed/pre-empted StreamProcessor.</li>
  *   </ul>
- * </p>
  *
  *
  * The exact semantics of various exit codes and failure modes are evolving.

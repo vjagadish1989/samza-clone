@@ -109,7 +109,7 @@ public class ClusterBasedJobCoordinator {
    * run the jobcoordinator.
    *
    * @param coordinatorSystemConfig the coordinator stream config that can be used to read the
-   *                                {@link org.apache.samza.job.model.JobModel from.
+   *                                {@link org.apache.samza.job.model.JobModel} from.
    */
   public ClusterBasedJobCoordinator(Config coordinatorSystemConfig) {
 
@@ -210,7 +210,7 @@ public class ClusterBasedJobCoordinator {
 
   /**
    * The entry point for the {@link ClusterBasedJobCoordinator}
-   *
+   * @param args args
    */
   public static void main(String args[]) {
     Config coordinatorSystemConfig = null;

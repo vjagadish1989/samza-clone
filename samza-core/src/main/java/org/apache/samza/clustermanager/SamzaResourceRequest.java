@@ -111,8 +111,7 @@ public class SamzaResourceRequest implements Comparable<SamzaResourceRequest>
 
   /**
    * Requests are ordered by the time at which they were created.
-   * @param o
-   * @return
+   * @param o the other
    */
   @Override
   public int compareTo(SamzaResourceRequest o) {

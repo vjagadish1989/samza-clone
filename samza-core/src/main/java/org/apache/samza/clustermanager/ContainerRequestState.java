@@ -301,6 +301,7 @@ public class ContainerRequestState {
 
   /**
    * Returns the number of pending SamzaResource requests in the queue.
+   * @return the number of pending requests
    */
   public int numPendingRequests() {
     synchronized (lock) {

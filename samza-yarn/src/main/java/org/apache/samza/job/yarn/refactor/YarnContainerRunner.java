@@ -67,8 +67,8 @@ public class YarnContainerRunner {
 
   /**
    * Create a new Runner from a Config.
-   * @param config
-   * @param yarnConfiguration
+   * @param config to instantiate the runner with
+   * @param yarnConfiguration the yarn config for the cluster to connect to.
    */
 
   public YarnContainerRunner(Config config,
@@ -85,7 +85,12 @@ public class YarnContainerRunner {
 
   /**
    * Runs a process as specified by the command builder on the container.
-   * @throws SamzaContainerLaunchException
+   * @param samzaContainerId id of the samza Container to run (passed as a command line parameter to the process)
+   * @param container the samza container to run.
+   * @param cmdBuilder the command builder that encapsulates the command, and the context
+   *
+   * @throws SamzaContainerLaunchException  when there's an exception in submitting the request to the RM.
+   *
    */
   //TODO: we don't need samzaContainerId as a param here.
   public void runContainer(int samzaContainerId, Container container, CommandBuilder cmdBuilder) throws SamzaContainerLaunchException {
