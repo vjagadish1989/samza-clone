@@ -287,7 +287,6 @@ public class TestHostAwareContainerAllocator {
     listener.verify();
 
     Thread.sleep(2000);
-    System.out.println(manager.launchedResources);
     assertTrue(manager.launchedResources.contains(resource0));
     assertTrue(manager.launchedResources.contains(resource1));
 

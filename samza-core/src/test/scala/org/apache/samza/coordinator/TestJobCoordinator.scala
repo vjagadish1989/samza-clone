@@ -123,7 +123,6 @@ class TestJobCoordinator {
 
   @Test
   def testJobCoordinatorChangelogPartitionMapping = {
-    System.out.println("test  ")
     val task0Name = new TaskName("Partition 0")
     val ssp0 = Set(new SystemStreamPartition("test", "stream1", new Partition(0)))
     val task1Name = new TaskName("Partition 1")

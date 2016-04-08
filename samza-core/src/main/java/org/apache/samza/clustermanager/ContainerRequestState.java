@@ -196,7 +196,6 @@ public class ContainerRequestState {
   public int releaseExtraResources() {
     synchronized (lock) {
       int numReleasedResources = 0;
-      System.out.println("size of req queue " + requestsQueue.size());
       if (requestsQueue.isEmpty()) {
         log.debug("Resource Requests Queue is empty.");
         if (hostAffinityEnabled) {

@@ -52,7 +52,6 @@ public class MockHttpServer extends HttpServer {
         mue.printStackTrace();
       }
     }
-    System.out.println("returning null");
     return null;
   }
 }
