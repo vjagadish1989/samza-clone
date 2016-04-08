@@ -24,7 +24,6 @@ import org.apache.samza.config.JobConfig;
 import org.apache.samza.config.MapConfig;
 import org.apache.samza.container.LocalityManager;
 import org.apache.samza.container.TaskName;
-import org.apache.samza.coordinator.JobCoordinator;
 import org.apache.samza.coordinator.JobModelManager;
 import org.apache.samza.coordinator.server.HttpServer;
 import org.apache.samza.coordinator.stream.messages.SetContainerHostMapping;
@@ -39,8 +38,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -290,7 +287,7 @@ public class TestContainerProcessManager {
 
     // The above failure should trigger a container request
     assertEquals(1, allocator.getContainerRequestState().numPendingRequests());
-    assertEquals(ContainerRequestState.ANY_HOST, allocator.getContainerRequestState().peekPendingRequest().getPreferredHost());
+    assertEquals(ResourceRequestState.ANY_HOST, allocator.getContainerRequestState().peekPendingRequest().getPreferredHost());
 
 
     assertFalse(taskManager.shouldShutdown());
@@ -368,7 +365,7 @@ public class TestContainerProcessManager {
     assertFalse(state.jobHealthy.get());
     assertEquals(2, manager.resourceRequests.size());
     assertEquals(0, manager.releasedResources.size());
-    assertEquals(ContainerRequestState.ANY_HOST, allocator.getContainerRequestState().peekPendingRequest().getPreferredHost());
+    assertEquals(ResourceRequestState.ANY_HOST, allocator.getContainerRequestState().peekPendingRequest().getPreferredHost());
 
     // Create container failure - with ContainerExitStatus.PREEMPTED
     taskManager.onResourceCompleted(new SamzaResourceStatus(container.getResourceID(), "Preemption",  SamzaResourceStatus.PREEMPTED));
@@ -377,7 +374,7 @@ public class TestContainerProcessManager {
     assertEquals(1, allocator.getContainerRequestState().numPendingRequests());
     assertFalse(taskManager.shouldShutdown());
     assertFalse(state.jobHealthy.get());
-    assertEquals(ContainerRequestState.ANY_HOST, allocator.getContainerRequestState().peekPendingRequest().getPreferredHost());
+    assertEquals(ResourceRequestState.ANY_HOST, allocator.getContainerRequestState().peekPendingRequest().getPreferredHost());
 
     // Create container failure - with ContainerExitStatus.ABORTED
     taskManager.onResourceCompleted(new SamzaResourceStatus(container.getResourceID(), "Aborted", SamzaResourceStatus.ABORTED));
@@ -388,7 +385,7 @@ public class TestContainerProcessManager {
     assertEquals(0, manager.releasedResources.size());
     assertFalse(taskManager.shouldShutdown());
     assertFalse(state.jobHealthy.get());
-    assertEquals(ContainerRequestState.ANY_HOST, allocator.getContainerRequestState().peekPendingRequest().getPreferredHost());
+    assertEquals(ResourceRequestState.ANY_HOST, allocator.getContainerRequestState().peekPendingRequest().getPreferredHost());
 
     taskManager.stop();
   }

@@ -78,10 +78,10 @@ public abstract class AbstractContainerAllocator implements Runnable {
   /**
    * ContainerRequestState indicates the state of all unfulfilled container requests and allocated containers
    */
-  protected final ContainerRequestState resourceRequestState;
+  protected final ResourceRequestState resourceRequestState;
 
   public AbstractContainerAllocator(ClusterResourceManager containerProcessManager,
-                                    ContainerRequestState resourceRequestState,
+                                    ResourceRequestState resourceRequestState,
                                     Config config, SamzaAppState state) {
     ClusterManagerConfig clusterManagerConfig = new ClusterManagerConfig(config);
     this.containerProcessManager = containerProcessManager;
@@ -131,7 +131,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
    *
    * @param request             the {@link SamzaResourceRequest} which is being handled.
    * @param preferredHost       the preferred host on which the StreamProcessor process should be run or
-   *                            {@link ContainerRequestState#ANY_HOST} if there is no host preference.
+   *                            {@link ResourceRequestState#ANY_HOST} if there is no host preference.
    * @throws
    * SamzaException if there is no allocated resource in the specified host.
    */
@@ -162,7 +162,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
     } catch (SamzaContainerLaunchException e) {
       log.warn(String.format("Got exception while starting resource %s. Requesting a new resource on any host", resource), e);
       resourceRequestState.releaseUnstartableContainer(resource);
-      requestResource(expectedContainerId, ContainerRequestState.ANY_HOST);
+      requestResource(expectedContainerId, ResourceRequestState.ANY_HOST);
     }
   }
 
@@ -180,7 +180,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
       int containerId = entry.getKey();
       String preferredHost = entry.getValue();
       if (preferredHost == null)
-        preferredHost = ContainerRequestState.ANY_HOST;
+        preferredHost = ResourceRequestState.ANY_HOST;
 
       requestResource(containerId, preferredHost);
     }
@@ -250,7 +250,7 @@ public abstract class AbstractContainerAllocator implements Runnable {
   }
   /**
    * Adds allocated samzaResource to a synchronized buffer of allocated resources.
-   * See allocatedResources in {@link ContainerRequestState}
+   * See allocatedResources in {@link ResourceRequestState}
    *
    * @param samzaResource returned by the ContainerManager
    */

@@ -45,7 +45,7 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
 
   public HostAwareContainerAllocator(ClusterResourceManager manager ,
                                      int timeout, Config config, SamzaAppState state) {
-    super(manager, new ContainerRequestState(true, manager), config, state);
+    super(manager, new ResourceRequestState(true, manager), config, state);
     this.requestTimeout = timeout;
   }
 
@@ -75,11 +75,11 @@ public class HostAwareContainerAllocator extends AbstractContainerAllocator {
             preferredHost, containerID);
 
         boolean expired = requestExpired(request);
-        boolean resourceAvailableOnAnyHost = hasAllocatedResource(ContainerRequestState.ANY_HOST);
+        boolean resourceAvailableOnAnyHost = hasAllocatedResource(ResourceRequestState.ANY_HOST);
 
         if(expired && resourceAvailableOnAnyHost) {
           log.info("Request expired. running on ANY_HOST");
-          runStreamProcessor(request, ContainerRequestState.ANY_HOST);
+          runStreamProcessor(request, ResourceRequestState.ANY_HOST);
         }
         else {
           log.info("Either the request timestamp {} is greater than resource request timeout {}ms or we couldn't "

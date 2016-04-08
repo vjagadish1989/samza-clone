@@ -40,9 +40,9 @@ import java.util.Map;
  *  - The main thread (defined in SamzaAppMaster) that sends requests to the cluster manager.
  *  - The callback handler thread that receives the responses from cluster manager and handles:
  *      - Populating a buffer when a container is allocated by the cluster manager
- *        (allocatedContainers in {@link org.apache.samza.clustermanager.ContainerRequestState}
+ *        (allocatedContainers in {@link ResourceRequestState}
  *      - Identifying the cause of container failure and re-request containers from the cluster manager by adding request to the
- *        internal requestQueue in {@link org.apache.samza.clustermanager.ContainerRequestState}
+ *        internal requestQueue in {@link ResourceRequestState}
  *  - The allocator thread defined here assigns the allocated containers to pending requests
  *    (See {@link org.apache.samza.clustermanager.ContainerAllocator} or {@link org.apache.samza.clustermanager.HostAwareContainerAllocator})
  *
@@ -295,7 +295,7 @@ public class ContainerProcessManager implements ClusterResourceManager.Callback 
                   state.jobHealthy.set(false);
 
                   // request a container on refactor host
-                  containerAllocator.requestResource(containerId, ContainerRequestState.ANY_HOST);
+                  containerAllocator.requestResource(containerId, ResourceRequestState.ANY_HOST);
               }
               break;
 
@@ -313,7 +313,7 @@ public class ContainerProcessManager implements ClusterResourceManager.Callback 
                   // Find out previously running container location
                   String lastSeenOn = state.jobModelManager.jobModel().getContainerToHostValue(containerId, SetContainerHostMapping.HOST_KEY);
                   if (!hostAffinityEnabled || lastSeenOn == null) {
-                      lastSeenOn = ContainerRequestState.ANY_HOST;
+                      lastSeenOn = ResourceRequestState.ANY_HOST;
                   }
                   log.info("Container was last seen on " + lastSeenOn );
                   // A container failed for an unknown reason. Let's check to see if

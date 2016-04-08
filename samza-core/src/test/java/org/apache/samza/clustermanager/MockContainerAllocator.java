@@ -39,10 +39,10 @@ public class MockContainerAllocator extends ContainerAllocator {
     super.requestResources(containerToHostMappings);
   }
 
-  public ContainerRequestState getContainerRequestState() throws Exception {
+  public ResourceRequestState getContainerRequestState() throws Exception {
     Field field = AbstractContainerAllocator.class.getDeclaredField("resourceRequestState");
     field.setAccessible(true);
 
-    return (ContainerRequestState) field.get(this);
+    return (ResourceRequestState) field.get(this);
   }
 }

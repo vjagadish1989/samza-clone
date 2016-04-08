@@ -30,15 +30,15 @@ import java.util.PriorityQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * {@link ContainerRequestState} maintains the state variables for all the resource requests and the allocated resources returned
+ * {@link ResourceRequestState} maintains the state variables for all the resource requests and the allocated resources returned
  * by the cluster manager.
  *
  * This class is thread-safe, and can safely support concurrent accesses without any form of external synchronization. Currently,
  * this state is shared across both the Allocator Thread, and the Callback handler thread.
  *
  */
-public class ContainerRequestState {
-  private static final Logger log = LoggerFactory.getLogger(ContainerRequestState.class);
+public class ResourceRequestState {
+  private static final Logger log = LoggerFactory.getLogger(ResourceRequestState.class);
   public static final String ANY_HOST = "ANY_HOST";
 
   /**
@@ -64,7 +64,7 @@ public class ContainerRequestState {
 
   private final Object lock = new Object();
 
-  public ContainerRequestState(boolean hostAffinityEnabled, ClusterResourceManager manager) {
+  public ResourceRequestState(boolean hostAffinityEnabled, ClusterResourceManager manager) {
     this.hostAffinityEnabled = hostAffinityEnabled;
     this.manager = manager;
   }

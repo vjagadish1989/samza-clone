@@ -189,14 +189,14 @@ public class ClusterManagerConfig extends MapConfig{
   }
 
 
-    public int getJobCoordinatorSleepInterval() {
-        return getInt(CLUSTER_MANAGER_SLEEP_MS, DEFAULT_CLUSTER_MANAGER_SLEEP_MS);
-    }
+  public int getJobCoordinatorSleepInterval() {
+      return getInt(CLUSTER_MANAGER_SLEEP_MS, DEFAULT_CLUSTER_MANAGER_SLEEP_MS);
+  }
 
-    public String getContainerManagerClass()
-    {
-        return get(CLUSTER_MANAGER_FACTORY, CLUSTER_MANAGER_FACTORY_DEFAULT);
-    }
+  public String getContainerManagerClass()
+  {
+      return get(CLUSTER_MANAGER_FACTORY, CLUSTER_MANAGER_FACTORY_DEFAULT);
+  }
 
   public boolean getJmxEnabled() {
     if(containsKey(CLUSTER_MANAGER_JMX_ENABLED)) {

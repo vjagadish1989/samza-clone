@@ -252,7 +252,7 @@ public class YarnClusterResourceManager extends ClusterResourceManager implement
 
   //TODO: Get rid of the YarnContainer object and just use Container in state.runningYarnContainers hashmap.
   //In that case, this scan will turn into a lookup. This change will require changes/testing in the UI files because
-  //those UI stub templates operate on the YarnContainer object. This will be a part of SAMZA-902 :-)
+  //those UI stub templates operate on the YarnContainer object.
 
   private int getIDForContainer(String lookupContainerId) {
     int samzaContainerID = INVALID_YARN_CONTAINER_ID;

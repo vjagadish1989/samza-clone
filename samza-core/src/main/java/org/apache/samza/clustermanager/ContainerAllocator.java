@@ -33,21 +33,21 @@ public class ContainerAllocator extends AbstractContainerAllocator {
 
   public ContainerAllocator(ClusterResourceManager manager,
                             Config config, SamzaAppState state) {
-    super(manager, new ContainerRequestState(false, manager), config, state);
+    super(manager, new ResourceRequestState(false, manager), config, state);
   }
 
   /**
    * During the run() method, the thread sleeps for allocatorSleepIntervalMs ms. It then invokes assignResourceRequests,
-   * and tries to allocate any unsatisfied request that is still in the request queue {@link ContainerRequestState})
+   * and tries to allocate any unsatisfied request that is still in the request queue {@link ResourceRequestState})
    * with allocated resources, if any.
    *
    * Since host-affinity is not enabled, all allocated resources are buffered in the list keyed by "ANY_HOST".
    * */
   @Override
   public void assignResourceRequests() {
-    while (hasPendingRequest() && hasAllocatedResource(ContainerRequestState.ANY_HOST)) {
+    while (hasPendingRequest() && hasAllocatedResource(ResourceRequestState.ANY_HOST)) {
       SamzaResourceRequest request = peekPendingRequest();
-      runStreamProcessor(request, ContainerRequestState.ANY_HOST);
+      runStreamProcessor(request, ResourceRequestState.ANY_HOST);
     }
   }
 }

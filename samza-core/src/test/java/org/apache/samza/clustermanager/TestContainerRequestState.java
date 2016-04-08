@@ -31,7 +31,7 @@ public class TestContainerRequestState {
   private final MockClusterResourceManagerCallback callback = new MockClusterResourceManagerCallback();
   private final MockClusterResourceManager manager = new MockClusterResourceManager(callback);
 
-  private static final String ANY_HOST = ContainerRequestState.ANY_HOST;
+  private static final String ANY_HOST = ResourceRequestState.ANY_HOST;
 
   /**
    * Test state after a request is submitted
@@ -39,7 +39,7 @@ public class TestContainerRequestState {
   @Test
   public void testUpdateRequestState() {
     // Host-affinity is enabled
-    ContainerRequestState state = new ContainerRequestState(true, manager);
+    ResourceRequestState state = new ResourceRequestState(true, manager);
     SamzaResourceRequest request = new SamzaResourceRequest(1, 1024, "abc", 0);
     state.addResourceRequest(request);
 
@@ -56,7 +56,7 @@ public class TestContainerRequestState {
     assertEquals(0, state.getResourcesOnAHost("abc").size());
 
     // Host-affinity is not enabled
-    ContainerRequestState state1 = new ContainerRequestState(false, manager);
+    ResourceRequestState state1 = new ResourceRequestState(false, manager);
     SamzaResourceRequest request1 = new SamzaResourceRequest(1, 1024, null, 1);
     state1.addResourceRequest(request1);
 
@@ -78,7 +78,7 @@ public class TestContainerRequestState {
   @Test
   public void testAddContainer() {
     // Add container to ANY_LIST when host-affinity is not enabled
-    ContainerRequestState state = new ContainerRequestState(false, manager);
+    ResourceRequestState state = new ResourceRequestState(false, manager);
     SamzaResource resource = new SamzaResource(1, 1024, "abc", "id1");
 
     state.addResource(resource);
@@ -90,7 +90,7 @@ public class TestContainerRequestState {
     assertEquals(resource, state.getResourcesOnAHost(ANY_HOST).get(0));
 
     // Container Allocated when there is no request in queue
-    ContainerRequestState state1 = new ContainerRequestState(true, manager);
+    ResourceRequestState state1 = new ResourceRequestState(true, manager);
     SamzaResource container1 = new SamzaResource(1, 1024, "zzz", "id2");
     state1.addResource(container1);
 
@@ -142,7 +142,7 @@ public class TestContainerRequestState {
   @Test
   public void testContainerAssignment() throws Exception {
     // Host-affinity enabled
-    ContainerRequestState state = new ContainerRequestState(true, manager);
+    ResourceRequestState state = new ResourceRequestState(true, manager);
     SamzaResourceRequest request = new SamzaResourceRequest(1, 1024, "abc", 0);
 
     SamzaResourceRequest request1 = new SamzaResourceRequest(1, 1024, "def", 0);

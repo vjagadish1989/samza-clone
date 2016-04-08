@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Queue;
 
 
-public class MockContainerRequestState extends ContainerRequestState {
+public class MockContainerRequestState extends ResourceRequestState {
   private final List<MockContainerListener> _mockContainerListeners = new ArrayList<MockContainerListener>();
   private int numAddedContainers = 0;
   private int numReleasedContainers = 0;

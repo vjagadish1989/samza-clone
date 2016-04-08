@@ -86,7 +86,7 @@ public class TestHostAwareContainerAllocator {
 
     assertNotNull(requestState.getRequestsToCountMap());
     assertEquals(1, requestState.getRequestsToCountMap().keySet().size());
-    assertTrue(requestState.getRequestsToCountMap().keySet().contains(ContainerRequestState.ANY_HOST));
+    assertTrue(requestState.getRequestsToCountMap().keySet().contains(ResourceRequestState.ANY_HOST));
   }
 
   /**
@@ -107,7 +107,7 @@ public class TestHostAwareContainerAllocator {
     assertNotNull(requestState.getResourcesOnAHost("xyz"));
     assertEquals(0, requestState.getResourcesOnAHost("xyz").size());
 
-    assertNull(requestState.getResourcesOnAHost(ContainerRequestState.ANY_HOST));
+    assertNull(requestState.getResourcesOnAHost(ResourceRequestState.ANY_HOST));
 
     containerAllocator.addResource(new SamzaResource(1, 10, "abc", "ID1"));
     containerAllocator.addResource(new SamzaResource(1, 10, "def", "ID2"));
@@ -120,9 +120,9 @@ public class TestHostAwareContainerAllocator {
     assertNotNull(requestState.getResourcesOnAHost("xyz"));
     assertEquals(1, requestState.getResourcesOnAHost("xyz").size());
 
-    assertNotNull(requestState.getResourcesOnAHost(ContainerRequestState.ANY_HOST));
-    assertTrue(requestState.getResourcesOnAHost(ContainerRequestState.ANY_HOST).size() == 1);
-    assertEquals("ID2", requestState.getResourcesOnAHost(ContainerRequestState.ANY_HOST).get(0).getResourceID());
+    assertNotNull(requestState.getResourcesOnAHost(ResourceRequestState.ANY_HOST));
+    assertTrue(requestState.getResourcesOnAHost(ResourceRequestState.ANY_HOST).size() == 1);
+    assertEquals("ID2", requestState.getResourcesOnAHost(ResourceRequestState.ANY_HOST).get(0).getResourceID());
   }
 
   @Test
@@ -187,8 +187,8 @@ public class TestHostAwareContainerAllocator {
     assertNotNull(requestsMap.get("def"));
     assertEquals(1, requestsMap.get("def").get());
 
-    assertNotNull(requestsMap.get(ContainerRequestState.ANY_HOST));
-    assertEquals(1, requestsMap.get(ContainerRequestState.ANY_HOST).get());
+    assertNotNull(requestsMap.get(ResourceRequestState.ANY_HOST));
+    assertEquals(1, requestsMap.get(ResourceRequestState.ANY_HOST).get());
   }
 
   /**
@@ -272,8 +272,8 @@ public class TestHostAwareContainerAllocator {
       public void run() {
         assertNull(requestState.getResourcesOnAHost("xyz"));
         assertNull(requestState.getResourcesOnAHost("zzz"));
-        assertNotNull(requestState.getResourcesOnAHost(ContainerRequestState.ANY_HOST));
-        assertTrue(requestState.getResourcesOnAHost(ContainerRequestState.ANY_HOST).size() == 2);
+        assertNotNull(requestState.getResourcesOnAHost(ResourceRequestState.ANY_HOST));
+        assertTrue(requestState.getResourcesOnAHost(ResourceRequestState.ANY_HOST).size() == 2);
       }
     }, null, null);
     requestState.registerContainerListener(listener);

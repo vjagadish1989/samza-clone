@@ -114,15 +114,15 @@ public class TestContainerAllocator {
   @Test
   public void testAddContainer() throws Exception {
     assertNull(requestState.getResourcesOnAHost("abc"));
-    assertNull(requestState.getResourcesOnAHost(ContainerRequestState.ANY_HOST));
+    assertNull(requestState.getResourcesOnAHost(ResourceRequestState.ANY_HOST));
 
     containerAllocator.addResource(new SamzaResource(1, 1000, "abc", "id1"));
     containerAllocator.addResource(new SamzaResource(1, 1000, "xyz", "id1"));
 
 
     assertNull(requestState.getResourcesOnAHost("abc"));
-    assertNotNull(requestState.getResourcesOnAHost(ContainerRequestState.ANY_HOST));
-    assertTrue(requestState.getResourcesOnAHost(ContainerRequestState.ANY_HOST).size() == 2);
+    assertNotNull(requestState.getResourcesOnAHost(ResourceRequestState.ANY_HOST));
+    assertTrue(requestState.getResourcesOnAHost(ResourceRequestState.ANY_HOST).size() == 2);
   }
 
   /**
