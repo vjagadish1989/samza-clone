@@ -24,7 +24,7 @@ import java.io.File
 
 import org.apache.samza.config.{JobConfig, Config}
 import org.apache.samza.config.TaskConfig._
-import org.apache.samza.coordinator.JobCoordinator
+import org.apache.samza.coordinator.JobModelManager
 import org.apache.samza.job.{CommandBuilder, ShellCommandBuilder, StreamJob, StreamJobFactory}
 import org.apache.samza.util.{Logging, Util}
 
@@ -33,7 +33,7 @@ import org.apache.samza.util.{Logging, Util}
  */
 class ProcessJobFactory extends StreamJobFactory with Logging {
   def   getJob(config: Config): StreamJob = {
-    val coordinator = JobCoordinator(config)
+    val coordinator = JobModelManager(config)
     val containerModel = coordinator.jobModel.getContainers.get(0)
 
     val fwkPath = JobConfig.getFwkPath(config) // see if split deployment is configured
