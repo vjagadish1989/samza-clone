@@ -44,12 +44,6 @@ import java.util.concurrent.ConcurrentMap;
 
 public class YarnAppState {
 
-   /*
-   * Final status of the application
-   * Modified by both the AMRMCallbackThread and the ContainerAllocator thread
-   */
-   public FinalApplicationStatus yarnContainerManagerStatus = FinalApplicationStatus.UNDEFINED;
-
   /**
    /**
   * State indicating whether the job is healthy or not
@@ -93,7 +87,6 @@ public class YarnAppState {
         ", rpcUrl=" + rpcUrl +
         ", trackingUrl=" + trackingUrl +
         ", runningYarnContainers=" + runningYarnContainers +
-        ", yarnContainerManagerStatus=" + yarnContainerManagerStatus +
         ", failedContainersStatus=" + failedContainersStatus +
         '}';
   }

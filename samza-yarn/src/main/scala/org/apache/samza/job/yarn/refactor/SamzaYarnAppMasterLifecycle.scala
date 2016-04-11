@@ -50,7 +50,7 @@ class SamzaYarnAppMasterLifecycle(containerMem: Int, containerCpu: Int, state: Y
       shutdownMessage = "The YARN cluster is unable to run your job due to unsatisfiable resource requirements. You asked for mem: %s, and cpu: %s." format (containerMem, containerCpu)
       error(shutdownMessage)
       validResourceRequest = false
-      state.yarnContainerManagerStatus = FinalApplicationStatus.FAILED
+      state.samzaAppState.status = SamzaAppStatus.FAILED;
       state.samzaAppState.jobHealthy.set(false)
     }
   }
@@ -60,19 +60,30 @@ class SamzaYarnAppMasterLifecycle(containerMem: Int, containerCpu: Int, state: Y
   }
 
   def onShutdown(samzaAppStatus: SamzaAppStatus) {
-    info("Shutting down SamzaAppStatus: " + samzaAppStatus + " YarnContainerManagerStatus: " + state.yarnContainerManagerStatus )
+    val yarnStatus: FinalApplicationStatus = getStatus(samzaAppStatus)
+    info("Shutting down SamzaAppStatus: " + samzaAppStatus + " yarn status: " + yarnStatus)
     //The value of state.status is set to either SUCCEEDED or FAILED for errors we catch and handle - like container failures
     //All other AM failures (errors in callbacks/connection failures after retries/token expirations) should not unregister the AM,
     //allowing the RM to restart it (potentially on a different host)
-    if(samzaAppStatus != SamzaAppStatus.UNDEFINED && state.yarnContainerManagerStatus != FinalApplicationStatus.UNDEFINED) {
+    if(samzaAppStatus != SamzaAppStatus.UNDEFINED) {
       info("Unregistering AM from the RM.")
-      amClient.unregisterApplicationMaster(state.yarnContainerManagerStatus, shutdownMessage, null)
+      amClient.unregisterApplicationMaster(yarnStatus, shutdownMessage, null)
       info("Unregister complete.")
     }
     else {
       info("Not unregistering AM from the RM. This will enable RM retries")
     }
   }
+
+  def getStatus(samzaAppStatus: SamzaAppStatus): FinalApplicationStatus = {
+    if (samzaAppStatus == SamzaAppStatus.FAILED)
+      FinalApplicationStatus.FAILED;
+    if(samzaAppStatus == SamzaAppStatus.SUCCEEDED)
+      FinalApplicationStatus.SUCCEEDED;
+
+    FinalApplicationStatus.UNDEFINED
+  }
+
 
   def shouldShutdown = !validResourceRequest
 }

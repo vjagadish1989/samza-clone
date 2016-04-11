@@ -25,6 +25,7 @@ import org.apache.hadoop.yarn.client.api.AMRMClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.ConverterUtils;
+import org.apache.samza.SamzaException;
 import org.apache.samza.clustermanager.*;
 import org.apache.samza.config.Config;
 import org.apache.samza.config.ShellCommandConfig;
@@ -154,6 +155,11 @@ public class YarnClusterResourceManager extends ClusterResourceManager implement
     amClient.init(hConfig);
     amClient.start();
     lifecycle.onInit();
+
+    if(lifecycle.shouldShutdown()) {
+      _callback.onError(new SamzaException("Invalid resource request."));
+    }
+
     log.info("Finished starting YarnContainerManager");
   }
 
@@ -388,4 +394,5 @@ public class YarnClusterResourceManager extends ClusterResourceManager implement
     log.error("Exception in the Yarn callback {}", e);
     _callback.onError(e);
   }
+
 }
