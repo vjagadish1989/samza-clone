@@ -77,11 +77,11 @@ class SamzaYarnAppMasterLifecycle(containerMem: Int, containerCpu: Int, state: Y
 
   def getStatus(samzaAppStatus: SamzaAppStatus): FinalApplicationStatus = {
     if (samzaAppStatus == SamzaAppStatus.FAILED)
-      FinalApplicationStatus.FAILED;
+       return FinalApplicationStatus.FAILED
     if(samzaAppStatus == SamzaAppStatus.SUCCEEDED)
-      FinalApplicationStatus.SUCCEEDED;
+       return FinalApplicationStatus.SUCCEEDED
 
-    FinalApplicationStatus.UNDEFINED
+   return FinalApplicationStatus.UNDEFINED
   }
 
 
