@@ -58,7 +58,7 @@ JIRA_PASSWORD = os.environ.get("JIRA_PASSWORD", "yogi.ram1")
 # will be unauthenticated. You should only need to configure this if you find yourself regularly
 # exceeding your IP's unauthenticated request rate limit. You can create an OAuth key at
 # https://github.com/settings/tokens. This script only requires the "public_repo" scope.
-GITHUB_OAUTH_KEY = os.environ.get("GITHUB_OAUTH_KEY", "897a04df6e07ccb5b28d3a056d06b1271761dcda")
+GITHUB_OAUTH_KEY = os.environ.get("GITHUB_OAUTH_KEY", "4a67d7418789a90723557a160d040308aaa03451")
 
 GITHUB_USER = os.environ.get("GITHUB_USER", "vjagadish")
 GITHUB_BASE = "https://github.com/%s/%s/pull" % (GITHUB_USER, PROJECT_NAME)
