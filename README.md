@@ -1,4 +1,4 @@
-## What is Samza?
+## What is Samza?.
 
 [Apache Samza](http://samza.apache.org/) is a distributed stream processing framework. It uses [Apache Kafka](http://kafka.apache.org) for messaging, and [Apache Hadoop YARN](http://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/YARN.html) to provide fault tolerance, processor isolation, security, and resource management.
 

@@ -76,9 +76,13 @@ DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "0.10.0")
 
 def get_json(url):
     try:
+        print "requesting from %s" % url    
+
         request = urllib2.Request(url)
         if GITHUB_OAUTH_KEY:
+            print "requesting from %s" % url
             request.add_header('Authorization', 'token %s' % GITHUB_OAUTH_KEY)
+        print request    
         return json.load(urllib2.urlopen(request))
     except urllib2.HTTPError as e:
         if "X-RateLimit-Remaining" in e.headers and e.headers["X-RateLimit-Remaining"] == '0':
@@ -484,4 +488,3 @@ if __name__ == "__main__":
         exit(-1)
 
     main()
-
